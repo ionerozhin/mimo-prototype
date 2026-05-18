@@ -514,3 +514,59 @@ function Accordion({
   );
 }
 
+// ── Banner (DS: info / warning / success / error notification banner) ────────
+function Banner({ variant, children, onDismiss, action, icon, style }) {
+  var _variant = variant || "info";
+  var _style = style || {};
+  var _dismissed = useState(false);
+  var dismissed = _dismissed[0];
+  var setDismissed = _dismissed[1];
+  if (dismissed) return null;
+
+  var VARIANTS = {
+    info:    { bg: T.colorInfoBg, border: T.colorInfoBorder, color: "#6389CF", iconColor: "#6389CF" },
+    warning: { bg: T.colorWarningBg, border: T.colorWarningBorder, color: T.colorWarning, iconColor: T.colorWarning },
+    success: { bg: T.colorSuccessBg, border: T.colorSuccessBorder, color: "#6BAC5B", iconColor: T.colorBrandPrimary },
+    error:   { bg: T.colorErrorBg, border: T.colorErrorBorder, color: T.colorError, iconColor: T.colorError },
+  };
+  var v = VARIANTS[_variant] || VARIANTS.info;
+
+  var defaultIcons = {
+    info: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none", style: { flexShrink: 0, marginTop: 2 } },
+      React.createElement("circle", { cx: 8, cy: 8, r: 7, stroke: v.iconColor, strokeWidth: 1.5, fill: "none" }),
+      React.createElement("path", { d: "M8 7v4M8 5.5v0", stroke: v.iconColor, strokeWidth: 1.5, strokeLinecap: "round" })
+    ),
+    warning: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none", style: { flexShrink: 0, marginTop: 2 } },
+      React.createElement("path", { d: "M8 1.333L1.333 13.333h13.334L8 1.333z", stroke: v.iconColor, strokeWidth: 1.25, strokeLinecap: "round", strokeLinejoin: "round", fill: "none" }),
+      React.createElement("path", { d: "M8 6v3.333M8 11.333h.007", stroke: v.iconColor, strokeWidth: 1.25, strokeLinecap: "round", strokeLinejoin: "round" })
+    ),
+    success: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none", style: { flexShrink: 0, marginTop: 2 } },
+      React.createElement("circle", { cx: 8, cy: 8, r: 7, stroke: v.iconColor, strokeWidth: 1.5, fill: "none" }),
+      React.createElement("path", { d: "M5 8l2 2 4-4", stroke: v.iconColor, strokeWidth: 1.5, strokeLinecap: "round", strokeLinejoin: "round" })
+    ),
+    error: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none", style: { flexShrink: 0, marginTop: 2 } },
+      React.createElement("circle", { cx: 8, cy: 8, r: 7, stroke: v.iconColor, strokeWidth: 1.5, fill: "none" }),
+      React.createElement("path", { d: "M10 6L6 10M6 6l4 4", stroke: v.iconColor, strokeWidth: 1.5, strokeLinecap: "round", strokeLinejoin: "round" })
+    ),
+  };
+
+  return React.createElement("div", { style: Object.assign({
+    background: v.bg, border: "1px solid " + v.border, borderRadius: 8,
+    padding: "12px 16px", display: "flex", alignItems: "flex-start", gap: 10,
+    fontFamily: "'Inter', sans-serif",
+  }, _style) },
+    icon || defaultIcons[_variant],
+    React.createElement("span", { style: { fontSize: 13, color: "#4F4F4F", lineHeight: "20px", flex: 1 } }, children),
+    action && React.createElement("button", {
+      onClick: action.onClick,
+      style: { flexShrink: 0, padding: "4px 10px", borderRadius: 6, border: "1px solid " + v.border, background: "transparent", cursor: "pointer", fontSize: 12, fontWeight: 500, color: v.color, fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap" },
+    }, action.label),
+    onDismiss && React.createElement("button", {
+      onClick: function() { setDismissed(true); if (onDismiss) onDismiss(); },
+      style: { flexShrink: 0, border: "none", background: "none", cursor: "pointer", padding: 2, display: "flex", alignItems: "center", justifyContent: "center" },
+    }, React.createElement("svg", { width: 14, height: 14, viewBox: "0 0 14 14", fill: "none" },
+      React.createElement("path", { d: "M10.5 3.5L3.5 10.5M3.5 3.5l7 7", stroke: v.color, strokeWidth: 1.25, strokeLinecap: "round", strokeLinejoin: "round" })
+    ))
+  );
+}
+

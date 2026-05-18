@@ -397,8 +397,8 @@ var PLExpandedRow = function(props) {
     fontFamily: T.fontFamily,
   };
 
-  // Review toggle element (reused in comment section)
-  var reviewToggle = React.createElement("div", {
+  // Review toggle element (reused in comment section) — only shown when onToggleReview is provided
+  var reviewToggle = !onToggleReview ? null : React.createElement("div", {
     style: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 },
   },
     React.createElement("div", {
@@ -690,18 +690,28 @@ function ProfitAndLossPage(props) {
     });
   };
 
-  // Build columns with review column that has access to component state
-  var plColumns = PL_COLUMNS.concat([{
+  // P&L page state: "disabled" | "preparing" | "reviewing"
+  // disabled  = no expansion, no context badges, no review column
+  // preparing = expandable, context badges, no review column, no review toggle
+  // reviewing = expandable, context badges, review column, review toggle
+  var _plState = useState("disabled");
+  var plState = _plState[0];
+  var setPlState = _plState[1];
+
+  // Build columns based on state
+  var accountColumnDisabled = {
+    key: "account", label: "Account", width: "minmax(320px, 1fr)",
+    render: function(v) { return React.createElement("span", null, v); },
+  };
+  var reviewColumn = {
     key: "pctDiff",
     label: "Review",
     width: "120px",
     render: function(v, row) {
-      // If toggled as reviewed, show green badge
       var rd = plReviewStatuses[row.code];
       if (rd && rd.status === "Reviewed") {
         return React.createElement(StatusBadge, { variant: "success", size: "mini" }, "Reviewed");
       }
-      // Check pctStatus flag (for accounts with null pctDiff but flagged for review)
       if (row.pctStatus === "review") {
         return React.createElement(StatusBadge, { variant: "error", size: "mini" }, "Review");
       }
@@ -716,7 +726,14 @@ function ProfitAndLossPage(props) {
       }
       return React.createElement(StatusBadge, { variant: "neutral", size: "mini" }, "Not reviewed");
     },
-  }]);
+  };
+  var plColumns = (function() {
+    var cols = plState === "disabled"
+      ? [accountColumnDisabled].concat(PL_COLUMNS.slice(1))
+      : PL_COLUMNS.slice();
+    if (plState === "reviewing") cols.push(reviewColumn);
+    return cols;
+  })();
 
   var sugCount = PL_SUGGESTIONS.filter(function(s) { return !resolvedSug.has(s.key) && !ignoredSug.has(s.key); }).length;
 
@@ -729,119 +746,120 @@ function ProfitAndLossPage(props) {
       React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between" } },
         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12 } },
           React.createElement("h1", { style: { fontSize: 32, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "40px", letterSpacing: "-1px", margin: 0 } }, "Profit and Loss"),
-          React.createElement(StatusBadge, { variant: "success" }, "Started by Mark Smith")
+          React.createElement(StatusBadge, { variant: "neutral" }, "Not started")
         ),
         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
-          React.createElement(PrimaryButton, { style: { height: 40, padding: "0 16px" } }, "Mark as prepared"),
-          React.createElement(SecondaryButton, { style: { height: 40, boxSizing: "border-box", padding: "0 16px", display: "inline-flex", alignItems: "center", gap: 6 } },
-            React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" },
-              React.createElement("path", { d: "M14 10V12.6667C14 13.0203 13.8595 13.3594 13.6095 13.6095C13.3594 13.8595 13.0203 14 12.6667 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V10M4.66667 6.66667L8 10M8 10L11.3333 6.66667M8 10V2", stroke: "#545453", strokeWidth: "1.25", strokeLinecap: "round", strokeLinejoin: "round" })
-            ),
-            "Export"
+          React.createElement(PrimaryButton, { style: { height: 40, padding: "0 16px", display: "inline-flex", alignItems: "center", gap: 6 } },
+            React.createElement(PlayCircleIcon, { color: "#FFFFFF", size: 16 }),
+            "Start preparing"
           )
         )
       ),
-      // Entries synced subtitle
-      React.createElement("div", { style: { textAlign: "right", fontSize: 12, color: T.colorTextSecondary, marginTop: 4 } },
-        "Entries synced: 11 Dec 2025, 20:34:40"
-      ),
 
-      // ── Summary + Overall Performance cards ──────────────────────────────
-      React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 32, alignItems: "start" } },
+      // ── To do section ─────────────────────────────────────────────────────
+      React.createElement("div", { style: { marginTop: 48 } },
+        React.createElement("h2", { style: { fontSize: 22, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-0.5px", margin: "0 0 16px" } }, "To do"),
 
-        // Summary card
-        React.createElement("div", { style: {
-          background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12,
-          padding: "16px", display: "flex", flexDirection: "column", gap: 16,
-        } },
-          React.createElement("h2", { style: { fontSize: 18, fontWeight: 500, color: T.colorTextPrimary, margin: 0 } }, "Summary"),
-          PL_SUMMARY_TEXT.map(function(para, i) {
-            return React.createElement("p", { key: i, style: { fontSize: 14, lineHeight: "22px", color: T.colorTextThird, margin: 0 } }, para);
-          })
+        // Prepare P&L accordion
+        React.createElement("div", { style: { background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 8, overflow: "hidden" } },
+          React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px" } },
+            React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 0 } },
+              React.createElement("span", { style: { fontSize: 16, fontWeight: 500, color: T.colorTextPrimary } }, "Prepare P&L"),
+              React.createElement("span", { style: { fontSize: 14, color: T.colorTextSecondary } }, "Not started")
+            ),
+            React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12, marginLeft: 24, flexShrink: 0 } },
+              React.createElement(AdjWorkflowCard, { label: "Start preparing" })
+            )
+          )
         ),
 
-        // Overall Performance card
-        React.createElement("div", { style: {
-          background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12,
-          padding: "16px", display: "flex", flexDirection: "column", gap: 0,
-        } },
-          // Card header
-          React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, padding: "0" } },
-            React.createElement("h2", { style: { fontSize: 18, fontWeight: 500, color: T.colorTextPrimary, margin: 0 } }, "Overall Performance"),
-            React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
-              React.createElement("span", { style: { fontSize: 13, color: T.colorTextSecondary } }, "Compare to"),
-              React.createElement(Dropdown, {
-                value: compareTo,
-                onChange: setCompareTo,
-                options: COMPARE_OPTIONS,
-                width: 150,
-                size: "sm",
-              })
-            )
-          ),
-          // Column headers
-          React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 0, padding: "0 12px 8px" } },
-            React.createElement("span", { style: { width: 120, textAlign: "right", fontSize: 12, fontWeight: 500, color: T.colorTextSecondary } }, "Actual (Apr)"),
-            React.createElement("span", { style: { width: 100, textAlign: "right", fontSize: 12, fontWeight: 500, color: T.colorTextSecondary } }, "vs. Last month")
-          ),
-          // Performance rows
-          PERFORMANCE_ROWS.map(function(row, i) {
-            var isZebra = i % 2 === 0;
-            return React.createElement("div", {
-              key: row.label,
-              style: {
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                padding: "12px 12px",
-                background: isZebra ? T.colorSurfaceSecondary : T.colorSurfacePrimary,
-                borderRadius: 6,
-              },
-            },
-              React.createElement("span", { style: { fontSize: 14, fontWeight: 500, color: T.colorTextPrimary } }, row.label),
-              React.createElement("div", { style: { display: "flex", gap: 0 } },
-                React.createElement("span", { style: { width: 120, textAlign: "right", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary } }, row.actual),
-                React.createElement("span", { style: {
-                  width: 100, textAlign: "right", fontSize: 14, fontWeight: 500,
-                  color: T.colorTextPrimary,
-                } }, row.change)
+        // Review P&L accordion
+        React.createElement("div", { style: { background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 8, overflow: "hidden", marginTop: 16, opacity: 0.6 } },
+          React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px" } },
+            React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 0 } },
+              React.createElement("span", { style: { fontSize: 16, fontWeight: 500, color: T.colorTextPrimary } }, "Review P&L"),
+              React.createElement("span", { style: { fontSize: 14, color: T.colorTextSecondary } }, "Available after preparation is complete")
+            ),
+            React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12, marginLeft: 24, flexShrink: 0 } },
+              // Disabled WorkflowCard with lock icon
+              React.createElement("div", { style: {
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "6px 12px", height: 44, boxSizing: "border-box",
+                border: "1px solid " + T.colorBorderDark, borderRadius: T.radius6,
+                background: T.colorSurfaceSecondary,
+                fontSize: 14, fontWeight: 500, fontFamily: T.fontFamily,
+                color: T.colorTextSecondary, lineHeight: "22px", letterSpacing: "0.15px",
+                whiteSpace: "nowrap", cursor: "default",
+              } },
+                "Review",
+                React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" },
+                  React.createElement("rect", { x: 3.75, y: 8.75, width: 12.5, height: 8.75, rx: 1.5, stroke: T.colorTextSecondary, strokeWidth: 1.25 }),
+                  React.createElement("path", { d: "M6.25 8.75V6.25C6.25 4.17893 7.92893 2.5 10 2.5C12.0711 2.5 13.75 4.17893 13.75 6.25V8.75", stroke: T.colorTextSecondary, strokeWidth: 1.25, strokeLinecap: "round" })
+                )
               )
-            );
+            )
+          )
+        )
+      ),
+
+      // ── Spacing + Divider ───────────────────────────────────────────────────
+      React.createElement("div", { style: { width: "100%", height: 0, borderTop: "1px solid " + T.colorBorderDark, marginTop: 40, marginBottom: 40 } }),
+
+      // ── P&L Overview section title + Compare to ───────────────────────────
+      React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between" } },
+        React.createElement("h2", { style: { fontSize: 22, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-0.5px", margin: 0 } }, "Profit and Loss overview"),
+        React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, opacity: plState === "disabled" ? 0.5 : 1, pointerEvents: plState === "disabled" ? "none" : "auto" } },
+          React.createElement("span", { style: { fontSize: 13, color: T.colorTextSecondary } }, "Compare to"),
+          React.createElement(Dropdown, {
+            value: compareTo,
+            onChange: setCompareTo,
+            options: COMPARE_OPTIONS,
+            width: 150,
+            size: "sm",
           })
         )
       ),
 
-      // ── Suggestions accordion (DS Accordion + RecommendationCard) ──────
-      PL_SUGGESTIONS.length > 0 && React.createElement("div", { style: { marginTop: 20 } },
+      // ── Info banner (disabled state only) ────────────────────────────────
+      plState === "disabled" && React.createElement("div", { style: { marginTop: 16 } },
+        React.createElement(Banner, { variant: "info" },
+          "Click Start preparing to see this period’s variance commentary, unusual movements, and suggested accruals."
+        )
+      ),
+
+      // ── Overall Performance accordion ────────────────────────────────────
+      React.createElement("div", { style: { marginTop: 24, opacity: plState === "disabled" ? 0.5 : 1, pointerEvents: plState === "disabled" ? "none" : "auto", transition: "opacity 0.2s" } },
         React.createElement(Accordion, {
-          title: sugCount > 0
-            ? sugCount + " suggested adjustment" + (sugCount !== 1 ? "s" : "")
-            : "All suggestions resolved",
-          icon: React.createElement(SparkleIcon, null),
+          title: "Overall Performance",
           defaultExpanded: false,
         },
-          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12, paddingTop: 4 } },
-            PL_SUGGESTIONS.map(function(sug) {
-              var isRes = resolvedSug.has(sug.key);
-              var isIgn = ignoredSug.has(sug.key);
-              var primaryActionLabels = { "Create accrual": "Accrual created", "Post release": "Release posted", "Add to schedule": "Added to schedule" };
-              var statusLabel = isRes ? (sugActions[sug.key] || "Resolved") : isIgn ? "Resolved" : "Unresolved";
-              var statusStyle = isRes ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgn ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
-              return React.createElement(RecommendationCard, {
-                key: sug.key,
-                title: sug.title,
-                description: sug.description,
-                statusLabel: statusLabel,
-                statusStyle: statusStyle,
-                collapsed: isRes || isIgn,
-                isIgnored: isIgn,
-                tableRow: sug.tableRow,
-                verticalTable: true,
-                primaryLabel: sug.primaryLabel,
-                secondaryLabel: sug.secondaryLabel,
-                hideMore: true,
-                onPrimaryAction: function() { resolveSuggestion(sug.key, primaryActionLabels[sug.primaryLabel] || "Resolved"); },
-                onSecondaryAction: function() { resolveSuggestion(sug.key, "Resolved"); },
-                onIgnore: function() { ignoreSuggestion(sug.key); },
-              });
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 0, padding: "8px 0 0" } },
+            // Column headers
+            React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 0, padding: "0 12px 8px" } },
+              React.createElement("span", { style: { width: 120, textAlign: "right", fontSize: 12, fontWeight: 500, color: T.colorTextSecondary } }, "Actual (Apr)"),
+              React.createElement("span", { style: { width: 100, textAlign: "right", fontSize: 12, fontWeight: 500, color: T.colorTextSecondary } }, "vs. Last month")
+            ),
+            // Performance rows
+            PERFORMANCE_ROWS.map(function(row, i) {
+              var isZebra = i % 2 === 0;
+              return React.createElement("div", {
+                key: row.label,
+                style: {
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "12px 12px",
+                  background: isZebra ? T.colorSurfaceSecondary : T.colorSurfacePrimary,
+                  borderRadius: 6,
+                },
+              },
+                React.createElement("span", { style: { fontSize: 14, fontWeight: 500, color: T.colorTextPrimary } }, row.label),
+                React.createElement("div", { style: { display: "flex", gap: 0 } },
+                  React.createElement("span", { style: { width: 120, textAlign: "right", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary } }, row.actual),
+                  React.createElement("span", { style: {
+                    width: 100, textAlign: "right", fontSize: 14, fontWeight: 500,
+                    color: T.colorTextPrimary,
+                  } }, row.change)
+                )
+              );
             })
           )
         )
@@ -849,27 +867,29 @@ function ProfitAndLossPage(props) {
 
       // ── P&L Data Sections ────────────────────────────────────────────────
       PL_SECTIONS.map(function(section, si) {
-        return React.createElement("div", { key: si, style: { display: "flex", flexDirection: "column", gap: 0, marginTop: si === 0 ? 28 : 32 } },
-          React.createElement("h3", { style: { fontSize: 18, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 12px" } }, section.heading),
-          React.createElement(DataTable, {
-            columns: plColumns,
-            rows: section.rows,
-            footerLabel: section.footer,
-            showExpandColumn: true,
-            renderExpanded: function(row) {
-              var rc = ctx.store.rowComments || {};
-              return React.createElement(PLExpandedRow, {
-                row: row,
-                comments: rc[row.code] || [],
-                onAddComment: function(code, text) { ctx.dispatch({ type: "ADD_COMMENT", accountCode: code, text: text }); },
-                reviewData: plReviewStatuses[row.code],
-                onToggleReview: handleTogglePlReview,
-              });
-            },
-            showCommentColumn: true,
-            rowComments: ctx.store.rowComments || {},
-            minWidth: 1000,
-          })
+        return React.createElement("div", { key: si, style: { marginTop: 24 } },
+          React.createElement("div", { style: plState === "disabled" ? { opacity: 0.5, pointerEvents: "none" } : null },
+            React.createElement(DataTable, {
+              title: section.heading,
+              columns: plColumns,
+              rows: section.rows,
+              footerLabel: section.footer,
+              showExpandColumn: true,
+              renderExpanded: plState !== "disabled" ? function(row) {
+                var rc = ctx.store.rowComments || {};
+                return React.createElement(PLExpandedRow, {
+                  row: row,
+                  comments: rc[row.code] || [],
+                  onAddComment: function(code, text) { ctx.dispatch({ type: "ADD_COMMENT", accountCode: code, text: text }); },
+                  reviewData: plReviewStatuses[row.code],
+                  onToggleReview: plState === "reviewing" ? handleTogglePlReview : null,
+                });
+              } : undefined,
+              showCommentColumn: true,
+              rowComments: ctx.store.rowComments || {},
+              minWidth: 1000,
+            })
+          )
         );
       }),
 
