@@ -32,12 +32,15 @@ jobs:
 
       - name: Assemble site
         run: |
-          mkdir -p _site
+          mkdir -p _site/concept
           cp main/index.html _site/index.html
-          if [ -d concept ]; then
-            mkdir -p _site/concept
+          if [ -f concept/index.html ]; then
             cp concept/index.html _site/concept/index.html
+            echo "Concept index.html copied"
+          else
+            echo "WARNING: concept/index.html not found"
           fi
+          ls -laR _site/
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
