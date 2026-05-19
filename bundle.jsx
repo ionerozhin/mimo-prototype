@@ -19365,6 +19365,109 @@ var CommentIconSvg = function() {
 };
 
 // ── Expanded Row Content (P&L) ──────────────────────────────────────────────
+// ── PlTodoAccordion: expandable to-do card with comments (matches BS preset pattern) ──
+function PlTodoAccordion({ title, subtitle, rightContent, comments, onAddComment, disabled }) {
+  var _exp = useState(false);
+  var expanded = _exp[0];
+  var setExpanded = _exp[1];
+  var _composing = useState(false);
+  var composing = _composing[0];
+  var setComposing = _composing[1];
+  var _commentText = useState("");
+  var commentText = _commentText[0];
+  var setCommentText = _commentText[1];
+  var hasComments = comments && comments.length > 0;
+
+  var handleSubmit = function() {
+    if (!commentText.trim()) return;
+    if (onAddComment) onAddComment(commentText.trim());
+    setCommentText("");
+    setComposing(false);
+  };
+  var handleCancel = function() { setCommentText(""); setComposing(false); };
+
+  var secondaryBtnStyle = {
+    display: "inline-flex", alignItems: "center", gap: 6,
+    padding: "8px 14px", borderRadius: 8,
+    border: "1px solid " + T.colorBorderDark, background: T.colorSurfacePrimary, cursor: "pointer",
+    fontSize: 14, fontWeight: 500, fontFamily: T.fontFamily, color: T.colorTextPrimary,
+  };
+
+  var commentIcon = React.createElement("span", { style: { position: "relative", display: "inline-flex", flexShrink: 0 } },
+    React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" },
+      React.createElement("path", { d: "M14 7.66669C14.0023 8.5466 13.7967 9.41461 13.4 10.2C12.9296 11.1412 12.2065 11.9328 11.3116 12.4862C10.4168 13.0396 9.3855 13.3329 8.33337 13.3334C7.45346 13.3356 6.58545 13.1301 5.80004 12.7334L2 14L3.26667 10.2C2.86995 9.41461 2.66441 8.5466 2.66671 7.66669C2.66714 6.61456 2.96041 5.58325 3.51385 4.6884C4.06729 3.79355 4.85893 3.07041 5.80004 2.60002C6.58545 2.2033 7.45346 1.99776 8.33337 2.00002H8.66671C10.0562 2.07668 11.3687 2.66319 12.3528 3.64726C13.3368 4.63132 13.9234 5.94388 14 7.33335V7.66669Z", stroke: hasComments ? T.colorSuccess : T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round", strokeLinejoin: "round" })
+    ),
+    hasComments && React.createElement("span", { style: { position: "absolute", top: -1, right: -1, width: 6, height: 6, borderRadius: "50%", background: T.colorSuccess } })
+  );
+
+  var chevron = React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none", style: { flexShrink: 0, transition: "transform 0.2s", transform: expanded ? "rotate(180deg)" : "rotate(0deg)" } },
+    React.createElement("path", { d: "M4 6L8 10L12 6", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round", strokeLinejoin: "round" })
+  );
+
+  return React.createElement("div", { style: { background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 8, overflow: "hidden", opacity: disabled ? 0.6 : 1 } },
+    // Header row
+    React.createElement("div", {
+      onClick: disabled ? undefined : function() { setExpanded(!expanded); },
+      style: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", cursor: disabled ? "default" : "pointer" }
+    },
+      React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 0 } },
+        React.createElement("span", { style: { fontSize: 16, fontWeight: 500, color: T.colorTextPrimary } }, title),
+        React.createElement("span", { style: { fontSize: 14, color: T.colorTextSecondary } }, subtitle)
+      ),
+      React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12, marginLeft: 24, flexShrink: 0 } },
+        rightContent,
+        !disabled && commentIcon,
+        !disabled && chevron
+      )
+    ),
+    // Expanded content
+    expanded && !disabled && React.createElement("div", { style: { padding: "0 24px 24px", borderTop: "1px solid " + T.colorBorderDark } },
+      React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 16, paddingTop: 24 } },
+        // Existing comments
+        hasComments && comments.map(function(c, ci) {
+          return React.createElement("div", { key: ci, style: { display: "flex", flexDirection: "column", gap: 4 } },
+            React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+              React.createElement("div", { style: { width: 24, height: 24, borderRadius: "50%", background: T.colorBorderDark, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, color: T.colorTextThird, flexShrink: 0 } },
+                c.user.split(" ").map(function(n) { return n[0]; }).join("")
+              ),
+              React.createElement("span", { style: { fontSize: 13, fontWeight: 600, color: T.colorTextPrimary } }, c.user),
+              React.createElement("span", { style: { fontSize: 13, color: T.colorTextSecondary } }, c.timestamp)
+            ),
+            React.createElement("p", { style: { fontSize: 14, lineHeight: "22px", color: T.colorTextPrimary, margin: 0, paddingLeft: 32 } }, c.text),
+            ci < comments.length - 1 ? React.createElement("div", { style: { width: "100%", height: 0, borderTop: "1px solid " + T.colorBorderDark, marginTop: 12 } }) : null
+          );
+        }),
+        // Compose or add comment button
+        composing
+          ? React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } },
+              React.createElement("textarea", {
+                autoFocus: true, value: commentText,
+                onChange: function(e) { setCommentText(e.target.value); },
+                placeholder: "Write a comment...",
+                style: { width: "100%", minHeight: 80, padding: "10px 12px", borderRadius: 8, border: "1px solid " + T.colorBorderDark, fontSize: 14, fontFamily: "'Inter', sans-serif", lineHeight: "22px", color: T.colorTextPrimary, resize: "vertical", outline: "none", boxSizing: "border-box" },
+              }),
+              React.createElement("div", { style: { display: "flex", gap: 8 } },
+                React.createElement("button", {
+                  onClick: handleSubmit,
+                  style: { display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, border: "1px solid " + T.colorBrandPrimary, background: T.colorBrandPrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextLight, opacity: commentText.trim() ? 1 : 0.4 },
+                }, "Add comment"),
+                React.createElement("button", { onClick: handleCancel, style: secondaryBtnStyle }, "Cancel")
+              )
+            )
+          : React.createElement("button", {
+              onClick: function() { setComposing(true); },
+              style: secondaryBtnStyle,
+            },
+              React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" },
+                React.createElement("path", { d: "M14 7.66669C14.0023 8.5466 13.7967 9.41461 13.4 10.2C12.9296 11.1412 12.2065 11.9328 11.3116 12.4862C10.4168 13.0396 9.3855 13.3329 8.33337 13.3334C7.45346 13.3356 6.58545 13.1301 5.80004 12.7334L2 14L3.26667 10.2C2.86995 9.41461 2.66441 8.5466 2.66671 7.66669C2.66714 6.61456 2.96041 5.58325 3.51385 4.6884C4.06729 3.79355 4.85893 3.07041 5.80004 2.60002C6.58545 2.2033 7.45346 1.99776 8.33337 2.00002H8.66671C10.0562 2.07668 11.3687 2.66319 12.3528 3.64726C13.3368 4.63132 13.9234 5.94388 14 7.33335V7.66669Z", stroke: T.colorTextPrimary, strokeWidth: "1.25", strokeLinecap: "round", strokeLinejoin: "round" })
+              ),
+              "Add comment"
+            )
+      )
+    )
+  );
+}
+
 var PLExpandedRow = function(props) {
   var row = props.row;
   var comments = props.comments || [];
@@ -19701,6 +19804,18 @@ function ProfitAndLossPage(props) {
     });
   };
 
+  // Comments for to-do cards
+  var _todoComments = useState({ prepare: [], review: [] });
+  var todoComments = _todoComments[0];
+  var setTodoComments = _todoComments[1];
+  var addTodoComment = function(key, text) {
+    setTodoComments(function(prev) {
+      var next = Object.assign({}, prev);
+      next[key] = prev[key].concat([{ user: "Mark Smith", timestamp: "Just now", text: text }]);
+      return next;
+    });
+  };
+
   // P&L page state: "disabled" | "preparing" | "reviewing"
   // disabled  = no expansion, no context badges, no review column
   // preparing = expandable, context badges, no review column, no review toggle
@@ -19757,13 +19872,19 @@ function ProfitAndLossPage(props) {
       React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between" } },
         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12 } },
           React.createElement("h1", { style: { fontSize: 32, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "40px", letterSpacing: "-1px", margin: 0 } }, "Profit and Loss"),
-          React.createElement(StatusBadge, { variant: "neutral" }, "Not started")
+          plState === "disabled"
+            ? React.createElement(StatusBadge, { variant: "neutral" }, "Not started")
+            : plState === "preparing"
+              ? React.createElement(StatusBadge, { variant: "info" }, "Preparing")
+              : React.createElement(StatusBadge, { variant: "success" }, "Prepared")
         ),
         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
-          React.createElement(PrimaryButton, { style: { height: 40, padding: "0 16px", display: "inline-flex", alignItems: "center", gap: 6 } },
-            React.createElement(PlayCircleIcon, { color: "#FFFFFF", size: 16 }),
-            "Start preparing"
-          )
+          plState === "disabled"
+            ? React.createElement(PrimaryButton, { style: { height: 40, padding: "0 16px", display: "inline-flex", alignItems: "center", gap: 6 } },
+                React.createElement(PlayCircleIcon, { color: "#FFFFFF", size: 16 }),
+                "Start preparing"
+              )
+            : React.createElement(PrimaryButton, { style: { height: 40, padding: "0 16px" } }, "Mark as prepared")
         )
       ),
 
@@ -19772,44 +19893,44 @@ function ProfitAndLossPage(props) {
         React.createElement("h2", { style: { fontSize: 22, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-0.5px", margin: "0 0 16px" } }, "To do"),
 
         // Prepare P&L accordion
-        React.createElement("div", { style: { background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 8, overflow: "hidden" } },
-          React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px" } },
-            React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 0 } },
-              React.createElement("span", { style: { fontSize: 16, fontWeight: 500, color: T.colorTextPrimary } }, "Prepare P&L"),
-              React.createElement("span", { style: { fontSize: 14, color: T.colorTextSecondary } }, "Not started")
-            ),
-            React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12, marginLeft: 24, flexShrink: 0 } },
-              React.createElement(AdjWorkflowCard, { label: "Start preparing" })
-            )
-          )
-        ),
+        React.createElement(PlTodoAccordion, {
+          title: "Prepare P&L",
+          subtitle: plState === "disabled" ? "Not started" : "Started by Mark Smith, 3 Apr 2026",
+          rightContent: plState === "disabled"
+            ? React.createElement(AdjWorkflowCard, { label: "Start preparing" })
+            : React.createElement(AdjWorkflowCard, {
+                label: sugCount + " suggestion" + (sugCount !== 1 ? "s" : ""),
+                color: T.colorError,
+                subtitle: "3 Apr",
+              }),
+          comments: todoComments.prepare,
+          onAddComment: function(text) { addTodoComment("prepare", text); },
+        }),
 
         // Review P&L accordion
-        React.createElement("div", { style: { background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 8, overflow: "hidden", marginTop: 16, opacity: 0.6 } },
-          React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px" } },
-            React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 0 } },
-              React.createElement("span", { style: { fontSize: 16, fontWeight: 500, color: T.colorTextPrimary } }, "Review P&L"),
-              React.createElement("span", { style: { fontSize: 14, color: T.colorTextSecondary } }, "Available after preparation is complete")
-            ),
-            React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12, marginLeft: 24, flexShrink: 0 } },
-              // Disabled WorkflowCard with lock icon
-              React.createElement("div", { style: {
-                display: "inline-flex", alignItems: "center", gap: 6,
-                padding: "6px 12px", height: 44, boxSizing: "border-box",
-                border: "1px solid " + T.colorBorderDark, borderRadius: T.radius6,
-                background: T.colorSurfaceSecondary,
-                fontSize: 14, fontWeight: 500, fontFamily: T.fontFamily,
-                color: T.colorTextSecondary, lineHeight: "22px", letterSpacing: "0.15px",
-                whiteSpace: "nowrap", cursor: "default",
-              } },
-                "Review",
-                React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" },
-                  React.createElement("rect", { x: 3.75, y: 8.75, width: 12.5, height: 8.75, rx: 1.5, stroke: T.colorTextSecondary, strokeWidth: 1.25 }),
-                  React.createElement("path", { d: "M6.25 8.75V6.25C6.25 4.17893 7.92893 2.5 10 2.5C12.0711 2.5 13.75 4.17893 13.75 6.25V8.75", stroke: T.colorTextSecondary, strokeWidth: 1.25, strokeLinecap: "round" })
-                )
+        React.createElement("div", { style: { marginTop: 16 } },
+          React.createElement(PlTodoAccordion, {
+            title: "Review P&L",
+            subtitle: "Available after preparation is complete",
+            rightContent: React.createElement("div", { style: {
+              display: "inline-flex", alignItems: "center", gap: 6,
+              padding: "6px 12px", height: 44, boxSizing: "border-box",
+              border: "1px solid " + T.colorBorderDark, borderRadius: T.radius6,
+              background: T.colorSurfaceSecondary,
+              fontSize: 14, fontWeight: 500, fontFamily: T.fontFamily,
+              color: T.colorTextSecondary, lineHeight: "22px", letterSpacing: "0.15px",
+              whiteSpace: "nowrap", cursor: "default",
+            } },
+              "Review",
+              React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" },
+                React.createElement("rect", { x: 3.75, y: 8.75, width: 12.5, height: 8.75, rx: 1.5, stroke: T.colorTextSecondary, strokeWidth: 1.25 }),
+                React.createElement("path", { d: "M6.25 8.75V6.25C6.25 4.17893 7.92893 2.5 10 2.5C12.0711 2.5 13.75 4.17893 13.75 6.25V8.75", stroke: T.colorTextSecondary, strokeWidth: 1.25, strokeLinecap: "round" })
               )
-            )
-          )
+            ),
+            comments: todoComments.review,
+            onAddComment: function(text) { addTodoComment("review", text); },
+            disabled: true,
+          })
         )
       ),
 
@@ -19819,7 +19940,7 @@ function ProfitAndLossPage(props) {
       // ── P&L Overview section title + Compare to ───────────────────────────
       React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between" } },
         React.createElement("h2", { style: { fontSize: 22, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-0.5px", margin: 0 } }, "Profit and Loss overview"),
-        React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, opacity: plState === "disabled" ? 0.5 : 1, pointerEvents: plState === "disabled" ? "none" : "auto" } },
+        React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, opacity: plState === "disabled" ? 0.4 : 1, pointerEvents: plState === "disabled" ? "none" : "auto" } },
           React.createElement("span", { style: { fontSize: 13, color: T.colorTextSecondary } }, "Compare to"),
           React.createElement(Dropdown, {
             value: compareTo,
@@ -19839,7 +19960,7 @@ function ProfitAndLossPage(props) {
       ),
 
       // ── Overall Performance accordion ────────────────────────────────────
-      React.createElement("div", { style: { marginTop: 24, opacity: plState === "disabled" ? 0.5 : 1, pointerEvents: plState === "disabled" ? "none" : "auto", transition: "opacity 0.2s" } },
+      React.createElement("div", { style: { marginTop: 24, opacity: plState === "disabled" ? 0.4 : 1, pointerEvents: plState === "disabled" ? "none" : "auto" } },
         React.createElement(Accordion, {
           title: "Overall Performance",
           defaultExpanded: false,
@@ -19879,7 +20000,7 @@ function ProfitAndLossPage(props) {
       // ── P&L Data Sections ────────────────────────────────────────────────
       PL_SECTIONS.map(function(section, si) {
         return React.createElement("div", { key: si, style: { marginTop: 24 } },
-          React.createElement("div", { style: plState === "disabled" ? { opacity: 0.5, pointerEvents: "none" } : null },
+          React.createElement("div", { style: plState === "disabled" ? { opacity: 0.4, pointerEvents: "none" } : null },
             React.createElement(DataTable, {
               title: section.heading,
               columns: plColumns,
