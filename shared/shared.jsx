@@ -1148,9 +1148,12 @@ function RecommendationCard(_rcRef) {
   var onSecondaryAction = _rcRef.onSecondaryAction;
   var onIgnore = _rcRef.onIgnore;
   var onMore = _rcRef.onMore;
+  var renderCardAction = _rcRef.renderCardAction;
 
   var _rcExp = useState(!collapsed && !isIgnored && !accountReconciled);
   var expanded = _rcExp[0]; var setExpanded = _rcExp[1];
+  var _rcHov = useState(false);
+  var cardHovered = _rcHov[0]; var setCardHovered = _rcHov[1];
   var _rcMenu = useState(false);
   var collectMenuOpen = _rcMenu[0]; var setCollectMenuOpen = _rcMenu[1];
   var _rcPos = useState({ top: 0, left: 0 });
@@ -1207,7 +1210,10 @@ function RecommendationCard(_rcRef) {
     );
   };
 
+  var cardActionContent = renderCardAction ? renderCardAction() : null;
+
   return (
+    <div>
     <div style={{ background: "#FFFFFF", border: "1px solid #ECECEC", borderRadius: 8, padding: "20px", fontFamily: "'Inter', sans-serif" }}>
       <div
         style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}
@@ -1217,6 +1223,9 @@ function RecommendationCard(_rcRef) {
           <span style={{ fontSize: 14, fontWeight: 500, color: "#080908" }}>{title}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0, marginLeft: 12 }}>
+          {cardActionContent && (
+            <span onClick={function(e) { e.stopPropagation(); }}>{cardActionContent}</span>
+          )}
           <span style={{ fontSize: 12, fontWeight: 500, padding: "0 8px", height: 25, display: "inline-flex", alignItems: "center", borderRadius: 4, background: effectiveStatusStyle.background, border: effectiveStatusStyle.border, color: effectiveStatusStyle.color, whiteSpace: "nowrap", transition: "all 0.4s ease" }}>
             {effectiveStatusLabel}
           </span>
@@ -1321,6 +1330,7 @@ function RecommendationCard(_rcRef) {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }

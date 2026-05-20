@@ -90,8 +90,12 @@ function DataTable({
   expandedByDefault,
   rowComments = {},
   minWidth,
+  renderRowAction,
 }) {
   const [hovered, setHovered] = useState(null);
+  const rowRefs = useRef([]);
+  const [refsReady, setRefsReady] = useState(false);
+  useEffect(() => { if (renderRowAction && !refsReady) setRefsReady(true); }, [renderRowAction, refsReady]);
   const [expandedRows, setExpandedRows] = useState(() => {
     if (expandedByDefault) return new Set(expandedByDefault);
     return new Set();
@@ -157,6 +161,7 @@ function DataTable({
   );
 
   return (
+    <div style={renderRowAction ? { position: "relative" } : undefined}>
     <div style={{ background: T.colorSurfacePrimary, border: `1px solid ${T.colorBorderDark}`, borderRadius: 8, overflow: "hidden", fontFamily: "'Inter', sans-serif" }}>
       {/* Section title */}
       {title && (
@@ -196,6 +201,7 @@ function DataTable({
         return (
           <React.Fragment key={ri}>
             <div
+              ref={renderRowAction ? (el => { rowRefs.current[ri] = el; }) : undefined}
               onClick={() => {
                 if (renderExpanded) toggleExpand(ri);
                 onRowClick?.(row, ri);
@@ -287,6 +293,35 @@ function DataTable({
 
       </div>
       </div>
+    </div>
+    {/* Row action overlays — outside overflow:hidden, positioned via row refs */}
+    {renderRowAction && refsReady && rows.map((row, ri) => {
+      const actionContent = renderRowAction(row, ri);
+      if (!actionContent) return null;
+      const alwaysShow = actionContent.props && actionContent.props.alwaysShow;
+      const rowEl = rowRefs.current[ri];
+      if (!rowEl) return null;
+      return (
+        <div key={"ra-" + ri}
+          onMouseEnter={() => setHovered(ri)}
+          onMouseLeave={() => setHovered(null)}
+          style={{
+            position: "absolute",
+            top: rowEl.offsetTop,
+            right: 0,
+            height: rowEl.offsetHeight,
+            transform: "translateX(50%)",
+            display: "flex", alignItems: "center",
+            paddingLeft: 8,
+            opacity: alwaysShow ? 1 : (hovered === ri ? 1 : 0),
+            transition: "opacity 0.15s",
+            pointerEvents: alwaysShow ? "auto" : (hovered === ri ? "auto" : "none"),
+            zIndex: 2,
+          }}>
+          {actionContent}
+        </div>
+      );
+    })}
     </div>
   );
 }

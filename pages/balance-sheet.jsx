@@ -4,6 +4,238 @@
 // Bank account codes — accounts that are reconciled via bank reconciliation
 var BANK_ACCOUNT_CODES_SET = new Set(["1210", "1211", "1212", "1213", "1250", "1251"]);
 
+// Comment icon for overview table row hover button
+function BSCommentIcon({ size = 16, color }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
+      <path d="M14 7.667A5.33 5.33 0 0 1 13.4 10.2a5.333 5.333 0 0 1-5.067 3.133A5.33 5.33 0 0 1 5.8 12.733L2 14l1.267-3.8A5.33 5.33 0 0 1 2.667 7.667 5.333 5.333 0 0 1 8.333 2h.334A5.348 5.348 0 0 1 14 7.333v.334Z" stroke={color || T.colorTextSecondary} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+// Comment button for overview table rows and suggestion cards (24x24, secondary style)
+function BSOverviewRowCommentBtn({ onClick, hasComments, commentCount }) {
+  var _tipState = useState(false);
+  var showTip = _tipState[0]; var setShowTip = _tipState[1];
+  var timerRef = useRef(null);
+
+  var handleEnter = function(e) {
+    e.currentTarget.style.background = T.colorSurfaceSecondary;
+    e.currentTarget.style.borderColor = T.colorBorderHover;
+    timerRef.current = setTimeout(function() { setShowTip(true); }, 500);
+  };
+  var handleLeave = function(e) {
+    e.currentTarget.style.background = T.colorSurfacePrimary;
+    e.currentTarget.style.borderColor = T.colorBorderDark;
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+    setShowTip(false);
+  };
+
+  useEffect(function() { return function() { if (timerRef.current) clearTimeout(timerRef.current); }; }, []);
+
+  var tipText = (!commentCount || commentCount === 0)
+    ? "No comments yet"
+    : commentCount === 1 ? "1 comment" : commentCount + " comments";
+
+  return (
+    <button
+      style={{
+        position: "relative",
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        width: 24, height: 24, padding: 0,
+        background: T.colorSurfacePrimary,
+        border: "1px solid " + T.colorBorderDark, borderRadius: 6, cursor: "pointer",
+        transition: "all 0.15s",
+        flexShrink: 0,
+      }}
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
+      onClick={function(e) { e.stopPropagation(); setShowTip(false); if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; } if (onClick) onClick(e); }}
+    >
+      <BSCommentIcon size={14} color={hasComments ? "#6BAC5B" : undefined} />
+      {hasComments && <span style={{ position: "absolute", top: -3, right: -3, width: 6, height: 6, borderRadius: "50%", background: T.colorSuccess, border: "1px solid " + T.colorSurfacePrimary }} />}
+      {showTip && (
+        <span style={{
+          position: "absolute", bottom: "100%", left: "50%", transform: "translateX(-50%)",
+          marginBottom: 6, padding: "4px 8px", borderRadius: 4,
+          background: T.colorTextPrimary, color: T.colorSurfacePrimary,
+          fontSize: 11, fontWeight: 500, whiteSpace: "nowrap", pointerEvents: "none",
+          zIndex: 10001,
+        }}>{tipText}</span>
+      )}
+    </button>
+  );
+}
+
+// Comment popover rendered via portal (escapes overflow:hidden)
+function BSCommentPopoverPortal({ comments, onAdd, onClose, anchorRect }) {
+  const [text, setText] = useState("");
+  const popoverRef = useRef(null);
+
+  // Close on click outside
+  useEffect(() => {
+    function handleClick(e) {
+      if (popoverRef.current && !popoverRef.current.contains(e.target)) {
+        onClose();
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [onClose]);
+
+  const handleSubmit = () => {
+    if (!text.trim()) return;
+    onAdd(text.trim());
+    setText("");
+  };
+
+  if (!anchorRect) return null;
+
+  return ReactDOM.createPortal(
+    <div ref={popoverRef} style={{
+      position: "fixed",
+      top: anchorRect.bottom + 8,
+      left: anchorRect.right - 320,
+      width: 320, background: T.colorSurfacePrimary,
+      border: "1px solid " + T.colorBorderDark, borderRadius: 8,
+      boxShadow: "0 4px 16px rgba(0,0,0,0.10)", zIndex: 10000,
+      padding: 16, display: "flex", flexDirection: "column", gap: 12,
+    }} onClick={function(e) { e.stopPropagation(); }}>
+      {/* Existing comments */}
+      {comments.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: 200, overflowY: "auto" }}>
+          {comments.map((c, i) => (
+            <div key={i} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{
+                  width: 24, height: 24, borderRadius: "50%", background: T.colorBorderDark,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 11, fontWeight: 600, color: T.colorTextThird, flexShrink: 0,
+                }}>
+                  {c.user.split(" ").map(function(n) { return n[0]; }).join("")}
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 600, color: T.colorTextPrimary }}>{c.user}</span>
+                <span style={{ fontSize: 12, color: T.colorTextSecondary }}>{c.timestamp}</span>
+              </div>
+              <p style={{ fontSize: 13, lineHeight: "18px", color: T.colorTextPrimary, margin: 0, paddingLeft: 32 }}>{c.text}</p>
+            </div>
+          ))}
+        </div>
+      )}
+      {comments.length > 0 && <div style={{ height: 1, background: T.colorBorderDark }} />}
+      {/* Textarea */}
+      <textarea
+        value={text}
+        onChange={e => setText(e.target.value)}
+        placeholder="Type your message here"
+        rows={3}
+        style={{
+          width: "100%", resize: "none", border: "1px solid " + T.colorBorderDark,
+          borderRadius: 6, padding: "8px 12px", fontSize: 13, fontFamily: "'Inter', sans-serif",
+          color: T.colorTextPrimary, background: T.colorSurfacePrimary,
+          outline: "none",
+        }}
+        onFocus={function(e) { e.target.style.borderColor = T.colorBorderHover; }}
+        onBlur={function(e) { e.target.style.borderColor = T.colorBorderDark; }}
+      />
+      {/* Buttons */}
+      <div style={{ display: "flex", gap: 8, justifyContent: "flex-start" }}>
+        <button onClick={handleSubmit} style={{
+          padding: "6px 14px", borderRadius: 6, border: "none",
+          background: T.colorBrandPrimary || "#6389CF", fontSize: 13, fontWeight: 500,
+          color: "#fff", cursor: "pointer", opacity: text.trim() ? 1 : 0.5,
+        }}>Add comment</button>
+        <button onClick={onClose} style={{
+          padding: "6px 14px", borderRadius: 6, border: "1px solid " + T.colorBorderDark,
+          background: T.colorSurfacePrimary, fontSize: 13, fontWeight: 500,
+          color: T.colorTextPrimary, cursor: "pointer",
+        }}
+        onMouseEnter={function(e) { e.currentTarget.style.background = T.colorSurfaceSecondary; }}
+        onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; }}
+        >Close</button>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+// Inline comment button + portal popover — rendered inside table cells
+function BSInlineComment({ rowKey, comments, onAddComment, ocUI }) {
+  var btnRef = useRef(null);
+  var isOpen = ocUI.openRow === rowKey;
+  var has = comments.length > 0;
+  var anchorRect = useRef(null);
+
+  var handleClick = function(e) {
+    e.stopPropagation();
+    if (btnRef.current) {
+      anchorRect.current = btnRef.current.getBoundingClientRect();
+    }
+    ocUI.toggleRow(rowKey);
+  };
+
+  // Update rect on scroll/resize while open
+  useEffect(function() {
+    if (!isOpen) return;
+    function update() {
+      if (btnRef.current) anchorRect.current = btnRef.current.getBoundingClientRect();
+    }
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+    return function() {
+      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("resize", update);
+    };
+  }, [isOpen]);
+
+  return (
+    <Fragment>
+      <span ref={btnRef}>
+        <BSOverviewRowCommentBtn
+          hasComments={has}
+          commentCount={comments.length}
+          onClick={handleClick}
+        />
+      </span>
+      {isOpen && anchorRect.current && (
+        <BSCommentPopoverPortal
+          comments={comments}
+          onAdd={function(text) { onAddComment(rowKey, text); }}
+          onClose={function() { ocUI.closeRow(); }}
+          anchorRect={anchorRect.current}
+        />
+      )}
+    </Fragment>
+  );
+}
+
+// Hook: manage overview row comment popover open/close state
+function useOverviewCommentUI() {
+  const [openRow, setOpenRow] = useState(null);
+  const toggleRow = (rowKey) => setOpenRow(prev => prev === rowKey ? null : rowKey);
+  const closeRow = () => setOpenRow(null);
+  return { openRow, toggleRow, closeRow };
+}
+
+// Render helper: builds inline comment element for overview table first-column cells
+function inlineRowComment(ocUI, rowComments, onAddComment, rowKey) {
+  var comments = (rowComments && rowComments[rowKey]) || [];
+  return (
+    <span style={{ marginRight: -4 }}>
+      <BSInlineComment rowKey={rowKey} comments={comments} onAddComment={onAddComment} ocUI={ocUI} />
+    </span>
+  );
+}
+
+// Render helper: builds renderCardAction for suggestion cards with comment buttons
+function cardCommentAction(ocUI, rowComments, onAddComment, commentKey) {
+  var comments = (rowComments && rowComments[commentKey]) || [];
+  return function() {
+    return (
+      <BSInlineComment rowKey={commentKey} comments={comments} onAddComment={onAddComment} ocUI={ocUI} />
+    );
+  };
+}
 
 // ── Balance Sheet: ExpandedRowContent ────────────────────────────────────────
 function ExpandedRowContent({ row, comments = [], onAddComment, reviewData, onToggleReview }) {
@@ -1877,10 +2109,11 @@ function _actionToStatusLabel(actionLabel) {
 }
 
 // ── Balance Sheet: PayrollResultsPanel ───────────────────────────────────────
-function PayrollResultsPanel({ resolvedCards = new Set(), ignoredCards = new Set(), onResolveCard, onIgnoreCard, onShowToast, accountReconciled = false, noDocument = false, customOverviewRows, infoBannerAccounts, customSuggestions, onResyncComplete, initialResyncedData, resolvedLabels = {} }) {
+function PayrollResultsPanel({ resolvedCards = new Set(), ignoredCards = new Set(), onResolveCard, onIgnoreCard, onShowToast, accountReconciled = false, noDocument = false, customOverviewRows, infoBannerAccounts, customSuggestions, onResyncComplete, initialResyncedData, resolvedLabels = {}, rowComments, onAddComment }) {
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [isSyncingAll, setIsSyncingAll] = useState(false);
   const [resyncedData, setResyncedData] = useState(initialResyncedData || {});
+  const ocUI = useOverviewCommentUI();
 
   const _rawOverviewRows = customOverviewRows || [
     { account: "2210 \u2013 PAYE and NI",         xeroBalance: "\u00a322,180.00", sourceBalance: "\u00a322,366.00", variance: "\u00a3186.00" },
@@ -1994,9 +2227,15 @@ function PayrollResultsPanel({ resolvedCards = new Set(), ignoredCards = new Set
       <div style={{ marginBottom: 12 }}>
         <DataTable
           columns={[
-            { key: "account", label: "Account", width: "1.6fr", render: (v, row, ri) => (
-              <span style={isSyncingAll ? { animation: "resyncShimmer 1s ease-in-out infinite" } : {}}>{v}</span>
-            )},
+            { key: "account", label: "Account", width: "1.6fr", render: function(v, row, ri) {
+              var rowKey = "payroll_" + (row.account || "").split(" ")[0];
+              return (
+                <span style={Object.assign({ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }, isSyncingAll ? { animation: "resyncShimmer 1s ease-in-out infinite" } : {})}>
+                  <span>{v}</span>
+                  {inlineRowComment(ocUI, rowComments, onAddComment, rowKey)}
+                </span>
+              );
+            }},
             { key: "xeroBalance", label: "Balance per Xero", width: "1fr", align: "right", render: (v, row, ri) => (
               <span style={isSyncingAll ? { animation: "resyncShimmer 1s ease-in-out infinite" } : {}}>{v}</span>
             )},
@@ -2101,6 +2340,7 @@ function PayrollResultsPanel({ resolvedCards = new Set(), ignoredCards = new Set
               onPrimaryAction={() => { onResolveCard?.(entry.id, _actionToStatusLabel(entry.primaryLabel)); onShowToast?.(entry.toastMessage); }}
               onSecondaryAction={entry.hideSecondary ? null : (() => { onResolveCard?.(entry.id, "Resolved"); onShowToast?.("Marked as resolved"); })}
               onIgnore={() => { onIgnoreCard?.(entry.id); onShowToast?.("Suggestion ignored"); }}
+              renderCardAction={cardCommentAction(ocUI, rowComments, onAddComment, "sug_payroll_" + entry.id)}
             />
           );
         })}
@@ -2141,11 +2381,12 @@ var ACCOUNT_RESYNC_EFFECTS = {
 function _parseGBP(s) { return parseFloat(String(s || "0").replace(/[£,\-]/g, "")) || 0; }
 function _fmtGBP(n) { return "£" + Math.abs(n).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
-function AccountResultsPanel({ config, isDLAPanel, dlaSingleCode, fromCustomPayroll = false, noDocument = false, resolvedCards = new Set(), ignoredCards = new Set(), onResolveCard, onIgnoreCard, onShowToast, accountReconciled = false, onResyncComplete, initialResyncedData, resolvedLabels = {}, resyncIdOffsets = null }) {
+function AccountResultsPanel({ config, isDLAPanel, dlaSingleCode, fromCustomPayroll = false, noDocument = false, resolvedCards = new Set(), ignoredCards = new Set(), onResolveCard, onIgnoreCard, onShowToast, accountReconciled = false, onResyncComplete, initialResyncedData, resolvedLabels = {}, resyncIdOffsets = null, rowComments, onAddComment }) {
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [isSyncingDLA, setIsSyncingDLA] = useState(false);
   const [resyncedDLAData, setResyncedDLAData] = useState((isDLAPanel || dlaSingleCode) ? (initialResyncedData || {}) : {});
   const [resyncedAccountData, setResyncedAccountData] = useState((!isDLAPanel && !dlaSingleCode) ? (initialResyncedData || {}) : {});
+  const ocUI = useOverviewCommentUI();
 
   // Notify parent when DLA resync data changes
   useEffect(function() {
@@ -2319,7 +2560,13 @@ function AccountResultsPanel({ config, isDLAPanel, dlaSingleCode, fromCustomPayr
             columns={[
               { key: "account",  label: "Account",                          width: "1.8fr", render: function(v, row, ri) {
                 var isShimmer = !row.isSummary && isSyncingDLA;
-                return <span style={Object.assign({ fontWeight: row.isSummary ? 600 : 400, color: T.colorTextPrimary }, isShimmer ? { animation: "resyncShimmer 1s ease-in-out infinite" } : {})}>{v}</span>;
+                var rowKey = "dla_" + (row.account || "").split(" ")[0];
+                return (
+                  <span style={Object.assign({ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", fontWeight: row.isSummary ? 600 : 400, color: T.colorTextPrimary }, isShimmer ? { animation: "resyncShimmer 1s ease-in-out infinite" } : {})}>
+                    <span>{v}</span>
+                    {!row.isSummary && inlineRowComment(ocUI, rowComments, onAddComment, rowKey)}
+                  </span>
+                );
               }},
               { key: "opening",  label: "Opening balance (1 Apr 2025)",     width: "1fr", align: "right", render: function(v, row, ri) {
                 var isShimmer = !row.isSummary && isSyncingDLA;
@@ -2345,7 +2592,13 @@ function AccountResultsPanel({ config, isDLAPanel, dlaSingleCode, fromCustomPayr
             <DataTable
               columns={[
                 { key: "opening",  label: "Opening balance (1 Apr 2025)",   width: "1fr", align: "right", render: function(v, row, ri) {
-                  return <span style={isSyncingDLA ? { animation: "resyncShimmer 1s ease-in-out infinite" } : {}}>{v}</span>;
+                  var rowKey = "dlasingle_" + (row.account || "").split(" ")[0];
+                  return (
+                    <span style={Object.assign({ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }, isSyncingDLA ? { animation: "resyncShimmer 1s ease-in-out infinite" } : {})}>
+                      {inlineRowComment(ocUI, rowComments, onAddComment, rowKey)}
+                      <span>{v}</span>
+                    </span>
+                  );
                 }},
                 { key: "movement", label: "Movement in year",               width: "0.9fr", align: "right", render: function(v, row, ri) {
                   return <span style={isSyncingDLA ? { animation: "resyncShimmer 1s ease-in-out infinite" } : {}}>{v}</span>;
@@ -2370,7 +2623,15 @@ function AccountResultsPanel({ config, isDLAPanel, dlaSingleCode, fromCustomPayr
         </div>
         <DataTable
           columns={[
-            { key: "account",       label: "Account",            width: "1.6fr" },
+            { key: "account",       label: "Account",            width: "1.6fr", render: function(v, row, ri) {
+              var rowKey = "custpay_" + (row.account || "").split(" ")[0];
+              return (
+                <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+                  <span>{v}</span>
+                  {inlineRowComment(ocUI, rowComments, onAddComment, rowKey)}
+                </span>
+              );
+            }},
             { key: "xeroBalance",   label: "Balance per Xero",   width: "1fr", align: "right" },
             { key: "sourceBalance", label: "Balance per source",  width: "1fr", align: "right" },
             { key: "variance",      label: "Variance",           width: "0.8fr", align: "right" },
@@ -2382,7 +2643,13 @@ function AccountResultsPanel({ config, isDLAPanel, dlaSingleCode, fromCustomPayr
         <DataTable
           columns={[
             { key: "account",       label: "Account",            width: "1.6fr", render: function(v, row, ri) {
-              return <span style={isSyncingAccount ? { animation: "resyncShimmer 1s ease-in-out infinite" } : {}}>{v}</span>;
+              var rowKey = "acc_" + (row.account || "").split(" ")[0];
+              return (
+                <span style={Object.assign({ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }, isSyncingAccount ? { animation: "resyncShimmer 1s ease-in-out infinite" } : {})}>
+                  <span>{v}</span>
+                  {inlineRowComment(ocUI, rowComments, onAddComment, rowKey)}
+                </span>
+              );
             }},
             { key: "xeroBalance",   label: "Balance per Xero",   width: "1fr", align: "right", render: function(v, row, ri) {
               return <span style={isSyncingAccount ? { animation: "resyncShimmer 1s ease-in-out infinite" } : {}}>{v}</span>;
@@ -2474,6 +2741,7 @@ function AccountResultsPanel({ config, isDLAPanel, dlaSingleCode, fromCustomPayr
               onPrimaryAction={() => { onResolveCard?.(entry.id, _actionToStatusLabel(effectivePrimary)); onShowToast?.(effectiveToast); }}
               onSecondaryAction={effectiveSecondary ? (() => { onResolveCard?.(entry.id, "Resolved"); onShowToast?.("Marked as resolved"); }) : null}
               onIgnore={() => { onIgnoreCard?.(entry.id); onShowToast?.("Suggestion ignored"); }}
+              renderCardAction={cardCommentAction(ocUI, rowComments, onAddComment, "sug_account_" + entry.id)}
             />
           );
         })}
@@ -2487,7 +2755,7 @@ function AccountResultsPanel({ config, isDLAPanel, dlaSingleCode, fromCustomPayr
 }
 
 // ── Balance Sheet: BSReconciliationFlow ──────────────────────────────────────
-function BSReconciliationFlow({ onClose, onMarkReconciled, onSwitchAccount, onSaveState, directAccount, presetType, savedState, bsReconciledData }) {
+function BSReconciliationFlow({ onClose, onMarkReconciled, onSwitchAccount, onSaveState, directAccount, presetType, savedState, bsReconciledData, rowComments, onAddComment }) {
   const isDirectFlow = !!directAccount;
   const isResume = !!savedState;
   const isCustomPayrollResume = isResume && savedState && savedState.customPayrollAccounts && savedState.customPayrollAccounts.length > 0;
@@ -6155,6 +6423,8 @@ function BSReconciliationFlow({ onClose, onMarkReconciled, onSwitchAccount, onSa
                   onResyncComplete={setFaResyncOverrides}
                   initialResyncedData={Object.keys(faResyncOverrides).length > 0 ? faResyncOverrides : null}
                   resyncIdOffsets={faIdOffsetMap}
+                  rowComments={rowComments}
+                  onAddComment={onAddComment}
                 />
               );
             })() : (dlaActive || dlaHasResults) && dlaCanvasReady ? (() => {
@@ -6184,6 +6454,8 @@ function BSReconciliationFlow({ onClose, onMarkReconciled, onSwitchAccount, onSa
                       resolvedLabels={resolvedLabels}
                       onResyncComplete={setDlaResyncOverrides}
                       initialResyncedData={Object.keys(dlaResyncOverrides).length > 0 ? dlaResyncOverrides : null}
+                      rowComments={rowComments}
+                      onAddComment={onAddComment}
                     />
                   );
                 }
@@ -6206,6 +6478,8 @@ function BSReconciliationFlow({ onClose, onMarkReconciled, onSwitchAccount, onSa
                   resolvedLabels={resolvedLabels}
                   onResyncComplete={setDlaResyncOverrides}
                   initialResyncedData={Object.keys(dlaResyncOverrides).length > 0 ? dlaResyncOverrides : null}
+                  rowComments={rowComments}
+                  onAddComment={onAddComment}
                 />
               );
             })() : effectiveDirectAccount && accountRecData ? (
@@ -6222,6 +6496,8 @@ function BSReconciliationFlow({ onClose, onMarkReconciled, onSwitchAccount, onSa
                 resolvedLabels={resolvedLabels}
                 onResyncComplete={setAccountResyncOverrides}
                 initialResyncedData={Object.keys(accountResyncOverrides).length > 0 ? accountResyncOverrides : null}
+                rowComments={rowComments}
+                onAddComment={onAddComment}
               />
             ) : (
               <PayrollResultsPanel
@@ -6277,6 +6553,8 @@ function BSReconciliationFlow({ onClose, onMarkReconciled, onSwitchAccount, onSa
                   });
                   return allSuggestions;
                 })() : null}
+                rowComments={rowComments}
+                onAddComment={onAddComment}
               />
             )}
           </div>
@@ -7286,6 +7564,8 @@ function BalanceSheetPage({ ctx }) {
           presetType={presetType}
           savedState={savedState}
           bsReconciledData={bsReconciledData}
+          rowComments={rowComments}
+          onAddComment={handleAddComment}
         />
       </div>
     );
