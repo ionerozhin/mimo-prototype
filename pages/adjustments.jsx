@@ -3182,8 +3182,8 @@ registerPage("Adjustments", {
           wfColor = T.colorError;
           wfSubtitle = "28 mar";
         } else {
-          wfLabel = "Reconciled";
-          wfColor = T.colorBrandPrimary;
+          wfLabel = "0 suggestions";
+          wfColor = T.colorInfo;
           wfSubtitle = "28 mar";
         }
       }
