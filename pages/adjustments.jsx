@@ -2,6 +2,118 @@
 (function() {
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Comment components (ported from balance-sheet pattern)
+// ═══════════════════════════════════════════════════════════════════════════
+
+var _adjCommentIcon = function(size, color) {
+  return React.createElement("svg", { width: size || 16, height: size || 16, viewBox: "0 0 16 16", fill: "none" },
+    React.createElement("path", { d: "M14 7.667A5.33 5.33 0 0 1 13.4 10.2a5.333 5.333 0 0 1-5.067 3.133A5.33 5.33 0 0 1 5.8 12.733L2 14l1.267-3.8A5.33 5.33 0 0 1 2.667 7.667 5.333 5.333 0 0 1 8.333 2h.334A5.348 5.348 0 0 1 14 7.333v.334Z", stroke: color || T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round", strokeLinejoin: "round" })
+  );
+};
+
+function AdjCommentBtn({ onClick, hasComments, commentCount }) {
+  var _tipState = useState(false);
+  var showTip = _tipState[0]; var setShowTip = _tipState[1];
+  var timerRef = useRef(null);
+  var handleEnter = function(e) {
+    e.currentTarget.style.background = T.colorSurfaceSecondary;
+    e.currentTarget.style.borderColor = T.colorBorderHover;
+    timerRef.current = setTimeout(function() { setShowTip(true); }, 500);
+  };
+  var handleLeave = function(e) {
+    e.currentTarget.style.background = T.colorSurfacePrimary;
+    e.currentTarget.style.borderColor = T.colorBorderDark;
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+    setShowTip(false);
+  };
+  useEffect(function() { return function() { if (timerRef.current) clearTimeout(timerRef.current); }; }, []);
+  var tipText = (!commentCount || commentCount === 0) ? "No comments yet" : commentCount === 1 ? "1 comment" : commentCount + " comments";
+  return React.createElement("button", {
+    style: { position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center", width: 24, height: 24, padding: 0, background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 6, cursor: "pointer", transition: "all 0.15s", flexShrink: 0 },
+    onMouseEnter: handleEnter, onMouseLeave: handleLeave,
+    onClick: function(e) { e.stopPropagation(); setShowTip(false); if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; } if (onClick) onClick(e); },
+  },
+    _adjCommentIcon(14, hasComments ? "#6BAC5B" : undefined),
+    hasComments && React.createElement("span", { style: { position: "absolute", top: -3, right: -3, width: 6, height: 6, borderRadius: "50%", background: T.colorSuccess, border: "1px solid " + T.colorSurfacePrimary } }),
+    showTip && React.createElement("span", { style: { position: "absolute", bottom: "100%", left: "50%", transform: "translateX(-50%)", marginBottom: 6, padding: "4px 8px", borderRadius: 4, background: T.colorTextPrimary, color: T.colorSurfacePrimary, fontSize: 11, fontWeight: 500, whiteSpace: "nowrap", pointerEvents: "none", zIndex: 10001 } }, tipText)
+  );
+}
+
+function AdjCommentPopover({ comments, onAdd, onClose, anchorRect }) {
+  var _ts = useState(""); var text = _ts[0]; var setText = _ts[1];
+  var popoverRef = useRef(null);
+  useEffect(function() {
+    function handleClick(e) { if (popoverRef.current && !popoverRef.current.contains(e.target)) onClose(); }
+    document.addEventListener("mousedown", handleClick);
+    return function() { document.removeEventListener("mousedown", handleClick); };
+  }, [onClose]);
+  var handleSubmit = function() { if (!text.trim()) return; onAdd(text.trim()); setText(""); };
+  if (!anchorRect) return null;
+  return ReactDOM.createPortal(
+    React.createElement("div", { ref: popoverRef, onClick: function(e) { e.stopPropagation(); }, style: { position: "fixed", top: anchorRect.bottom + 8, left: anchorRect.right - 320, width: 320, background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 8, boxShadow: "0 4px 16px rgba(0,0,0,0.10)", zIndex: 10000, padding: 16, display: "flex", flexDirection: "column", gap: 12 } },
+      comments.length > 0 && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12, maxHeight: 200, overflowY: "auto" } },
+        comments.map(function(c, i) {
+          return React.createElement("div", { key: i, style: { display: "flex", flexDirection: "column", gap: 4 } },
+            React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+              React.createElement("div", { style: { width: 24, height: 24, borderRadius: "50%", background: T.colorBorderDark, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, color: T.colorTextThird, flexShrink: 0 } }, c.user.split(" ").map(function(n) { return n[0]; }).join("")),
+              React.createElement("span", { style: { fontSize: 13, fontWeight: 600, color: T.colorTextPrimary } }, c.user),
+              React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary } }, c.timestamp)
+            ),
+            React.createElement("p", { style: { fontSize: 13, lineHeight: "18px", color: T.colorTextPrimary, margin: 0, paddingLeft: 32 } }, c.text)
+          );
+        })
+      ),
+      comments.length > 0 && React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
+      React.createElement("textarea", { value: text, onChange: function(e) { setText(e.target.value); }, placeholder: "Type your message here", rows: 3, style: { width: "100%", resize: "none", border: "1px solid " + T.colorBorderDark, borderRadius: 6, padding: "8px 12px", fontSize: 13, fontFamily: "'Inter', sans-serif", color: T.colorTextPrimary, background: T.colorSurfacePrimary, outline: "none", boxSizing: "border-box" }, onFocus: function(e) { e.target.style.borderColor = T.colorBorderHover; }, onBlur: function(e) { e.target.style.borderColor = T.colorBorderDark; } }),
+      React.createElement("div", { style: { display: "flex", gap: 8, justifyContent: "flex-start" } },
+        React.createElement("button", { onClick: handleSubmit, style: { padding: "6px 14px", borderRadius: 6, border: "none", background: T.colorBrandPrimary, fontSize: 13, fontWeight: 500, color: "#fff", cursor: "pointer", opacity: text.trim() ? 1 : 0.5, fontFamily: T.fontFamily } }, "Add comment"),
+        React.createElement("button", { onClick: onClose, onMouseEnter: function(e) { e.currentTarget.style.background = T.colorSurfaceSecondary; }, onMouseLeave: function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; }, style: { padding: "6px 14px", borderRadius: 6, border: "1px solid " + T.colorBorderDark, background: T.colorSurfacePrimary, fontSize: 13, fontWeight: 500, color: T.colorTextPrimary, cursor: "pointer", fontFamily: T.fontFamily } }, "Close")
+      )
+    ),
+    document.body
+  );
+}
+
+function AdjInlineComment({ rowKey, comments, onAddComment, ocUI }) {
+  var btnRef = useRef(null);
+  var isOpen = ocUI.openRow === rowKey;
+  var has = comments.length > 0;
+  var anchorRect = useRef(null);
+  var handleClick = function(e) {
+    e.stopPropagation();
+    if (btnRef.current) anchorRect.current = btnRef.current.getBoundingClientRect();
+    ocUI.toggleRow(rowKey);
+  };
+  useEffect(function() {
+    if (!isOpen) return;
+    function update() { if (btnRef.current) anchorRect.current = btnRef.current.getBoundingClientRect(); }
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+    return function() { window.removeEventListener("scroll", update, true); window.removeEventListener("resize", update); };
+  }, [isOpen]);
+  return React.createElement(Fragment, null,
+    React.createElement("span", { ref: btnRef },
+      React.createElement(AdjCommentBtn, { hasComments: has, commentCount: comments.length, onClick: handleClick })
+    ),
+    isOpen && anchorRect.current && React.createElement(AdjCommentPopover, { comments: comments, onAdd: function(text) { onAddComment(rowKey, text); }, onClose: function() { ocUI.closeRow(); }, anchorRect: anchorRect.current })
+  );
+}
+
+function _adjUseCommentUI() {
+  var _s = useState(null); var openRow = _s[0]; var setOpenRow = _s[1];
+  var toggleRow = function(rowKey) { setOpenRow(function(prev) { return prev === rowKey ? null : rowKey; }); };
+  var closeRow = function() { setOpenRow(null); };
+  return { openRow: openRow, toggleRow: toggleRow, closeRow: closeRow };
+}
+
+function _adjCardCommentAction(ocUI, comments, onAddComment, commentKey) {
+  var c = comments[commentKey] || [];
+  return function() {
+    return React.createElement(AdjInlineComment, { rowKey: commentKey, comments: c, onAddComment: onAddComment, ocUI: ocUI });
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Schedule pages (full-screen overlays)
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -862,7 +974,8 @@ var _PR_NAV_CATS = [
 // ── Prepayment Review Flow ────────────────────────────────────────────────
 
 function PrepaymentReviewFlow(_ref) {
-  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState;
+  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment;
+  var _prOcUI = _adjUseCommentUI();
   var _prInitResume = !!(savedState && savedState.hasResults);
   var _prIsResume = useState(_prInitResume), _prSetIsResume = _prIsResume[1]; _prIsResume = _prIsResume[0];
   var _s = useState(_prInitResume ? _PR_STEPS.map(function(){return "done";}) : []); var _prStepStatuses = _s[0], _prSetStepStatuses = _s[1];
@@ -1235,6 +1348,7 @@ function PrepaymentReviewFlow(_ref) {
                           collapsed={isResolved || isIgnored} isIgnored={isIgnored} hideMore={true} tableRow={card.tableRow}
                           tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }, { key: "invoice", label: "Invoice", width: "0.8fr" }]}
                           primaryLabel={card.primaryLabel} secondaryLabel={card.secondaryLabel}
+                          renderCardAction={_adjCardCommentAction(_prOcUI, adjComments, onAddAdjComment, "sug_pr_" + card.key)}
                           onPrimaryAction={function() { _prSetDrawerCard(card); }}
                           onIgnore={function() { _prSetIgnoredCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); }}
                           onSecondaryAction={function() { _prSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _prSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = "Resolved"; return o; }); }}
@@ -1356,7 +1470,8 @@ var _AR_NAV_CATS = [
 ];
 
 function AccrualReviewFlow(_ref) {
-  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState;
+  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment;
+  var _arOcUI = _adjUseCommentUI();
   var _arInitResume = !!(savedState && savedState.hasResults);
   var _s = useState(_arInitResume); var _arIsResume = _s[0], _arSetIsResume = _s[1];
   _s = useState(_arInitResume ? _AR_STEPS.map(function(){return "done";}) : []); var _arStepStatuses = _s[0], _arSetStepStatuses = _s[1];
@@ -1664,6 +1779,7 @@ function AccrualReviewFlow(_ref) {
                         <RecommendationCard title={card.title} description={card.description} statusLabel={statusLabel} statusStyle={statusStyle}
                           collapsed={isResolved || isIgnored} isIgnored={isIgnored} hideMore={true} tableRow={card.tableRow}
                           tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]}
+                          renderCardAction={_adjCardCommentAction(_arOcUI, adjComments, onAddAdjComment, "sug_ar_" + card.key)}
                           primaryLabel={card.primaryLabel} secondaryLabel={card.secondaryLabel}
                           onPrimaryAction={function() { _arSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _arSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = primaryActionLabels[card.primaryLabel] || "Journal posted"; return o; }); }}
                           onIgnore={function() { _arSetIgnoredCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); }}
@@ -1727,7 +1843,8 @@ var _DRR_NAV_CATS = [
 ];
 
 function DeferredRevenueReviewFlow(_ref) {
-  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState;
+  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment;
+  var _drOcUI = _adjUseCommentUI();
   var _drInitResume = !!(savedState && savedState.hasResults);
   var _s = useState(_drInitResume); var _drIsResume = _s[0], _drSetIsResume = _s[1];
   _s = useState(_drInitResume ? _DRR_STEPS.map(function(){return "done";}) : []); var _drStepStatuses = _s[0], _drSetStepStatuses = _s[1];
@@ -1902,7 +2019,7 @@ function DeferredRevenueReviewFlow(_ref) {
                     var statusLabel = isResolved ? (actionLabel || "Journal posted") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
                     var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
                     var primaryActionLabels = { "Review suggestion": "Journal posted" };
-                    return (<div key={card.idx} id={"result-" + card.key + "-0"} style={{ scrollMarginTop: 64 }}><RecommendationCard title={card.title} description={card.description} statusLabel={statusLabel} statusStyle={statusStyle} collapsed={isResolved || isIgnored} isIgnored={isIgnored} hideMore={true} tableRow={card.tableRow} tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]} primaryLabel={card.primaryLabel} secondaryLabel={card.secondaryLabel} onPrimaryAction={function() { _drSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _drSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = primaryActionLabels[card.primaryLabel] || "Journal posted"; return o; }); }} onIgnore={function() { _drSetIgnoredCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); }} onSecondaryAction={function() { _drSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _drSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = "Resolved"; return o; }); }} onMore={function() {}} /></div>);
+                    return (<div key={card.idx} id={"result-" + card.key + "-0"} style={{ scrollMarginTop: 64 }}><RecommendationCard title={card.title} description={card.description} statusLabel={statusLabel} statusStyle={statusStyle} collapsed={isResolved || isIgnored} isIgnored={isIgnored} hideMore={true} tableRow={card.tableRow} tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]} renderCardAction={_adjCardCommentAction(_drOcUI, adjComments, onAddAdjComment, "sug_dr_" + card.key)} primaryLabel={card.primaryLabel} secondaryLabel={card.secondaryLabel} onPrimaryAction={function() { _drSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _drSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = primaryActionLabels[card.primaryLabel] || "Journal posted"; return o; }); }} onIgnore={function() { _drSetIgnoredCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); }} onSecondaryAction={function() { _drSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _drSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = "Resolved"; return o; }); }} onMore={function() {}} /></div>);
                   })}
                 </div>
               </div>
@@ -1957,7 +2074,8 @@ var _AIR_NAV_CATS = [
 ];
 
 function AccruedIncomeReviewFlow(_ref) {
-  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState;
+  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment;
+  var _aiOcUI = _adjUseCommentUI();
   var _aiInitResume = !!(savedState && savedState.hasResults);
   var _s = useState(_aiInitResume); var _aiIsResume = _s[0], _aiSetIsResume = _s[1];
   _s = useState(_aiInitResume ? _AIR_STEPS.map(function(){return "done";}) : []); var _aiStepStatuses = _s[0], _aiSetStepStatuses = _s[1];
@@ -2132,7 +2250,7 @@ function AccruedIncomeReviewFlow(_ref) {
                     var statusLabel = isResolved ? (actionLabel || "Journal posted") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
                     var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
                     var primaryActionLabels = { "Review suggestion": "Journal posted" };
-                    return (<div key={card.idx} id={"result-" + card.key + "-0"} style={{ scrollMarginTop: 64 }}><RecommendationCard title={card.title} description={card.description} statusLabel={statusLabel} statusStyle={statusStyle} collapsed={isResolved || isIgnored} isIgnored={isIgnored} hideMore={true} tableRow={card.tableRow} tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]} primaryLabel={card.primaryLabel} secondaryLabel={card.secondaryLabel} onPrimaryAction={function() { _aiSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _aiSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = primaryActionLabels[card.primaryLabel] || "Journal posted"; return o; }); }} onIgnore={function() { _aiSetIgnoredCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); }} onSecondaryAction={function() { _aiSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _aiSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = "Resolved"; return o; }); }} onMore={function() {}} /></div>);
+                    return (<div key={card.idx} id={"result-" + card.key + "-0"} style={{ scrollMarginTop: 64 }}><RecommendationCard title={card.title} description={card.description} statusLabel={statusLabel} statusStyle={statusStyle} collapsed={isResolved || isIgnored} isIgnored={isIgnored} hideMore={true} tableRow={card.tableRow} tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]} renderCardAction={_adjCardCommentAction(_aiOcUI, adjComments, onAddAdjComment, "sug_ai_" + card.key)} primaryLabel={card.primaryLabel} secondaryLabel={card.secondaryLabel} onPrimaryAction={function() { _aiSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _aiSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = primaryActionLabels[card.primaryLabel] || "Journal posted"; return o; }); }} onIgnore={function() { _aiSetIgnoredCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); }} onSecondaryAction={function() { _aiSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _aiSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = "Resolved"; return o; }); }} onMore={function() {}} /></div>);
                   })}
                 </div>
               </div>
@@ -2188,7 +2306,8 @@ var _LA_NAV_CATS = [
 ];
 
 function LoanAmortisationReviewFlow(_ref) {
-  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState;
+  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment;
+  var _laOcUI = _adjUseCommentUI();
   var _laInitResume = !!(savedState && savedState.hasResults);
   var _s = useState(_laInitResume); var _laIsResume = _s[0], _laSetIsResume = _s[1];
   _s = useState(_laInitResume ? _LA_STEPS.map(function(){return "done";}) : []); var _laStepStatuses = _s[0], _laSetStepStatuses = _s[1];
@@ -2495,6 +2614,7 @@ function LoanAmortisationReviewFlow(_ref) {
                         <RecommendationCard title={card.title} description={card.description} statusLabel={statusLabel} statusStyle={statusStyle}
                           collapsed={isResolved || isIgnored} isIgnored={isIgnored} hideMore={true} tableRow={card.tableRow}
                           tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]}
+                          renderCardAction={_adjCardCommentAction(_laOcUI, adjComments, onAddAdjComment, "sug_la_" + card.key)}
                           primaryLabel={card.primaryLabel} secondaryLabel={card.secondaryLabel}
                           onPrimaryAction={function() { _laSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _laSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = primaryActionLabels[card.primaryLabel] || "Journal posted"; return o; }); }}
                           onIgnore={function() { _laSetIgnoredCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); }}
@@ -2558,7 +2678,8 @@ var _DP_NAV_CATS = [
 ];
 
 function DepreciationReviewFlow(_ref) {
-  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState;
+  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment;
+  var _dpOcUI = _adjUseCommentUI();
   var _dpInitResume = !!(savedState && savedState.hasResults);
   var _s = useState(_dpInitResume); var _dpIsResume = _s[0], _dpSetIsResume = _s[1];
   _s = useState(_dpInitResume ? _DP_STEPS.map(function(){return "done";}) : []); var _dpStepStatuses = _s[0], _dpSetStepStatuses = _s[1];
@@ -2865,6 +2986,7 @@ function DepreciationReviewFlow(_ref) {
                         <RecommendationCard title={card.title} description={card.description} statusLabel={statusLabel} statusStyle={statusStyle}
                           collapsed={isResolved || isIgnored} isIgnored={isIgnored} hideMore={true} tableRow={card.tableRow}
                           tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]}
+                          renderCardAction={_adjCardCommentAction(_dpOcUI, adjComments, onAddAdjComment, "sug_dp_" + card.key)}
                           primaryLabel={card.primaryLabel} secondaryLabel={card.secondaryLabel}
                           onPrimaryAction={function() { _dpSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _dpSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = primaryActionLabels[card.primaryLabel] || "Journal posted"; return o; }); }}
                           onIgnore={function() { _dpSetIgnoredCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); }}
@@ -2949,6 +3071,22 @@ registerPage("Adjustments", {
       var abs = Math.abs(remaining);
       var label = (remaining > 0 ? "GL +£" : "GL –£") + abs.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       return { label: label, color: T.colorError, bg: T.colorErrorBg };
+    };
+
+    // Suggestion card comments (shared across all review flows)
+    var _scm = useState({}); var adjComments = _scm[0]; var setAdjComments = _scm[1];
+    var onAddAdjComment = function(key, text) {
+      var now = new Date();
+      var day = now.getDate();
+      var monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      var hours = now.getHours().toString().padStart(2, "0");
+      var mins = now.getMinutes().toString().padStart(2, "0");
+      var timestamp = day + " " + monthNames[now.getMonth()] + " at " + hours + ":" + mins;
+      setAdjComments(function(prev) {
+        var updated = Object.assign({}, prev);
+        updated[key] = (updated[key] || []).concat([{ user: "Laura Bennett", timestamp: timestamp, text: text }]);
+        return updated;
+      });
     };
 
     // New adjustment form state
@@ -3377,12 +3515,12 @@ registerPage("Adjustments", {
         <AccrualSchedulePage open={accrualScheduleOpen} onClose={function() { setAccrualScheduleOpen(false); }} />
         <DeferredRevenueSchedulePage open={deferredRevenueScheduleOpen} onClose={function() { setDeferredRevenueScheduleOpen(false); }} />
         <AccruedIncomeSchedulePage open={accruedIncomeScheduleOpen} onClose={function() { setAccruedIncomeScheduleOpen(false); }} />
-        {prepaymentReviewOpen && <PrepaymentReviewFlow onClose={function() { setPrepaymentReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setPrepaymentReviewState} savedState={prepaymentReviewState} />}
-        {accrualReviewOpen && <AccrualReviewFlow onClose={function() { setAccrualReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setAccrualReviewState} savedState={accrualReviewState} />}
-        {deferredRevenueReviewOpen && <DeferredRevenueReviewFlow onClose={function() { setDeferredRevenueReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setDeferredRevenueReviewState} savedState={deferredRevenueReviewState} />}
-        {accruedIncomeReviewOpen && <AccruedIncomeReviewFlow onClose={function() { setAccruedIncomeReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setAccruedIncomeReviewState} savedState={accruedIncomeReviewState} />}
-        {loanReviewOpen && <LoanAmortisationReviewFlow onClose={function() { setLoanReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setLoanReviewState} savedState={loanReviewState} />}
-        {depreciationReviewOpen && <DepreciationReviewFlow onClose={function() { setDepreciationReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setDepreciationReviewState} savedState={depreciationReviewState} />}
+        {prepaymentReviewOpen && <PrepaymentReviewFlow onClose={function() { setPrepaymentReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setPrepaymentReviewState} savedState={prepaymentReviewState} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />}
+        {accrualReviewOpen && <AccrualReviewFlow onClose={function() { setAccrualReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setAccrualReviewState} savedState={accrualReviewState} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />}
+        {deferredRevenueReviewOpen && <DeferredRevenueReviewFlow onClose={function() { setDeferredRevenueReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setDeferredRevenueReviewState} savedState={deferredRevenueReviewState} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />}
+        {accruedIncomeReviewOpen && <AccruedIncomeReviewFlow onClose={function() { setAccruedIncomeReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setAccruedIncomeReviewState} savedState={accruedIncomeReviewState} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />}
+        {loanReviewOpen && <LoanAmortisationReviewFlow onClose={function() { setLoanReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setLoanReviewState} savedState={loanReviewState} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />}
+        {depreciationReviewOpen && <DepreciationReviewFlow onClose={function() { setDepreciationReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setDepreciationReviewState} savedState={depreciationReviewState} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />}
       </div>
     );
   },
