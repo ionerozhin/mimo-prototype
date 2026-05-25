@@ -82,7 +82,16 @@ var PL_SUGGESTIONS = [
     adjusted: { actual: "£2,750.00", variance: "£300.00", pctDiff: "+12.2%", pctStatus: null } },
   { key: "freight_accrual", accountCode: "5020", description: "Freight accrual – DHL invoice received after period end", date: "30 Apr", amount: "£1,420.00", vat: "-", context: "Supplier invoice for April deliveries received after cut-off but not accrued. Confidence: High.", buttonLabel: "View suggested accrual", adjustmentType: "Accrued Expense", expenseAccount: "Freight & carriage (502)", accrualDate: "30/04/2026", reversalDate: "30/05/2026",
     adjusted: { actual: "£13,270.00", variance: "£3,070.00", pctDiff: "+30.1%", pctStatus: null } },
-  { key: "datto_prepayment", accountCode: "6220", description: "Datto SaaS Protection – prepayment reclassification", date: "30 Apr", amount: "£880.00", vat: "-", context: "12-month licence posted in full to Subscriptions; monthly release not yet set up. Confidence: Critical.", buttonLabel: "View suggested accrual", adjustmentType: "Accrued Expense", expenseAccount: "Subscriptions (622)", accrualDate: "30/04/2026", reversalDate: "30/05/2026",
+  { key: "datto_prepayment", accountCode: "6220", type: "prepayment", description: "Datto SaaS Protection – 12-month licence prepayment", date: "30 Apr", amount: "£880.00", vat: "-", context: "Invoice #DAT-8821 for £960 covers Apr 2026–Mar 2027. Full amount posted to 6220 in March — only £80 relates to this period. Confidence: Critical.", buttonLabel: "View suggested prepayment",
+    drawerTitle: "Datto SaaS Protection", adjustmentName: "Datto SaaS Protection", drawerAmount: "960.00", expenseAccount: "6220 – Subscriptions", invoiceDate: "25/03/2026", fromPeriod: "April 2026", toPeriod: "March 2027",
+    allocations: [
+      { period: "April 2026", amount: "80.00" }, { period: "May 2026", amount: "80.00" },
+      { period: "June 2026", amount: "80.00" }, { period: "July 2026", amount: "80.00" },
+      { period: "August 2026", amount: "80.00" }, { period: "September 2026", amount: "80.00" },
+      { period: "October 2026", amount: "80.00" }, { period: "November 2026", amount: "80.00" },
+      { period: "December 2026", amount: "80.00" }, { period: "January 2027", amount: "80.00" },
+      { period: "February 2027", amount: "80.00" }, { period: "March 2027", amount: "80.00" },
+    ],
     adjusted: { actual: "£10.00", variance: "-£860.00", pctDiff: "-98.9%", pctStatus: null } },
 ];
 
@@ -966,7 +975,9 @@ function ProfitAndLossPage(props) {
     React.createElement(Sidebar, {
       open: !!accrualDrawerSug,
       onClose: handleCloseAccrualDrawer,
-      title: drawerStep === "dismiss" ? "Dismiss Accrual draft" : (accrualDrawerSug ? accrualDrawerSug.description : ""),
+      title: drawerStep === "dismiss"
+        ? (accrualDrawerSug && accrualDrawerSug.type === "prepayment" ? "Dismiss Prepayment draft" : "Dismiss Accrual draft")
+        : (accrualDrawerSug ? (accrualDrawerSug.drawerTitle || accrualDrawerSug.description) : ""),
       width: 520,
       footer: drawerStep === "dismiss"
         ? React.createElement(React.Fragment, null,
@@ -977,7 +988,7 @@ function ProfitAndLossPage(props) {
             React.createElement(PrimaryButton, {
               onClick: handleDismissConfirm,
               style: { flex: 1, height: 44, justifyContent: "center" },
-            }, "Dismiss Accrual draft")
+            }, accrualDrawerSug && accrualDrawerSug.type === "prepayment" ? "Dismiss Prepayment draft" : "Dismiss Accrual draft")
           )
         : React.createElement(React.Fragment, null,
             React.createElement(SecondaryButton, {
@@ -991,118 +1002,227 @@ function ProfitAndLossPage(props) {
           ),
     },
 
-      // ── Step 1: Details ──
-      drawerStep === "details" && accrualDrawerSug && React.createElement("div", {
-        style: { padding: "24px", display: "flex", flexDirection: "column", gap: 24 },
-      },
-        // Context banner
-        React.createElement(Banner, { variant: "success",
-          icon: React.createElement(SparkleIcon, null),
-        }, accrualDrawerSug.context),
-
-        // Adjustment type
-        React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
-          React.createElement("div", { style: { display: "flex", gap: 4, ...T.textMd, fontWeight: 500, color: T.colorTextPrimary } },
-            React.createElement("span", null, "Adjustment type"),
-            React.createElement("span", { style: { color: "#DC5C40" } }, "*")
-          ),
-          React.createElement(Dropdown, {
-            value: "accrued_expense",
-            options: [
-              { value: "accrued_expense", label: "Accrued Expense" },
-              { value: "prepayment", label: "Prepayment" },
-            ],
-            onChange: function() {},
-          })
-        ),
-
-        // Description
-        React.createElement(Input, {
-          label: "Description",
-          mandatory: true,
-          value: accrualDrawerSug.description,
-          onChange: function() {},
-        }),
-
-        // Accrual Amount
-        React.createElement(Input, {
-          label: "Accrual Amount",
-          mandatory: true,
-          value: accrualDrawerSug.amount,
-          onChange: function() {},
-        }),
-
-        // Expense account
-        React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
-          React.createElement("div", { style: { display: "flex", gap: 4, ...T.textMd, fontWeight: 500, color: T.colorTextPrimary } },
-            React.createElement("span", null, "Expense account"),
-            React.createElement("span", { style: { color: "#DC5C40" } }, "*")
-          ),
-          React.createElement(Dropdown, {
-            value: "account",
-            options: [{ value: "account", label: accrualDrawerSug.expenseAccount }],
-            onChange: function() {},
-            searchable: true,
-          })
-        ),
-
-        // Accrual date
-        React.createElement(Input, {
-          label: "Accrual date",
-          mandatory: true,
-          value: accrualDrawerSug.accrualDate,
-          onChange: function() {},
-          leftSlotType: "icon",
-          leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" },
-            React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }),
-            React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })
-          ),
-        }),
-
-        // Create journal checkbox
-        React.createElement("div", {
-          onClick: function() { setCreateJournal(function(v) { return !v; }); },
-          style: { display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", userSelect: "none" },
-        },
-          React.createElement("div", {
-            style: {
-              width: 20, height: 20, borderRadius: 4, flexShrink: 0, marginTop: 1,
-              background: createJournal ? T.colorBrandPrimary : T.colorSurfacePrimary,
-              border: createJournal ? "none" : "1.5px solid " + T.colorBorderHover,
-              display: "flex", alignItems: "center", justifyContent: "center",
-            },
+      // ── Step 1: Details (accrual or prepayment) ──
+      drawerStep === "details" && accrualDrawerSug && accrualDrawerSug.type === "prepayment"
+        // ── Prepayment drawer ──
+        ? React.createElement("div", {
+            style: { padding: "24px", display: "flex", flexDirection: "column", gap: 24 },
           },
-            createJournal && React.createElement("svg", { width: 12, height: 12, viewBox: "0 0 12 12", fill: "none" },
-              React.createElement("path", { d: "M2.5 6L5 8.5L9.5 3.5", stroke: "white", strokeWidth: "1.5", strokeLinecap: "round", strokeLinejoin: "round" })
+            // Context banner
+            React.createElement(Banner, { variant: "success",
+              icon: React.createElement(SparkleIcon, null),
+            }, accrualDrawerSug.context),
+
+            // Adjustment type
+            React.createElement(Dropdown, {
+              label: "Adjustment type",
+              value: "prepayment_expense",
+              options: [
+                { value: "prepayment_expense", label: "Prepayment expense" },
+                { value: "accrued_expense", label: "Accrued Expense" },
+              ],
+              onChange: function() {},
+            }),
+
+            // Adjustment name
+            React.createElement(Input, {
+              label: "Adjustment name",
+              value: accrualDrawerSug.adjustmentName,
+              onChange: function() {},
+            }),
+
+            // Amount with £ prefix
+            React.createElement(Input, {
+              label: "Amount",
+              value: accrualDrawerSug.drawerAmount,
+              onChange: function() {},
+              leftSlotType: "currency",
+              currencySymbol: "£",
+            }),
+
+            // Expense account
+            React.createElement(Dropdown, {
+              label: "Expense account",
+              value: "expense",
+              options: [{ value: "expense", label: accrualDrawerSug.expenseAccount }],
+              onChange: function() {},
+              searchable: true,
+            }),
+
+            // Invoice date (optional)
+            React.createElement(Input, {
+              label: "Invoice date (optional)",
+              value: accrualDrawerSug.invoiceDate,
+              onChange: function() {},
+              leftSlotType: "icon",
+              leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" },
+                React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }),
+                React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })
+              ),
+            }),
+
+            // From / To
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 } },
+              React.createElement(Dropdown, {
+                label: "From",
+                value: "from",
+                options: [{ value: "from", label: accrualDrawerSug.fromPeriod }],
+                onChange: function() {},
+              }),
+              React.createElement(Dropdown, {
+                label: "To",
+                value: "to",
+                options: [{ value: "to", label: accrualDrawerSug.toPeriod }],
+                onChange: function() {},
+              })
+            ),
+
+            // Divider
+            React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
+
+            // Allocations header
+            React.createElement("span", { style: { ...T.textMd, fontWeight: T.fontWeightSemibold, color: T.colorTextPrimary } }, "Allocations"),
+
+            // Even split / Custom radio
+            React.createElement(RadioGroup, {
+              value: "even",
+              onChange: function() {},
+              options: [
+                { value: "even", label: "Even split" },
+                { value: "custom", label: "Custom" },
+              ],
+              direction: "horizontal",
+              gap: 24,
+            }),
+
+            // Monthly allocation rows
+            React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 16 } },
+              accrualDrawerSug.allocations.map(function(alloc) {
+                return React.createElement(Input, {
+                  key: alloc.period,
+                  label: alloc.period,
+                  value: alloc.amount,
+                  onChange: function() {},
+                  state: "readonly",
+                  leftSlotType: "currency",
+                  currencySymbol: "£",
+                });
+              })
+            )
+          )
+
+        // ── Accrual drawer (default) ──
+        : drawerStep === "details" && accrualDrawerSug && React.createElement("div", {
+            style: { padding: "24px", display: "flex", flexDirection: "column", gap: 24 },
+          },
+            // Context banner
+            React.createElement(Banner, { variant: "success",
+              icon: React.createElement(SparkleIcon, null),
+            }, accrualDrawerSug.context),
+
+            // Adjustment type
+            React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+              React.createElement("div", { style: { display: "flex", gap: 4, ...T.textMd, fontWeight: 500, color: T.colorTextPrimary } },
+                React.createElement("span", null, "Adjustment type"),
+                React.createElement("span", { style: { color: "#DC5C40" } }, "*")
+              ),
+              React.createElement(Dropdown, {
+                value: "accrued_expense",
+                options: [
+                  { value: "accrued_expense", label: "Accrued Expense" },
+                  { value: "prepaid_expense", label: "Prepaid Expense" },
+                ],
+                onChange: function() {},
+              })
+            ),
+
+            // Description
+            React.createElement(Input, {
+              label: "Description",
+              mandatory: true,
+              value: accrualDrawerSug.description,
+              onChange: function() {},
+            }),
+
+            // Accrual Amount
+            React.createElement(Input, {
+              label: "Accrual Amount",
+              mandatory: true,
+              value: accrualDrawerSug.amount,
+              onChange: function() {},
+            }),
+
+            // Expense account
+            React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+              React.createElement("div", { style: { display: "flex", gap: 4, ...T.textMd, fontWeight: 500, color: T.colorTextPrimary } },
+                React.createElement("span", null, "Expense account"),
+                React.createElement("span", { style: { color: "#DC5C40" } }, "*")
+              ),
+              React.createElement(Dropdown, {
+                value: "account",
+                options: [{ value: "account", label: accrualDrawerSug.expenseAccount }],
+                onChange: function() {},
+                searchable: true,
+              })
+            ),
+
+            // Accrual date
+            React.createElement(Input, {
+              label: "Accrual date",
+              mandatory: true,
+              value: accrualDrawerSug.accrualDate,
+              onChange: function() {},
+              leftSlotType: "icon",
+              leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" },
+                React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }),
+                React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })
+              ),
+            }),
+
+            // Create journal checkbox
+            React.createElement("div", {
+              onClick: function() { setCreateJournal(function(v) { return !v; }); },
+              style: { display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", userSelect: "none" },
+            },
+              React.createElement("div", {
+                style: {
+                  width: 20, height: 20, borderRadius: 4, flexShrink: 0, marginTop: 1,
+                  background: createJournal ? T.colorBrandPrimary : T.colorSurfacePrimary,
+                  border: createJournal ? "none" : "1.5px solid " + T.colorBorderHover,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                },
+              },
+                createJournal && React.createElement("svg", { width: 12, height: 12, viewBox: "0 0 12 12", fill: "none" },
+                  React.createElement("path", { d: "M2.5 6L5 8.5L9.5 3.5", stroke: "white", strokeWidth: "1.5", strokeLinecap: "round", strokeLinejoin: "round" })
+                )
+              ),
+              React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 2 } },
+                React.createElement("span", { style: { ...T.textSm, fontWeight: T.fontWeightMedium, color: T.colorTextPrimary } }, "Create journal entry for this accrual"),
+                React.createElement("span", { style: { ...T.textSm, color: T.colorTextSecondary } }, "Leave unchecked to publish reversal only")
+              )
+            ),
+
+            // Divider
+            React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
+
+            // Reversal date
+            React.createElement(Input, {
+              label: "Reversal date",
+              value: accrualDrawerSug.reversalDate,
+              onChange: function() {},
+              helpText: "The accrual will be fully reversed on the selected date",
+              leftSlotType: "icon",
+              leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" },
+                React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }),
+                React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })
+              ),
+            }),
+
+            // Info banner
+            React.createElement(Banner, { variant: "info" },
+              "You can leave the reversal date empty and choose it later when ready."
             )
           ),
-          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 2 } },
-            React.createElement("span", { style: { ...T.textSm, fontWeight: T.fontWeightMedium, color: T.colorTextPrimary } }, "Create journal entry for this accrual"),
-            React.createElement("span", { style: { ...T.textSm, color: T.colorTextSecondary } }, "Leave unchecked to publish reversal only")
-          )
-        ),
-
-        // Divider
-        React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
-
-        // Reversal date
-        React.createElement(Input, {
-          label: "Reversal date",
-          value: accrualDrawerSug.reversalDate,
-          onChange: function() {},
-          helpText: "The accrual will be fully reversed on the selected date",
-          leftSlotType: "icon",
-          leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" },
-            React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }),
-            React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })
-          ),
-        }),
-
-        // Info banner
-        React.createElement(Banner, { variant: "info" },
-          "You can leave the reversal date empty and choose it later when ready."
-        )
-      ),
 
       // ── Step 2: Dismiss feedback ──
       drawerStep === "dismiss" && React.createElement("div", {
@@ -1123,6 +1243,96 @@ function ProfitAndLossPage(props) {
           onFocus: function(e) { e.target.style.borderColor = T.colorBrandPrimary; },
           onBlur: function(e) { e.target.style.borderColor = T.colorBorderMedium; },
         })
+      )
+    ),
+
+    // ── Invoice preview panel (to the left of prepayment drawer) ──
+    accrualDrawerSug && accrualDrawerSug.type === "prepayment" && drawerStep === "details" && React.createElement("div", {
+      style: {
+        position: "fixed", top: 0, right: 520, bottom: 0,
+        left: 0, zIndex: 202,
+        background: T.colorSurfaceSecondary,
+        display: "flex", flexDirection: "column",
+        fontFamily: "'Inter', sans-serif",
+      },
+    },
+      // Invoice document — centered, no scroll
+      React.createElement("div", {
+        style: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 },
+      },
+        React.createElement("div", {
+          style: {
+            width: "100%", maxWidth: 520, background: "#fff", borderRadius: 8,
+            border: "1px solid " + T.colorBorderDark, padding: "40px 36px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.06)", fontFamily: "'Inter', sans-serif",
+          },
+        },
+          // Invoice header — logo + company
+          React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 } },
+            React.createElement("div", null,
+              React.createElement("div", { style: { fontSize: 18, fontWeight: 700, color: "#1A1A2E", letterSpacing: "-0.3px" } }, "Datto"),
+              React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, marginTop: 4, lineHeight: "16px" } },
+                "Datto, Inc.", React.createElement("br"), "101 Merritt 7 Corporate Park", React.createElement("br"), "Norwalk, CT 06851"
+              )
+            ),
+            React.createElement("div", { style: { textAlign: "right" } },
+              React.createElement("div", { style: { fontSize: 22, fontWeight: 700, color: "#1A1A2E", letterSpacing: "-0.5px" } }, "INVOICE"),
+              React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, marginTop: 4 } }, "#DAT-8821")
+            )
+          ),
+          // Bill to + dates
+          React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginBottom: 24, paddingBottom: 16, borderBottom: "1px solid " + T.colorBorderDark } },
+            React.createElement("div", null,
+              React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Bill to"),
+              React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary, lineHeight: "18px" } },
+                "Tidewater Solutions Ltd", React.createElement("br"), "45 Harbour Road", React.createElement("br"), "Southampton SO14 2AQ"
+              )
+            ),
+            React.createElement("div", { style: { textAlign: "right" } },
+              React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Invoice date"),
+              React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary, marginBottom: 12 } }, "25 March 2026"),
+              React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Due date"),
+              React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary } }, "24 April 2026")
+            )
+          ),
+          // Table header
+          React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 60px 80px 80px", gap: 0, borderBottom: "2px solid #1A1A2E", paddingBottom: 8, marginBottom: 0 } },
+            React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px" } }, "Description"),
+            React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "center" } }, "Qty"),
+            React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "right" } }, "Unit price"),
+            React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "right" } }, "Amount")
+          ),
+          // Line item
+          React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 60px 80px 80px", gap: 0, padding: "12px 0", borderBottom: "1px solid " + T.colorBorderDark } },
+            React.createElement("div", null,
+              React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary, fontWeight: 500 } }, "SaaS Protection"),
+              React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, marginTop: 2 } }, "12-month licence, Apr 2026 – Mar 2027")
+            ),
+            React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "center" } }, "1"),
+            React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "right" } }, "£800.00"),
+            React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "right", fontWeight: 500 } }, "£800.00")
+          ),
+          // Subtotal, VAT, Total
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, paddingTop: 16 } },
+            React.createElement("div", { style: { display: "flex", gap: 32, width: 200 } },
+              React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary, flex: 1 } }, "Subtotal"),
+              React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "right" } }, "£800.00")
+            ),
+            React.createElement("div", { style: { display: "flex", gap: 32, width: 200 } },
+              React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary, flex: 1 } }, "VAT (20%)"),
+              React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "right" } }, "£160.00")
+            ),
+            React.createElement("div", { style: { display: "flex", gap: 32, width: 200, paddingTop: 8, borderTop: "2px solid #1A1A2E", marginTop: 4 } },
+              React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: "#1A1A2E", flex: 1 } }, "Total"),
+              React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: "#1A1A2E", textAlign: "right" } }, "£960.00")
+            )
+          ),
+          // Payment terms
+          React.createElement("div", { style: { marginTop: 28, paddingTop: 16, borderTop: "1px solid " + T.colorBorderDark } },
+            React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Payment terms"),
+            React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, lineHeight: "16px" } }, "Net 30 days. Please reference invoice #DAT-8821 with payment.")
+          )
+        )
       )
     )
   );
