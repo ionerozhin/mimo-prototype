@@ -74,12 +74,16 @@ var PL_SECTIONS = [
   },
 ];
 
-// ── Suggested Adjustments Data (RecommendationCard format) ─────────────────
+// ── Suggested Adjustments Data (table format) ────────────────────────────────
 var PL_SUGGESTIONS = [
-  { idx: 0, key: "audit_accrual", title: "Spread audit fee accrual across remaining months", contact: "Grant Thornton UK LLP", description: "The £4,800 Grant Thornton audit fee posted to 6200 – Professional fees in April relates to the full-year statutory audit. Only £400 should be recognised this month, with the remaining £4,400 deferred as an accrual on BS 2109 – Accruals. Prior year shows monthly accrual of £400.", tableRow: { "Debit account": "2109 – Accruals", "Credit account": "6200 – Professional fees", "Amount": "£4,400.00", "Period": "Apr 2026", "Reference": "ACR-PL01" }, primaryLabel: "Create accrual", secondaryLabel: "I have resolved this" },
-  { idx: 1, key: "insurance_release", title: "Post missed April release for Zurich EL policy", contact: "Zurich Insurance plc", description: "The Zurich employers' liability policy prepayment (BS 1103 – Prepayments, £3,600 total) has been releasing £300/month since April 2026. The April release is scheduled on the prepayment register but has not been posted to 6030 – Insurance. This understates insurance expense for the period.", tableRow: { "Debit account": "6030 – Insurance", "Credit account": "1103 – Prepayments", "Amount": "£300.00", "Period": "Apr 2026", "Reference": "PRE-PL01" }, primaryLabel: "Post release", secondaryLabel: "I have resolved this" },
-  { idx: 2, key: "freight_accrual", title: "Accrue DHL freight invoice received after period end", contact: "DHL Supply Chain", description: "A DHL invoice for £1,420.00 dated 28 April was received on 3 May, after the period-end cut-off. The charge relates to April deliveries and should be accrued to ensure 5020 – Freight & carriage reflects the full month. This partly explains the +16.2% variance flagged above.", tableRow: { "Debit account": "5020 – Freight & carriage", "Credit account": "2109 – Accruals", "Amount": "£1,420.00", "Period": "Apr 2026", "Reference": "ACR-PL02" }, primaryLabel: "Create accrual", secondaryLabel: "I have resolved this" },
-  { idx: 3, key: "datto_prepayment", title: "Add Datto SaaS Protection to prepayment schedule", contact: "Datto SaaS Protection", description: "Invoice #DAT-8821 for £960.00 dated 25 March 2026 covers a 12-month backup licence from April 2026 to March 2027. The full amount was posted to 6220 – Subscriptions in March. £80 per month should be released, with the remaining £880.00 reclassified as a prepayment on BS 1103.", tableRow: { "Debit account": "1103 – Prepayments", "Credit account": "6220 – Subscriptions", "Amount": "£880.00", "Period": "11 months from May 26", "Reference": "PRE-PL02" }, primaryLabel: "Add to schedule", secondaryLabel: "I have resolved this" },
+  { key: "audit_accrual", accountCode: "6200", description: "Audit fee accrual – Professional fees (Grant Thornton UK LLP)", date: "30 Apr", amount: "£4,400.00", vat: "-", context: "Regular supplier invoice from Grant Thornton expected this period but not posted. Confidence: High.", buttonLabel: "View suggested accrual", adjustmentType: "Accrued Expense", expenseAccount: "Professional fees (620)", accrualDate: "30/04/2026", reversalDate: "30/05/2026",
+    adjusted: { actual: "£2,400.00", variance: "£0.00", pctDiff: "0.0%", pctStatus: null } },
+  { key: "insurance_release", accountCode: "6030", description: "Insurance prepayment release – Zurich EL policy", date: "30 Apr", amount: "£300.00", vat: "-", context: "Regular monthly insurance invoice not yet posted for this period. Confidence: Critical.", buttonLabel: "View suggested accrual", adjustmentType: "Accrued Expense", expenseAccount: "Insurance (433)", accrualDate: "30/04/2026", reversalDate: "30/05/2026",
+    adjusted: { actual: "£2,750.00", variance: "£300.00", pctDiff: "+12.2%", pctStatus: null } },
+  { key: "freight_accrual", accountCode: "5020", description: "Freight accrual – DHL invoice received after period end", date: "30 Apr", amount: "£1,420.00", vat: "-", context: "Supplier invoice for April deliveries received after cut-off but not accrued. Confidence: High.", buttonLabel: "View suggested accrual", adjustmentType: "Accrued Expense", expenseAccount: "Freight & carriage (502)", accrualDate: "30/04/2026", reversalDate: "30/05/2026",
+    adjusted: { actual: "£13,270.00", variance: "£3,070.00", pctDiff: "+30.1%", pctStatus: null } },
+  { key: "datto_prepayment", accountCode: "6220", description: "Datto SaaS Protection – prepayment reclassification", date: "30 Apr", amount: "£880.00", vat: "-", context: "12-month licence posted in full to Subscriptions; monthly release not yet set up. Confidence: Critical.", buttonLabel: "View suggested accrual", adjustmentType: "Accrued Expense", expenseAccount: "Subscriptions (622)", accrualDate: "30/04/2026", reversalDate: "30/05/2026",
+    adjusted: { actual: "£10.00", variance: "-£860.00", pctDiff: "-98.9%", pctStatus: null } },
 ];
 
 // ── Compare-to options ──────────────────────────────────────────────────────
@@ -90,6 +94,41 @@ var COMPARE_OPTIONS = [
   { value: "avg_3m",     label: "3-month average" },
 ];
 
+
+// ── Suggestion table columns (reused in accordion + expanded rows) ──────────
+var getSuggestionColumns = function(onViewAccrual) {
+  return [
+    {
+      key: "description", label: "Description", width: "minmax(300px, 2fr)",
+      render: function(v, row) {
+        return React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 2 } },
+          React.createElement("span", { style: { ...T.textSm, fontWeight: T.fontWeightMedium, color: T.colorTextPrimary } }, v),
+          React.createElement("span", { style: { ...T.textXs, color: T.colorTextSecondary } }, row.date)
+        );
+      },
+    },
+    {
+      key: "amount", label: "Amount", width: "120px", align: "right",
+      render: function(v) {
+        return React.createElement("span", { style: { ...T.textSm, fontWeight: T.fontWeightMedium, color: T.colorTextPrimary } }, v);
+      },
+    },
+    { key: "vat", label: "VAT", width: "80px", align: "center" },
+    {
+      key: "context", label: "Context", width: "minmax(280px, 1.5fr)",
+      render: function(v, row) {
+        return React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" } },
+          React.createElement("span", { style: { ...T.textSm, color: T.colorTextPrimary, lineHeight: "20px" } }, v),
+          React.createElement(PrimaryButton, {
+            size: "sm",
+            style: { height: 32, padding: "0 12px", fontSize: 13 },
+            onClick: function(e) { e.stopPropagation(); if (onViewAccrual) onViewAccrual(row.key); },
+          }, row.buttonLabel)
+        );
+      },
+    },
+  ];
+};
 
 // ── Sparkle icon (for suggestions banner) ───────────────────────────────────
 var SparkleIcon = function() {
@@ -360,10 +399,14 @@ var PLExpandedRow = function(props) {
   var onAddComment = props.onAddComment;
   var reviewData = props.reviewData;
   var onToggleReview = props.onToggleReview;
+  var sugCols = props.sugColumns;
   var isReviewed = reviewData && reviewData.status === "Reviewed";
   var txns = PL_TRANSACTIONS[row.code] || [];
   var hasContext = CONTEXT_AVAILABLE[row.code];
   var contextData = PL_CONTEXT[row.code];
+  var resolvedSet = props.resolvedSug || new Set();
+  var ignoredSet = props.ignoredSug || new Set();
+  var rowSuggestions = PL_SUGGESTIONS.filter(function(s) { return s.accountCode === row.code && !resolvedSet.has(s.key) && !ignoredSet.has(s.key); });
   // Deterministic "total" based on code digits — always more than shown highlights
   var codeNum = parseInt(row.code, 10) || 0;
   var totalCount = txns.length + (codeNum % 7) + 5;
@@ -516,6 +559,20 @@ var PLExpandedRow = function(props) {
     style: { display: "flex", flexDirection: "column", gap: T.space7 },
   },
 
+    // ── Suggested adjustments for this account ──
+    rowSuggestions.length > 0 && React.createElement("div", {
+      style: { display: "flex", flexDirection: "column", gap: T.space4 },
+    },
+      React.createElement("span", {
+        style: { ...T.textSm, fontWeight: T.fontWeightSemibold, color: T.colorTextPrimary },
+      }, "Suggested adjustments"),
+      React.createElement(DataTable, {
+        columns: sugCols,
+        rows: rowSuggestions,
+        minWidth: 900,
+      })
+    ),
+
     // ── Context box (only for accounts with context) ──
     hasContext && contextData && React.createElement("div", {
       style: {
@@ -632,10 +689,6 @@ function ProfitAndLossPage(props) {
   var ctx = props.ctx;
 
   // Local UI state
-  var _compareTo = useState("last_month");
-  var compareTo = _compareTo[0];
-  var setCompareTo = _compareTo[1];
-
   var _resolvedSug = useState(function() { return new Set(); });
   var resolvedSug = _resolvedSug[0];
   var setResolvedSug = _resolvedSug[1];
@@ -690,6 +743,37 @@ function ProfitAndLossPage(props) {
     });
   };
 
+  // Account codes that have an UNRESOLVED suggested accrual
+  var suggestedAccountCodes = {};
+  PL_SUGGESTIONS.forEach(function(s) {
+    if (!resolvedSug.has(s.key) && !ignoredSug.has(s.key)) {
+      suggestedAccountCodes[s.accountCode] = true;
+    }
+  });
+
+  // Build a map of resolved adjustments: accountCode → adjusted values
+  var adjustedByCode = {};
+  PL_SUGGESTIONS.forEach(function(s) {
+    if (resolvedSug.has(s.key) && s.adjusted) {
+      adjustedByCode[s.accountCode] = s.adjusted;
+    }
+  });
+
+  // Apply adjustments to section rows
+  var adjustedSections = PL_SECTIONS.map(function(section) {
+    var hasAdjusted = section.rows.some(function(r) { return !!adjustedByCode[r.code]; });
+    if (!hasAdjusted) return section;
+    return {
+      heading: section.heading,
+      footer: section.footer,
+      rows: section.rows.map(function(r) {
+        var adj = adjustedByCode[r.code];
+        if (!adj) return r;
+        return Object.assign({}, r, adj);
+      }),
+    };
+  });
+
   // Build columns with review column that has access to component state
   var plColumns = PL_COLUMNS.concat([{
     key: "pctDiff",
@@ -701,17 +785,8 @@ function ProfitAndLossPage(props) {
       if (rd && rd.status === "Reviewed") {
         return React.createElement(StatusBadge, { variant: "success", size: "mini" }, "Reviewed");
       }
-      // Check pctStatus flag (for accounts with null pctDiff but flagged for review)
-      if (row.pctStatus === "review") {
-        return React.createElement(StatusBadge, { variant: "error", size: "mini" }, "Review");
-      }
-      var pctStr = row.pctDiff;
-      if (!pctStr || pctStr === "0.0%") {
-        return React.createElement(StatusBadge, { variant: "neutral", size: "mini" }, "Not reviewed");
-      }
-      var num = parseFloat(pctStr.replace("+", "").replace("%", ""));
-      var absNum = Math.abs(num);
-      if (absNum >= 15) {
+      // Accounts with unresolved suggested accruals get "Review" badge
+      if (suggestedAccountCodes[row.code]) {
         return React.createElement(StatusBadge, { variant: "error", size: "mini" }, "Review");
       }
       return React.createElement(StatusBadge, { variant: "neutral", size: "mini" }, "Not reviewed");
@@ -719,6 +794,42 @@ function ProfitAndLossPage(props) {
   }]);
 
   var sugCount = PL_SUGGESTIONS.filter(function(s) { return !resolvedSug.has(s.key) && !ignoredSug.has(s.key); }).length;
+
+  // Accrual drawer state
+  var _accrualDrawerKey = useState(null);
+  var accrualDrawerKey = _accrualDrawerKey[0];
+  var setAccrualDrawerKey = _accrualDrawerKey[1];
+  var accrualDrawerSug = accrualDrawerKey ? PL_SUGGESTIONS.find(function(s) { return s.key === accrualDrawerKey; }) : null;
+
+  var _createJournal = useState(true);
+  var createJournal = _createJournal[0];
+  var setCreateJournal = _createJournal[1];
+
+  var _drawerStep = useState("details"); // "details" | "dismiss"
+  var drawerStep = _drawerStep[0];
+  var setDrawerStep = _drawerStep[1];
+
+  var handleOpenAccrualDrawer = function(key) { setAccrualDrawerKey(key); setCreateJournal(true); setDrawerStep("details"); };
+  var handleCloseAccrualDrawer = function() { setAccrualDrawerKey(null); setDrawerStep("details"); };
+  var handleAddToSchedule = function() {
+    if (accrualDrawerKey) {
+      resolveSuggestion(accrualDrawerKey, "Added to schedule");
+    }
+    setAccrualDrawerKey(null);
+    setDrawerStep("details");
+  };
+  var handleDismissStep = function() { setDrawerStep("dismiss"); };
+  var handleDismissBack = function() { setDrawerStep("details"); };
+  var handleDismissConfirm = function() {
+    if (accrualDrawerKey) {
+      ignoreSuggestion(accrualDrawerKey);
+    }
+    setAccrualDrawerKey(null);
+    setDrawerStep("details");
+  };
+
+  // Build suggestion columns with drawer callback
+  var sugColumns = getSuggestionColumns(handleOpenAccrualDrawer);
 
 
   return React.createElement("div", { style: { flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" } },
@@ -767,17 +878,7 @@ function ProfitAndLossPage(props) {
         } },
           // Card header
           React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, padding: "0" } },
-            React.createElement("h2", { style: { fontSize: 18, fontWeight: 500, color: T.colorTextPrimary, margin: 0 } }, "Overall Performance"),
-            React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
-              React.createElement("span", { style: { fontSize: 13, color: T.colorTextSecondary } }, "Compare to"),
-              React.createElement(Dropdown, {
-                value: compareTo,
-                onChange: setCompareTo,
-                options: COMPARE_OPTIONS,
-                width: 150,
-                size: "sm",
-              })
-            )
+            React.createElement("h2", { style: { fontSize: 18, fontWeight: 500, color: T.colorTextPrimary, margin: 0 } }, "Overall Performance")
           ),
           // Column headers
           React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 0, padding: "0 12px 8px" } },
@@ -809,7 +910,7 @@ function ProfitAndLossPage(props) {
         )
       ),
 
-      // ── Suggestions accordion (DS Accordion + RecommendationCard) ──────
+      // ── Suggestions accordion (DS Accordion + table) ──────────────────
       PL_SUGGESTIONS.length > 0 && React.createElement("div", { style: { marginTop: 20 } },
         React.createElement(Accordion, {
           title: sugCount > 0
@@ -818,40 +919,21 @@ function ProfitAndLossPage(props) {
           icon: React.createElement(SparkleIcon, null),
           defaultExpanded: false,
         },
-          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12, paddingTop: 4 } },
-            PL_SUGGESTIONS.map(function(sug) {
-              var isRes = resolvedSug.has(sug.key);
-              var isIgn = ignoredSug.has(sug.key);
-              var primaryActionLabels = { "Create accrual": "Accrual created", "Post release": "Release posted", "Add to schedule": "Added to schedule" };
-              var statusLabel = isRes ? (sugActions[sug.key] || "Resolved") : isIgn ? "Resolved" : "Unresolved";
-              var statusStyle = isRes ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgn ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
-              return React.createElement(RecommendationCard, {
-                key: sug.key,
-                title: sug.title,
-                description: sug.description,
-                statusLabel: statusLabel,
-                statusStyle: statusStyle,
-                collapsed: isRes || isIgn,
-                isIgnored: isIgn,
-                tableRow: sug.tableRow,
-                verticalTable: true,
-                primaryLabel: sug.primaryLabel,
-                secondaryLabel: sug.secondaryLabel,
-                hideMore: true,
-                onPrimaryAction: function() { resolveSuggestion(sug.key, primaryActionLabels[sug.primaryLabel] || "Resolved"); },
-                onSecondaryAction: function() { resolveSuggestion(sug.key, "Resolved"); },
-                onIgnore: function() { ignoreSuggestion(sug.key); },
-              });
+          React.createElement("div", { style: { paddingTop: 4 } },
+            React.createElement(DataTable, {
+              columns: sugColumns,
+              rows: PL_SUGGESTIONS.filter(function(s) { return !resolvedSug.has(s.key) && !ignoredSug.has(s.key); }),
+              minWidth: 900,
             })
           )
         )
       ),
 
       // ── P&L Data Sections ────────────────────────────────────────────────
-      PL_SECTIONS.map(function(section, si) {
+      adjustedSections.map(function(section, si) {
         return React.createElement("div", { key: si, style: { display: "flex", flexDirection: "column", gap: 0, marginTop: si === 0 ? 28 : 32 } },
-          React.createElement("h3", { style: { fontSize: 18, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 12px" } }, section.heading),
           React.createElement(DataTable, {
+            title: section.heading,
             columns: plColumns,
             rows: section.rows,
             footerLabel: section.footer,
@@ -864,6 +946,9 @@ function ProfitAndLossPage(props) {
                 onAddComment: function(code, text) { ctx.dispatch({ type: "ADD_COMMENT", accountCode: code, text: text }); },
                 reviewData: plReviewStatuses[row.code],
                 onToggleReview: handleTogglePlReview,
+                sugColumns: sugColumns,
+                resolvedSug: resolvedSug,
+                ignoredSug: ignoredSug,
               });
             },
             showCommentColumn: true,
@@ -875,6 +960,170 @@ function ProfitAndLossPage(props) {
 
       // Bottom spacing
       React.createElement("div", { style: { height: 48 } })
+    ),
+
+    // ── Accrual Drawer ──────────────────────────────────────────────────
+    React.createElement(Sidebar, {
+      open: !!accrualDrawerSug,
+      onClose: handleCloseAccrualDrawer,
+      title: drawerStep === "dismiss" ? "Dismiss Accrual draft" : (accrualDrawerSug ? accrualDrawerSug.description : ""),
+      width: 520,
+      footer: drawerStep === "dismiss"
+        ? React.createElement(React.Fragment, null,
+            React.createElement(SecondaryButton, {
+              onClick: handleDismissBack,
+              style: { height: 44, padding: "0 20px" },
+            }, "Cancel"),
+            React.createElement(PrimaryButton, {
+              onClick: handleDismissConfirm,
+              style: { flex: 1, height: 44, justifyContent: "center" },
+            }, "Dismiss Accrual draft")
+          )
+        : React.createElement(React.Fragment, null,
+            React.createElement(SecondaryButton, {
+              onClick: handleDismissStep,
+              style: { flex: 1, height: 44, justifyContent: "center" },
+            }, "Dismiss"),
+            React.createElement(PrimaryButton, {
+              onClick: handleAddToSchedule,
+              style: { flex: 1, height: 44, justifyContent: "center" },
+            }, "Add to schedule")
+          ),
+    },
+
+      // ── Step 1: Details ──
+      drawerStep === "details" && accrualDrawerSug && React.createElement("div", {
+        style: { padding: "24px", display: "flex", flexDirection: "column", gap: 24 },
+      },
+        // Context banner
+        React.createElement(Banner, { variant: "success",
+          icon: React.createElement(SparkleIcon, null),
+        }, accrualDrawerSug.context),
+
+        // Adjustment type
+        React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+          React.createElement("div", { style: { display: "flex", gap: 4, ...T.textMd, fontWeight: 500, color: T.colorTextPrimary } },
+            React.createElement("span", null, "Adjustment type"),
+            React.createElement("span", { style: { color: "#DC5C40" } }, "*")
+          ),
+          React.createElement(Dropdown, {
+            value: "accrued_expense",
+            options: [
+              { value: "accrued_expense", label: "Accrued Expense" },
+              { value: "prepayment", label: "Prepayment" },
+            ],
+            onChange: function() {},
+          })
+        ),
+
+        // Description
+        React.createElement(Input, {
+          label: "Description",
+          mandatory: true,
+          value: accrualDrawerSug.description,
+          onChange: function() {},
+        }),
+
+        // Accrual Amount
+        React.createElement(Input, {
+          label: "Accrual Amount",
+          mandatory: true,
+          value: accrualDrawerSug.amount,
+          onChange: function() {},
+        }),
+
+        // Expense account
+        React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+          React.createElement("div", { style: { display: "flex", gap: 4, ...T.textMd, fontWeight: 500, color: T.colorTextPrimary } },
+            React.createElement("span", null, "Expense account"),
+            React.createElement("span", { style: { color: "#DC5C40" } }, "*")
+          ),
+          React.createElement(Dropdown, {
+            value: "account",
+            options: [{ value: "account", label: accrualDrawerSug.expenseAccount }],
+            onChange: function() {},
+            searchable: true,
+          })
+        ),
+
+        // Accrual date
+        React.createElement(Input, {
+          label: "Accrual date",
+          mandatory: true,
+          value: accrualDrawerSug.accrualDate,
+          onChange: function() {},
+          leftSlotType: "icon",
+          leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" },
+            React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }),
+            React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })
+          ),
+        }),
+
+        // Create journal checkbox
+        React.createElement("div", {
+          onClick: function() { setCreateJournal(function(v) { return !v; }); },
+          style: { display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", userSelect: "none" },
+        },
+          React.createElement("div", {
+            style: {
+              width: 20, height: 20, borderRadius: 4, flexShrink: 0, marginTop: 1,
+              background: createJournal ? T.colorBrandPrimary : T.colorSurfacePrimary,
+              border: createJournal ? "none" : "1.5px solid " + T.colorBorderHover,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            },
+          },
+            createJournal && React.createElement("svg", { width: 12, height: 12, viewBox: "0 0 12 12", fill: "none" },
+              React.createElement("path", { d: "M2.5 6L5 8.5L9.5 3.5", stroke: "white", strokeWidth: "1.5", strokeLinecap: "round", strokeLinejoin: "round" })
+            )
+          ),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 2 } },
+            React.createElement("span", { style: { ...T.textSm, fontWeight: T.fontWeightMedium, color: T.colorTextPrimary } }, "Create journal entry for this accrual"),
+            React.createElement("span", { style: { ...T.textSm, color: T.colorTextSecondary } }, "Leave unchecked to publish reversal only")
+          )
+        ),
+
+        // Divider
+        React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
+
+        // Reversal date
+        React.createElement(Input, {
+          label: "Reversal date",
+          value: accrualDrawerSug.reversalDate,
+          onChange: function() {},
+          helpText: "The accrual will be fully reversed on the selected date",
+          leftSlotType: "icon",
+          leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" },
+            React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }),
+            React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })
+          ),
+        }),
+
+        // Info banner
+        React.createElement(Banner, { variant: "info" },
+          "You can leave the reversal date empty and choose it later when ready."
+        )
+      ),
+
+      // ── Step 2: Dismiss feedback ──
+      drawerStep === "dismiss" && React.createElement("div", {
+        style: { padding: "24px", display: "flex", flexDirection: "column", gap: 16 },
+      },
+        React.createElement("span", {
+          style: { ...T.textMd, fontWeight: T.fontWeightMedium, color: T.colorTextPrimary },
+        }, "Tell us more (optional)"),
+        React.createElement("textarea", {
+          placeholder: "Tell us why you dismissed this accrual so we can give better suggestions in the future",
+          style: {
+            width: "100%", minHeight: 100, padding: "12px 14px",
+            borderRadius: T.radius8, border: "1px solid " + T.colorBorderMedium,
+            ...T.textSm, fontFamily: T.fontFamily, lineHeight: "22px",
+            color: T.colorTextPrimary, resize: "vertical", outline: "none",
+            boxSizing: "border-box",
+          },
+          onFocus: function(e) { e.target.style.borderColor = T.colorBrandPrimary; },
+          onBlur: function(e) { e.target.style.borderColor = T.colorBorderMedium; },
+        })
+      )
     )
   );
 }
