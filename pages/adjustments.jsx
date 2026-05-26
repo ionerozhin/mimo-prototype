@@ -2910,8 +2910,9 @@ registerPage("Adjustments", {
     var _sSchSearch = useState(""); var _schSearchValue = _sSchSearch[0], _setSchSearchValue = _sSchSearch[1];
     var _s2 = useState(false); var drawerOpen = _s2[0], setDrawerOpen = _s2[1];
     var _s3 = useState(false); var importDrawerOpen = _s3[0], setImportDrawerOpen = _s3[1];
-    var _s4 = useState("jan_2026"); var importStartMonth = _s4[0], setImportStartMonth = _s4[1];
+    var _s4 = useState(""); var importStartMonth = _s4[0], setImportStartMonth = _s4[1];
     var _s5 = useState(null); var importFile = _s5[0], setImportFile = _s5[1];
+    var _s5b = useState(""); var importAdjType = _s5b[0], setImportAdjType = _s5b[1];
     var _s6 = useState(false); var scheduleOpen = _s6[0], setScheduleOpen = _s6[1];
     var _s7 = useState(false); var accrualScheduleOpen = _s7[0], setAccrualScheduleOpen = _s7[1];
     var _s8 = useState(false); var deferredRevenueScheduleOpen = _s8[0], setDeferredRevenueScheduleOpen = _s8[1];
@@ -3558,30 +3559,19 @@ registerPage("Adjustments", {
         </Sidebar>
 
         {/* Import Schedule Drawer */}
-        <Sidebar open={importDrawerOpen} onClose={function() { setImportDrawerOpen(false); }} title="Import schedule" width={600}
+        <Sidebar open={importDrawerOpen} onClose={function() { setImportDrawerOpen(false); }} title="Import adjustment schedule" width={600}
           footer={<>
             <SecondaryButton onClick={function() { setImportDrawerOpen(false); }} style={{ height: 40, padding: "8px 16px", fontSize: 14 }}>Cancel</SecondaryButton>
-            <PrimaryButton onClick={function() { setImportDrawerOpen(false); }} style={{ flex: 1, height: 40, padding: "8px 16px", fontSize: 14, justifyContent: "center" }}>Import schedule</PrimaryButton>
+            <PrimaryButton onClick={function() { setImportDrawerOpen(false); }} style={{ flex: 1, height: 40, padding: "8px 16px", fontSize: 14, justifyContent: "center" }}>Continue to preview</PrimaryButton>
           </>}>
           <div style={{ padding: 32, display: "flex", flexDirection: "column", gap: 24 }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                <span style={{ ...T.textMd, fontWeight: 500, color: T.colorTextPrimary }}>Import prepayment schedule</span>
-                <span style={{ ...T.textMd, fontWeight: 400, color: T.colorTextMuted }}>
-                  Upload your Excel file in any layout. Mimo will convert it into a monthly release schedule and check every line adds up. Review expense accounts and tracking categories in the preview before finishing the import.
-                </span>
-              </div>
-              <div>
-                <SecondaryButton style={{ height: 40, padding: "8px 12px 8px 12px", fontSize: 14, gap: 8 }}>
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0 }}>
-                    <path d={_MM_PATHS.download} stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  Download templates
-                </SecondaryButton>
-              </div>
-            </div>
+            <Banner variant="success" icon={<svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0, marginTop: 2 }}><path d={PATHS.starAi} fill={T.colorBrandPrimary} stroke={T.colorBrandPrimary} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" /></svg>}>
+              Upload your adjustment schedule in any layout. Mimo will do the rest – preview and confirm before finishing the import.
+            </Banner>
 
-            <Dropdown label="Import schedule starting from" value={importStartMonth} onChange={setImportStartMonth} size="lg" helpText="Mimo will import schedules starting from the chosen month" options={monthKeys.map(function(k) { return { value: k, label: monthLabels[k] }; })} />
+            <Dropdown label="Adjustment type" value={importAdjType} onChange={setImportAdjType} size="lg" placeholder="Choose adjustment type" options={[{ value: "prepaid", label: "Prepaid Expenses" }, { value: "accrued", label: "Accrued Expenses" }]} />
+
+            <Dropdown label="Mimo takes over from" value={importStartMonth} onChange={setImportStartMonth} size="lg" placeholder="Choose month" helpText="Mimo will publish journals from the chosen month onward." options={monthKeys.map(function(k) { return { value: k, label: monthLabels[k] }; })} />
 
             <UploadBox file={importFile} onFileChange={setImportFile} />
           </div>
