@@ -3242,21 +3242,22 @@ registerPage("Adjustments", {
                     </div>
                   )
                   : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                    <div style={{ border: "1px solid " + T.colorBorderDark, borderRadius: 8, overflow: "hidden" }}>
                     {/* Search + filter bar */}
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderBottom: "1px solid " + T.colorBorderDark, flexWrap: "wrap" }}>
                       <div style={{ position: "relative", flex: 1, maxWidth: 320 }}>
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}>
                           <circle cx="7" cy="7" r="5.5" stroke={T.colorTextSecondary} strokeWidth="1.25" />
                           <path d="M11 11L14 14" stroke={T.colorTextSecondary} strokeWidth="1.25" strokeLinecap="round" />
                         </svg>
-                        <input type="text" placeholder="Search..." style={{ width: "100%", height: 40, paddingLeft: 36, paddingRight: 12, border: "1px solid " + T.colorBorderMedium, borderRadius: 8, fontSize: 14, fontFamily: T.fontFamily, color: T.colorTextPrimary, outline: "none", boxSizing: "border-box", background: T.colorSurfacePrimary }} />
+                        <input type="text" placeholder="Search..." style={{ width: "100%", height: 36, paddingLeft: 36, paddingRight: 12, border: "1px solid " + T.colorBorderDark, borderRadius: 8, fontSize: 14, fontFamily: T.fontFamily, color: T.colorTextPrimary, outline: "none", boxSizing: "border-box", background: T.colorSurfacePrimary }} />
                       </div>
                       <div style={{ marginLeft: "auto" }}>
                         <Dropdown value="all" options={[{ value: "all", label: "All expense accounts" }]} onChange={function(){}} size="sm" width={200} />
                       </div>
                     </div>
                     <DataTable
+                      noBorder
                       columns={[
                         { key: "description", label: "Description", width: "minmax(200px, 1fr)", render: function(v, row) {
                           return (

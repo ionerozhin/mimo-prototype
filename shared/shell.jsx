@@ -90,6 +90,7 @@ function DataTable({
   expandedByDefault,
   rowComments = {},
   minWidth,
+  noBorder = false,
 }) {
   const [hovered, setHovered] = useState(null);
   const [expandedRows, setExpandedRows] = useState(() => {
@@ -157,7 +158,7 @@ function DataTable({
   );
 
   return (
-    <div style={{ background: T.colorSurfacePrimary, border: `1px solid ${T.colorBorderDark}`, borderRadius: 8, overflow: "hidden", fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ background: T.colorSurfacePrimary, border: noBorder ? "none" : `1px solid ${T.colorBorderDark}`, borderRadius: noBorder ? 0 : 8, overflow: "hidden", fontFamily: "'Inter', sans-serif" }}>
       {/* Section title */}
       {title && (
         <div style={{ padding: "16px 16px 14px", borderBottom: `1px solid ${T.colorBorderDark}` }}>
