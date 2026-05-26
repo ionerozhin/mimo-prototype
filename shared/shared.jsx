@@ -648,6 +648,7 @@ function Modal({
 function Sidebar({
   open = false,
   onClose,
+  onStartClose,
   title = "",
   width = 600,
   showBackdrop = true,
@@ -660,7 +661,7 @@ function Sidebar({
     if (open) { requestAnimationFrame(() => setVisible(true)); }
     else { setVisible(false); }
   }, [open]);
-  const handleClose = () => { setVisible(false); setTimeout(() => onClose && onClose(), 320); };
+  const handleClose = () => { setVisible(false); onStartClose && onStartClose(); setTimeout(() => onClose && onClose(), 320); };
   if (!open && !visible) return null;
   return (
     <>

@@ -818,14 +818,19 @@ function ProfitAndLossPage(props) {
   var drawerStep = _drawerStep[0];
   var setDrawerStep = _drawerStep[1];
 
-  var handleOpenAccrualDrawer = function(key) { setAccrualDrawerKey(key); setCreateJournal(true); setDrawerStep("details"); };
-  var handleCloseAccrualDrawer = function() { setAccrualDrawerKey(null); setDrawerStep("details"); };
+  var _plPreviewOpen = useState(false);
+  var plPreviewOpen = _plPreviewOpen[0];
+  var setPlPreviewOpen = _plPreviewOpen[1];
+
+  var handleOpenAccrualDrawer = function(key) { setAccrualDrawerKey(key); setCreateJournal(true); setDrawerStep("details"); var sug = PL_SUGGESTIONS.find(function(s) { return s.key === key; }); if (sug && sug.type === "prepayment") { setPlPreviewOpen(true); } };
+  var handleCloseAccrualDrawer = function() { setAccrualDrawerKey(null); setDrawerStep("details"); setPlPreviewOpen(false); };
   var handleAddToSchedule = function() {
     if (accrualDrawerKey) {
       resolveSuggestion(accrualDrawerKey, "Added to schedule");
     }
     setAccrualDrawerKey(null);
     setDrawerStep("details");
+    setPlPreviewOpen(false);
   };
   var handleDismissStep = function() { setDrawerStep("dismiss"); };
   var handleDismissBack = function() { setDrawerStep("details"); };
@@ -835,6 +840,7 @@ function ProfitAndLossPage(props) {
     }
     setAccrualDrawerKey(null);
     setDrawerStep("details");
+    setPlPreviewOpen(false);
   };
 
   // Build suggestion columns with drawer callback
@@ -984,6 +990,7 @@ function ProfitAndLossPage(props) {
     React.createElement(Sidebar, {
       open: !!accrualDrawerSug,
       onClose: handleCloseAccrualDrawer,
+      onStartClose: function() { setPlPreviewOpen(false); },
       title: drawerStep === "dismiss"
         ? (accrualDrawerSug && accrualDrawerSug.type === "prepayment" ? "Dismiss Prepayment draft" : "Dismiss Accrual draft")
         : (accrualDrawerSug ? (accrualDrawerSug.drawerTitle || accrualDrawerSug.description) : ""),
@@ -1263,10 +1270,10 @@ function ProfitAndLossPage(props) {
         background: T.colorSurfaceSecondary,
         display: "flex", flexDirection: "column",
         fontFamily: "'Inter', sans-serif",
-        transform: (accrualDrawerSug && accrualDrawerSug.type === "prepayment" && drawerStep === "details") ? "translateX(0)" : "translateX(-100%)",
-        opacity: (accrualDrawerSug && accrualDrawerSug.type === "prepayment" && drawerStep === "details") ? 1 : 0,
+        transform: (plPreviewOpen && drawerStep === "details") ? "translateX(0)" : "translateX(-100%)",
+        opacity: (plPreviewOpen && drawerStep === "details") ? 1 : 0,
         transition: "transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease",
-        pointerEvents: (accrualDrawerSug && accrualDrawerSug.type === "prepayment" && drawerStep === "details") ? "auto" : "none",
+        pointerEvents: (plPreviewOpen && drawerStep === "details") ? "auto" : "none",
       },
     },
       // Invoice document — centered, no scroll

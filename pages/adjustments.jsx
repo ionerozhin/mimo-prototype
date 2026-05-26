@@ -2925,16 +2925,17 @@ registerPage("Adjustments", {
 
     // Suggestion drawer state
     var _sSugKey = useState(null); var _sugDrawerKey = _sSugKey[0], _setSugDrawerKey = _sSugKey[1];
+    var _sSugOpen = useState(false); var _sugDrawerOpen = _sSugOpen[0], _setSugDrawerOpen = _sSugOpen[1];
     var _sSugStep = useState("details"); var _sugDrawerStep = _sSugStep[0], _setSugDrawerStep = _sSugStep[1];
     var _sSugJournal = useState(true); var _sugCreateJournal = _sSugJournal[0], _setSugCreateJournal = _sSugJournal[1];
     var _sugDrawerCard = _sugDrawerKey ? (_PR_CARDS.concat(_AR_CARDS)).find(function(c) { return c.key === _sugDrawerKey; }) : null;
     var _sugIsPrepayment = _sugDrawerCard ? !!_sugDrawerCard.allocations : false;
-    var _openSugDrawer = function(key) { _setSugDrawerKey(key); _setSugCreateJournal(true); _setSugDrawerStep("details"); };
-    var _closeSugDrawer = function() { _setSugDrawerKey(null); _setSugDrawerStep("details"); };
-    var _sugAddToSchedule = function() { _setSugDrawerKey(null); _setSugDrawerStep("details"); };
+    var _openSugDrawer = function(key) { _setSugDrawerKey(key); _setSugDrawerOpen(true); _setSugCreateJournal(true); _setSugDrawerStep("details"); };
+    var _closeSugDrawer = function() { _setSugDrawerKey(null); _setSugDrawerStep("details"); _setSugDrawerOpen(false); };
+    var _sugAddToSchedule = function() { _setSugDrawerKey(null); _setSugDrawerStep("details"); _setSugDrawerOpen(false); };
     var _sugDismissStep = function() { _setSugDrawerStep("dismiss"); };
     var _sugDismissBack = function() { _setSugDrawerStep("details"); };
-    var _sugDismissConfirm = function() { _setSugDrawerKey(null); _setSugDrawerStep("details"); };
+    var _sugDismissConfirm = function() { _setSugDrawerKey(null); _setSugDrawerStep("details"); _setSugDrawerOpen(false); };
 
     // GL impact per suggestion card
     var _glConfig = {
@@ -3531,6 +3532,7 @@ registerPage("Adjustments", {
         {React.createElement(Sidebar, {
           open: !!_sugDrawerCard,
           onClose: _closeSugDrawer,
+          onStartClose: function() { _setSugDrawerOpen(false); },
           title: _sugDrawerStep === "dismiss"
             ? (_sugIsPrepayment ? "Dismiss Prepayment draft" : "Dismiss Accrual draft")
             : (_sugDrawerCard ? (_sugDrawerCard.drawerTitle || _sugDrawerCard.title) : ""),
@@ -3611,7 +3613,7 @@ registerPage("Adjustments", {
 
         {/* Invoice preview panel (prepayment drawer) */}
         {React.createElement("div", {
-          style: { position: "fixed", top: 0, right: 520, bottom: 0, left: 0, zIndex: 202, background: T.colorSurfaceSecondary, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", transform: (_sugDrawerCard && _sugIsPrepayment && _sugDrawerStep === "details") ? "translateX(0)" : "translateX(-100%)", opacity: (_sugDrawerCard && _sugIsPrepayment && _sugDrawerStep === "details") ? 1 : 0, transition: "transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease", pointerEvents: (_sugDrawerCard && _sugIsPrepayment && _sugDrawerStep === "details") ? "auto" : "none" },
+          style: { position: "fixed", top: 0, right: 520, bottom: 0, left: 0, zIndex: 202, background: T.colorSurfaceSecondary, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", transform: (_sugDrawerOpen && _sugIsPrepayment && _sugDrawerStep === "details") ? "translateX(0)" : "translateX(-100%)", opacity: (_sugDrawerOpen && _sugIsPrepayment && _sugDrawerStep === "details") ? 1 : 0, transition: "transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease", pointerEvents: (_sugDrawerOpen && _sugIsPrepayment && _sugDrawerStep === "details") ? "auto" : "none" },
         },
           React.createElement("div", { style: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 } },
             React.createElement("div", { style: { width: "100%", maxWidth: 520, background: "#fff", borderRadius: 8, border: "1px solid " + T.colorBorderDark, padding: "40px 36px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", fontFamily: "'Inter', sans-serif" } },
