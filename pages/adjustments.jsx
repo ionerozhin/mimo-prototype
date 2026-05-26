@@ -3268,15 +3268,23 @@ registerPage("Adjustments", {
                         }},
                         { key: "expenseAccount", label: "Expense account", width: "200px" },
                         { key: "openingBalance", label: "Opening balance", width: "140px", align: "right" },
-                        { key: "movement", label: "Movement", width: "140px", align: "right", render: function(v) {
+                        { key: "movement", label: "Movement", width: "160px", align: "right", render: function(v) {
                           if (!v || v === "-") return <span>-</span>;
+                          var lines = Array.isArray(v) ? v : [v];
+                          var clockIcon = <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0 }}>
+                            <circle cx="6" cy="6" r="5" stroke={T.colorTextSecondary} strokeWidth="1" />
+                            <path d="M6 3.5V6L7.5 7.5" stroke={T.colorTextSecondary} strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>;
                           return (
-                            <div style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>
-                              {v}
-                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0 }}>
-                                <circle cx="6" cy="6" r="5" stroke={T.colorTextSecondary} strokeWidth="1" />
-                                <path d="M6 3.5V6L7.5 7.5" stroke={T.colorTextSecondary} strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
+                              {lines.map(function(line, i) {
+                                return (
+                                  <div key={i} style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>
+                                    {line}
+                                    {clockIcon}
+                                  </div>
+                                );
+                              })}
                             </div>
                           );
                         }},
@@ -3286,24 +3294,38 @@ registerPage("Adjustments", {
                         { description: "Peel Holdings – warehouse lease", period: "Dec 25 – Nov 26 (12m)", expenseAccount: "6000 – Rent", openingBalance: "£6,400.00", movement: "(£800.00)", closingBalance: "£5,600.00" },
                         { description: "Hiscox – PI cover FY 25/26", period: "Nov 25 – Oct 26 (12m)", expenseAccount: "6030 – Insurance", openingBalance: "£2,625.00", movement: "(£375.00)", closingBalance: "£2,250.00" },
                         { description: "Microsoft 365 Business", period: "Jan 26 – Dec 26 (12m)", expenseAccount: "6220 – Subscriptions", openingBalance: "£3,600.00", movement: "(£400.00)", closingBalance: "£3,200.00" },
-                        { description: "Zurich – EL policy 26/27", period: "Apr 26 – Mar 27 (12m)", expenseAccount: "6030 – Insurance", openingBalance: "-", movement: "£6,600.00", closingBalance: "£6,600.00" },
+                        { description: "Zurich – EL policy 26/27", period: "Apr 26 – Mar 27 (12m)", expenseAccount: "6030 – Insurance", openingBalance: "-", movement: ["£7,200.00", "(£600.00)"], closingBalance: "£6,600.00" },
                         { description: "Red Havas – marketing retainer", period: "Jan 26 – Jun 26 (6m)", expenseAccount: "6110 – Advertising & marketing", openingBalance: "£3,000.00", movement: "(£1,000.00)", closingBalance: "£2,000.00" },
                         { description: "BRC Global Standards certification", period: "Jan 26 – Dec 26 (12m)", expenseAccount: "6220 – Subscriptions", openingBalance: "£1,080.00", movement: "(£120.00)", closingBalance: "£960.00" },
-                        { description: "Datto SaaS Protection", period: "Apr 26 – Mar 27 (12m)", expenseAccount: "6220 – Subscriptions", openingBalance: "-", movement: "£880.00", closingBalance: "£880.00" },
+                        { description: "Datto SaaS Protection", period: "Apr 26 – Mar 27 (12m)", expenseAccount: "6220 – Subscriptions", openingBalance: "-", movement: ["£960.00", "(£80.00)"], closingBalance: "£880.00" },
                         { description: "Regus – hot desk licence", period: "Mar 26 – Feb 27 (12m)", expenseAccount: "6000 – Rent", openingBalance: "£2,145.00", movement: "(£195.00)", closingBalance: "£1,950.00" },
                       ] : [
                         { description: "Grant Thornton – statutory audit fee", period: "Recurring (monthly)", expenseAccount: "6200 – Professional fees", openingBalance: "£9,000.00", movement: "£1,500.00", closingBalance: "£10,500.00" },
-                        { description: "British Gas – electricity estimate", period: "Recurring (quarterly)", expenseAccount: "6020 – Light, heat & power", openingBalance: "£4,200.00", movement: "(£2,750.00)", closingBalance: "£1,450.00" },
+                        { description: "British Gas – electricity estimate", period: "Recurring (quarterly)", expenseAccount: "6020 – Light, heat & power", openingBalance: "£4,200.00", movement: ["£1,450.00", "(£4,200.00)"], closingBalance: "£1,450.00" },
                         { description: "Thames Water – water rates", period: "Recurring (monthly)", expenseAccount: "6010 – Rates", openingBalance: "£2,430.00", movement: "£530.00", closingBalance: "£2,960.00" },
-                        { description: "DHL Supply Chain – freight accrual", period: "Recurring (quarterly)", expenseAccount: "5020 – Freight & carriage", openingBalance: "£4,650.00", movement: "(£3,100.00)", closingBalance: "£1,550.00" },
-                        { description: "Vodafone – mobile fleet", period: "Recurring (monthly)", expenseAccount: "6230 – Telephone & internet", openingBalance: "£780.00", movement: "-", closingBalance: "£780.00" },
-                        { description: "Aviva – pension contributions", period: "Recurring (quarterly)", expenseAccount: "7003 – Pension costs", openingBalance: "£6,480.00", movement: "(£4,320.00)", closingBalance: "£2,160.00" },
+                        { description: "DHL Supply Chain – freight accrual", period: "Recurring (quarterly)", expenseAccount: "5020 – Freight & carriage", openingBalance: "£4,650.00", movement: ["£1,550.00", "(£4,650.00)"], closingBalance: "£1,550.00" },
+                        { description: "Vodafone – mobile fleet", period: "Recurring (monthly)", expenseAccount: "6230 – Telephone & internet", openingBalance: "£780.00", movement: ["£780.00", "(£780.00)"], closingBalance: "£780.00" },
+                        { description: "Aviva – pension contributions", period: "Recurring (quarterly)", expenseAccount: "7003 – Pension costs", openingBalance: "£6,480.00", movement: ["£2,160.00", "(£6,480.00)"], closingBalance: "£2,160.00" },
                         { description: "Clifton & Harrow – legal retainer", period: "Recurring (monthly)", expenseAccount: "6200 – Professional fees", openingBalance: "£4,950.00", movement: "£1,650.00", closingBalance: "£6,600.00" },
                         { description: "Building maintenance – planned works", period: "Recurring (monthly)", expenseAccount: "6040 – Repairs & maintenance", openingBalance: "£4,400.00", movement: "£800.00", closingBalance: "£5,200.00" },
                       ]}
                       footerRow={activeTab === "prepayments"
-                        ? { description: "Total", expenseAccount: "", openingBalance: "£18,850.00", movement: "£4,590.00", closingBalance: "£23,440.00" }
-                        : { description: "Total", expenseAccount: "", openingBalance: "£36,890.00", movement: "(£5,690.00)", closingBalance: "£31,200.00" }
+                        ? { description: "Total", expenseAccount: "", openingBalance: "£18,850.00", movement: "£4,590.00", closingBalance: (function() {
+                            var gl = _computeGlBadge(_glConfig.prepayments, prepaymentReviewState);
+                            return React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 } },
+                              React.createElement("span", null, "£23,440.00"),
+                              gl ? React.createElement("span", { style: { fontSize: 12, fontWeight: 500, color: gl.color, background: gl.bg, borderRadius: 6, padding: "1px 5px", lineHeight: "17px", letterSpacing: "0.15px", whiteSpace: "nowrap" } }, gl.label)
+                                : React.createElement("span", { style: { fontSize: 12, fontWeight: 500, color: T.colorBrandPrimary, background: T.colorSuccessBg, borderRadius: 6, padding: "1px 5px", lineHeight: "17px", letterSpacing: "0.15px", whiteSpace: "nowrap" } }, "Reconciled")
+                            );
+                          })() }
+                        : { description: "Total", expenseAccount: "", openingBalance: "£36,890.00", movement: "(£5,690.00)", closingBalance: (function() {
+                            var gl = _computeGlBadge(_glConfig.accruals, accrualReviewState);
+                            return React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 } },
+                              React.createElement("span", null, "£31,200.00"),
+                              gl ? React.createElement("span", { style: { fontSize: 12, fontWeight: 500, color: gl.color, background: gl.bg, borderRadius: 6, padding: "1px 5px", lineHeight: "17px", letterSpacing: "0.15px", whiteSpace: "nowrap" } }, gl.label)
+                                : React.createElement("span", { style: { fontSize: 12, fontWeight: 500, color: T.colorBrandPrimary, background: T.colorSuccessBg, borderRadius: 6, padding: "1px 5px", lineHeight: "17px", letterSpacing: "0.15px", whiteSpace: "nowrap" } }, "Reconciled")
+                            );
+                          })() }
                       }
                       minWidth={860}
                     />
