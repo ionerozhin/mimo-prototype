@@ -3231,38 +3231,38 @@ registerPage("Adjustments", {
                         var initial = card.contactName ? card.contactName.charAt(0).toUpperCase() : "?";
                         var isAccrual = activeTab !== "prepayments";
                         var _starIcon = React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 20 20", fill: "none", style: { flexShrink: 0, marginTop: 2 } },
-                          React.createElement("path", { d: PATHS.starAi, fill: "#6389CF", stroke: "#6389CF", strokeWidth: "1.66667", strokeLinecap: "round", strokeLinejoin: "round" })
+                          React.createElement("path", { d: PATHS.starAi, fill: "#6BAC5B", stroke: "#6BAC5B", strokeWidth: "1.66667", strokeLinecap: "round", strokeLinejoin: "round" })
                         );
                         return (
                           React.createElement("div", { key: card.key, style: { border: "1px solid " + T.colorBorderDark, borderRadius: 12, background: T.colorSurfacePrimary, overflow: "hidden" } },
                             /* Top row: avatar + contact | account | amount | allocations (prepayments only) */
-                            React.createElement("div", { style: { display: "flex", alignItems: "center", padding: "16px 16px", gap: 0 } },
+                            React.createElement("div", { style: { display: "flex", alignItems: "center", padding: "16px 16px" } },
                               /* Contact */
-                              React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12, minWidth: 0, flexShrink: 0 } },
-                                React.createElement("div", { style: { width: 36, height: 36, borderRadius: "50%", background: T.colorSuccessBg, color: T.colorBrandPrimary, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: 15, flexShrink: 0, fontFamily: T.fontFamily } }, initial),
+                              React.createElement("div", { style: { flex: 1, display: "flex", alignItems: "center", gap: 12, minWidth: 0 } },
+                                React.createElement("div", { style: { width: 44, height: 44, borderRadius: 8, background: T.colorInfoBg, color: "#6389CF", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: 17, flexShrink: 0, fontFamily: T.fontFamily } }, initial),
                                 React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 1 } },
                                   React.createElement("span", { style: { fontWeight: 500, fontSize: 14, color: T.colorTextPrimary } }, card.contactName),
                                   React.createElement("span", { style: { fontSize: 13, color: T.colorTextSecondary } }, card.contactSub)
                                 )
                               ),
                               /* Divider */
-                              React.createElement("div", { style: { width: 1, height: 36, background: T.colorBorderDark, margin: "0 20px", flexShrink: 0 } }),
+                              React.createElement("div", { style: { width: 1, alignSelf: "stretch", background: T.colorBorderDark, margin: "0 20px", flexShrink: 0 } }),
                               /* Account */
-                              React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 1, minWidth: 0, flexShrink: 0 } },
+                              React.createElement("div", { style: { flex: 1, display: "flex", flexDirection: "column", gap: 1, minWidth: 0 } },
                                 React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary, fontWeight: 500 } }, "Account"),
                                 React.createElement("span", { style: { fontSize: 14, color: T.colorTextPrimary } }, card.account)
                               ),
                               /* Divider */
-                              React.createElement("div", { style: { width: 1, height: 36, background: T.colorBorderDark, margin: "0 20px", flexShrink: 0 } }),
+                              React.createElement("div", { style: { width: 1, alignSelf: "stretch", background: T.colorBorderDark, margin: "0 20px", flexShrink: 0 } }),
                               /* Amount */
-                              React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 1, flexShrink: 0 } },
+                              React.createElement("div", { style: { flex: 1, display: "flex", flexDirection: "column", gap: 1 } },
                                 React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary, fontWeight: 500 } }, "Amount"),
                                 React.createElement("span", { style: { fontSize: 14, color: T.colorTextPrimary, fontWeight: 500 } }, card.amount)
                               ),
                               /* Allocations — prepayments only */
                               !isAccrual && card.allocations ? [
-                                React.createElement("div", { key: "div", style: { width: 1, height: 36, background: T.colorBorderDark, margin: "0 20px", flexShrink: 0 } }),
-                                React.createElement("div", { key: "alloc", style: { display: "flex", flexDirection: "column", gap: 1, flexShrink: 0 } },
+                                React.createElement("div", { key: "div", style: { width: 1, alignSelf: "stretch", background: T.colorBorderDark, margin: "0 20px", flexShrink: 0 } }),
+                                React.createElement("div", { key: "alloc", style: { flex: 1, display: "flex", flexDirection: "column", gap: 1 } },
                                   React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary, fontWeight: 500 } }, "Allocations"),
                                   React.createElement("span", { style: { fontSize: 14, color: T.colorTextPrimary } }, card.allocations)
                                 )
@@ -3270,7 +3270,7 @@ registerPage("Adjustments", {
                             ),
                             /* AI insight banner */
                             React.createElement("div", { style: { padding: "0 16px" } },
-                              React.createElement(Banner, { variant: "info", icon: _starIcon, style: { borderRadius: 8 } }, card.aiInsight)
+                              React.createElement(Banner, { variant: "success", icon: _starIcon, style: { borderRadius: 8 } }, card.aiInsight)
                             ),
                             /* Action buttons */
                             React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, padding: "16px 16px" } },
