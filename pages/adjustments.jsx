@@ -845,18 +845,12 @@ var _PR_STEPS = [
 
 var _PR_CARDS = [
   { idx: 0, key: "insurance", contactName: "Aviva", contactSub: "Nov 25 – Oct 26", account: "Insurance (6030)", amount: "£12,000.00", allocations: "12 x £1,000.00/month", aiInsight: "The invoice specifies a service period from 01/11/2025 to 31/10/2026, indicating a prepayment for future services.", title: "Add Aviva PI renewal to prepayment schedule", contact: "Aviva – professional indemnity insurance", description: "Last year a £14,400.00 professional indemnity premium from Aviva was prepaid over 12 months (£1,200.00/month). The renewal invoice dated 1 November 2025 has been posted to 6030 – Insurance but no prepayment schedule has been set up for the current policy year. The full amount is sitting in the expense account rather than being spread.", tableRow: { account: "1103 – Prepayments", amount: "£12,000.00", period: "12 months from Nov 25", invoice: "INV-AV-2025-1101" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss", drawer: { contact: "Aviva", invoice: "INV-AV-2025-1101.pdf", invoiceDate: "November 2025", aiInsight: "The invoice specifies a service period from 01/11/2025 to 31/10/2026, which extends beyond the invoice date, indicating a prepayment for future services.", adjType: "prepayment_expense", description: "PI renewal – Aviva", amount: "12,000.00", expenseAccount: "6030 – Insurance", invoiceDateField: "01/11/2025" } },
-  { idx: 1, key: "saas", contactName: "HubSpot", contactSub: "Apr 26 – Mar 27", account: "Subscriptions (6220)", amount: "£7,200.00", allocations: "12 x £600.00/month", aiInsight: "The invoice covers a 12-month licence from April 2026 to March 2027. The full amount has been posted to subscriptions but should be spread.", title: "Prepay HubSpot annual licence over 12 months", contact: "HubSpot – annual CRM licence", description: "Invoice #HS-28401 for £7,200.00 dated 15 March 2026 covers a 12-month licence from April 2026 to March 2027. The invoice has been posted in full to 6220 – Subscriptions. This should be prepaid and released at £600.00 per month.", tableRow: { account: "1103 – Prepayments", amount: "£7,200.00", period: "12 months from Apr 26", invoice: "HS-28401" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss", drawer: { contact: "HubSpot", invoice: "HS-28401.pdf", invoiceDate: "March 2026", aiInsight: "The invoice covers a 12-month licence from April 2026 to March 2027. The full amount has been posted to subscriptions but should be spread over the licence period.", adjType: "prepayment_expense", description: "Annual CRM licence – HubSpot", amount: "7,200.00", expenseAccount: "6220 – Subscriptions", invoiceDateField: "15/03/2026" } },
-  { idx: 2, key: "stale", contactName: "ISS Facility Services", contactSub: "Sep 25 – Mar 26", account: "Repairs & maint. (6040)", amount: "£0.03", allocations: "Write-off", aiInsight: "The prepayment schedule expired in March 2026 but carries a rounding residual of £0.03. No further releases are expected.", title: "Write off £0.03 rounding residual for ISS Facility Services", contact: "ISS Facility Services – cleaning contract", description: "The prepayment for ISS Facility Services (cleaning) expired in March 2026 but has a remaining balance of £0.03 on the schedule due to a rounding difference. The final release was posted in March and no further releases are expected. The residual balance should be written off to 6040 – Repairs & maintenance.", tableRow: { account: "6040 – Repairs & maintenance", amount: "£0.03", period: "Apr 2026", invoice: "ISS-2025-0901" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss", drawer: { contact: "ISS Facility Services", invoice: "ISS-2025-0901.pdf", invoiceDate: "September 2025", aiInsight: "The prepayment schedule expired in March 2026 but carries a rounding residual of £0.03. No further releases are expected — this should be written off.", adjType: "prepayment_expense", description: "Cleaning contract – ISS", amount: "0.03", expenseAccount: "6040 – Repairs & maintenance", invoiceDateField: "01/09/2025" } },
-  { idx: 3, key: "pattern", contactName: "Regus", contactSub: "Mar 26 – Feb 27", account: "Rent (6000)", amount: "£195.00", allocations: "1 x £195.00/month", aiInsight: "The prepayment has been releasing £195.00/month since March 2026, but the April release was not posted during period close.", title: "Post missed April release for Regus hot desk", contact: "Regus – hot desk licence", description: "The Regus hot desk prepayment has been releasing £195.00 per month since March 2026. However, the April release has not been posted. The schedule shows the entry as scheduled but it was not included in the April close. This may have been missed during the period-end process.", tableRow: { account: "6000 – Rent", amount: "£195.00", period: "Apr 2026", invoice: "REG-HD-2603" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss", drawer: { contact: "Regus", invoice: "REG-HD-2603.pdf", invoiceDate: "March 2026", aiInsight: "The prepayment has been releasing £195.00/month since March 2026, but the April release was not posted during period close.", adjType: "prepayment_expense", description: "Hot desk licence – Regus", amount: "195.00", expenseAccount: "6000 – Rent", invoiceDateField: "01/03/2026" } },
-  { idx: 4, key: "duplicate", contactName: "Microsoft", contactSub: "Jan 26 – Dec 26", account: "Subscriptions (6220)", amount: "–£4,800.00", allocations: "Reversal", aiInsight: "Two identical prepayment schedules exist for the same subscription, both releasing £400.00/month — this doubles the monthly expense.", title: "Reverse duplicate Microsoft 365 prepayment", contact: "Microsoft 365 Business Premium", description: "Two prepayment schedules exist for Microsoft 365 Business Premium: one created in December 2025 (invoice £4,800.00) and another added in January 2026 (invoice £4,800.00) referencing the same subscription. Both are actively releasing £400.00/month to 6220 – Subscriptions, which doubles the monthly expense. A reversing journal should be posted to remove the duplicate schedule and correct the prepayment balance.", tableRow: { account: "6220 – Subscriptions", amount: "–£4,800.00", period: "Apr 2026", invoice: "MS365-2601" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss", drawer: { contact: "Microsoft", invoice: "MS365-2601.pdf", invoiceDate: "January 2026", aiInsight: "Two identical prepayment schedules exist for the same subscription, both actively releasing £400.00/month — this doubles the monthly expense.", adjType: "prepayment_expense", description: "365 Business Premium – Microsoft", amount: "4,800.00", expenseAccount: "6220 – Subscriptions", invoiceDateField: "15/01/2026" } },
+  { idx: 1, key: "stale", contactName: "ISS Facility Services", contactSub: "Sep 25 – Mar 26", account: "Repairs & maint. (6040)", amount: "£0.03", allocations: "Write-off", aiInsight: "The prepayment schedule expired in March 2026 but carries a rounding residual of £0.03. No further releases are expected.", title: "Write off £0.03 rounding residual for ISS Facility Services", contact: "ISS Facility Services – cleaning contract", description: "The prepayment for ISS Facility Services (cleaning) expired in March 2026 but has a remaining balance of £0.03 on the schedule due to a rounding difference. The final release was posted in March and no further releases are expected. The residual balance should be written off to 6040 – Repairs & maintenance.", tableRow: { account: "6040 – Repairs & maintenance", amount: "£0.03", period: "Apr 2026", invoice: "ISS-2025-0901" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss", drawer: { contact: "ISS Facility Services", invoice: "ISS-2025-0901.pdf", invoiceDate: "September 2025", aiInsight: "The prepayment schedule expired in March 2026 but carries a rounding residual of £0.03. No further releases are expected — this should be written off.", adjType: "prepayment_expense", description: "Cleaning contract – ISS", amount: "0.03", expenseAccount: "6040 – Repairs & maintenance", invoiceDateField: "01/09/2025" } },
 ];
 
 var _PR_NAV_CATS = [
   { key: "insurance", label: "Missing prepayment",    baseIdx: 0, items: [{ contact: "Aviva PI renewal" }] },
-  { key: "saas",      label: "New multi-period invoice", baseIdx: 1, items: [{ contact: "HubSpot annual licence" }] },
-  { key: "stale",     label: "Stale balance",          baseIdx: 2, items: [{ contact: "ISS Facility Services" }] },
-  { key: "pattern",   label: "Release pattern break",  baseIdx: 3, items: [{ contact: "Regus hot desk" }] },
-  { key: "duplicate", label: "Possible duplicate",     baseIdx: 4, items: [{ contact: "Microsoft 365" }] },
+  { key: "stale",     label: "Stale balance",          baseIdx: 1, items: [{ contact: "ISS Facility Services" }] },
 ];
 
 // ── Prepayment Review Flow ────────────────────────────────────────────────
@@ -1342,17 +1336,15 @@ var _AR_STEPS = [
 ];
 
 var _AR_CARDS = [
-  { idx: 0, key: "rent", contactName: "WeWork", contactSub: "Apr 26", account: "Rent (6000)", amount: "£3,200.00", allocations: "1 x £3,200.00/month", aiInsight: "WeWork invoices are received in arrears. The April invoice has not been received or posted yet, but a matching accrual was raised in each of the prior 11 months.", title: "Accrue April rent for WeWork", contact: "WeWork – serviced office", description: "WeWork invoices are received in arrears and typically posted in the first week of the following month. The April invoice for £3,200.00 has not yet been received or posted. A matching accrual was raised in each of the prior 11 months. Without an accrual, April rent expense will be understated.", tableRow: { account: "6000 – Rent", amount: "£3,200.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss" },
-  { idx: 1, key: "audit", contactName: "Grant Thornton", contactSub: "Feb – Apr 26", account: "Professional fees (6200)", amount: "£4,500.00", allocations: "3 x £1,500.00/month", aiInsight: "The annual audit fee of £18,000.00 is invoiced on completion. No accrual has been posted for the three months to April 2026, leaving £4,500.00 unrecognised.", title: "Accrue Q1 audit fee from Grant Thornton", contact: "Grant Thornton – annual audit", description: "The annual audit fee of £18,000.00 is invoiced on completion but relates to the full financial year. No accrual has been posted for the three months to April 2026, leaving £4,500.00 of audit cost unrecognised. Prior-year records show the fee was accrued monthly at £1,500.00.", tableRow: { account: "6200 – Professional fees", amount: "£4,500.00", period: "Feb – Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss" },
-  { idx: 2, key: "stale", contactName: "Vodafone", contactSub: "Jan 26", account: "Accruals (2109)", amount: "£85.00", allocations: "Reversal", aiInsight: "An accrual of £85.00 was raised in January but the actual invoice for £79.50 was posted directly. The original accrual is stale and should be reversed.", title: "Reverse stale accrual for Vodafone", contact: "Vodafone – mobile contract", description: "An accrual of £85.00 for Vodafone mobile charges was raised in January 2026 but was never reversed. The actual invoice for £79.50 was posted in February directly to 6230 – Telephone & internet. The original accrual is still sitting on the balance sheet and should be reversed.", tableRow: { account: "2109 – Accruals", amount: "£85.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss" },
-  { idx: 3, key: "duplicate", contactName: "British Gas", contactSub: "Apr 26", account: "Light, heat & power (6020)", amount: "–£1,450.00", allocations: "Reversal", aiInsight: "Two identical accrual entries exist for British Gas electricity in April 2026. The duplicate should be reversed to correct the accruals balance.", title: "Reverse duplicate electricity accrual", contact: "British Gas – electricity supply", description: "Two accrual entries exist for British Gas electricity in April 2026: one for £1,450.00 posted on 1 April and another for £1,450.00 posted on 3 April. Both reference the same estimated usage period. This doubles the electricity accrual for the month. A reversing journal should be posted to remove the duplicate entry and correct the accruals balance.", tableRow: { account: "6020 – Light, heat & power", amount: "–£1,450.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss" },
+  { idx: 0, key: "rent", contactName: "WeWork", contactSub: "Apr 26", account: "Rent (6000)", amount: "£3,200.00", aiInsight: "WeWork invoices are received in arrears. The April invoice has not been received or posted yet, but a matching accrual was raised in each of the prior 11 months.", title: "Accrue April rent for WeWork", contact: "WeWork – serviced office", description: "WeWork invoices are received in arrears and typically posted in the first week of the following month. The April invoice for £3,200.00 has not yet been received or posted. A matching accrual was raised in each of the prior 11 months. Without an accrual, April rent expense will be understated.", tableRow: { account: "6000 – Rent", amount: "£3,200.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss" },
+  { idx: 1, key: "audit", contactName: "Grant Thornton", contactSub: "Feb – Apr 26", account: "Professional fees (6200)", amount: "£4,500.00", aiInsight: "The annual audit fee of £18,000.00 is invoiced on completion. No accrual has been posted for the three months to April 2026, leaving £4,500.00 unrecognised.", title: "Accrue Q1 audit fee from Grant Thornton", contact: "Grant Thornton – annual audit", description: "The annual audit fee of £18,000.00 is invoiced on completion but relates to the full financial year. No accrual has been posted for the three months to April 2026, leaving £4,500.00 of audit cost unrecognised. Prior-year records show the fee was accrued monthly at £1,500.00.", tableRow: { account: "6200 – Professional fees", amount: "£4,500.00", period: "Feb – Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss" },
+  { idx: 2, key: "stale", contactName: "Vodafone", contactSub: "Jan 26", account: "Accruals (2109)", amount: "£85.00", aiInsight: "An accrual of £85.00 was raised in January but the actual invoice for £79.50 was posted directly. The original accrual is stale and should be reversed.", title: "Reverse stale accrual for Vodafone", contact: "Vodafone – mobile contract", description: "An accrual of £85.00 for Vodafone mobile charges was raised in January 2026 but was never reversed. The actual invoice for £79.50 was posted in February directly to 6230 – Telephone & internet. The original accrual is still sitting on the balance sheet and should be reversed.", tableRow: { account: "2109 – Accruals", amount: "£85.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss" },
 ];
 
 var _AR_NAV_CATS = [
   { key: "rent",      label: "Missing accrual",       baseIdx: 0, items: [{ contact: "WeWork rent" }] },
   { key: "audit",     label: "Unrecognised cost",     baseIdx: 1, items: [{ contact: "Grant Thornton audit" }] },
   { key: "stale",     label: "Stale accrual",         baseIdx: 2, items: [{ contact: "Vodafone mobile" }] },
-  { key: "duplicate", label: "Possible duplicate",    baseIdx: 3, items: [{ contact: "British Gas electricity" }] },
 ];
 
 function AccrualReviewFlow(_ref) {
@@ -2935,7 +2927,7 @@ registerPage("Adjustments", {
 
     // GL impact per suggestion card
     var _glConfig = {
-      prepayments:      { initial: -0.03, impacts: { 2: 0.03 } },
+      prepayments:      { initial: -0.03, impacts: { 1: 0.03 } },
       accruals:         { initial: -85.00, impacts: { 2: 85.00 } },
       deferredRevenue:  { initial: -2800.00, impacts: { 3: 2800.00 } },
       accruedIncome:    { initial: -2540.00, impacts: { 2: 890.00, 3: 1650.00 } },
@@ -3138,8 +3130,8 @@ registerPage("Adjustments", {
           {/* ── Adjustment type tabs ── */}
           <TabsNavigation
             tabs={[
-              { value: "prepayments", label: "Prepayments", count: prepaymentReviewState && prepaymentReviewState.hasResults ? prepaymentReviewState.total - prepaymentReviewState.resolved : 5 },
-              { value: "accruals", label: "Accruals", count: accrualReviewState && accrualReviewState.hasResults ? accrualReviewState.total - accrualReviewState.resolved : 4 },
+              { value: "prepayments", label: "Prepayments", count: prepaymentReviewState && prepaymentReviewState.hasResults ? prepaymentReviewState.total - prepaymentReviewState.resolved : _PR_CARDS.length },
+              { value: "accruals", label: "Accruals", count: accrualReviewState && accrualReviewState.hasResults ? accrualReviewState.total - accrualReviewState.resolved : _AR_CARDS.length },
               { value: "deferred_revenue", label: "Deferred revenue", disabled: true, tooltip: "Coming soon" },
               { value: "accrued_income", label: "Accrued income", disabled: true, tooltip: "Coming soon" },
               { value: "loan_amort", label: "Loan amortisation", disabled: true, tooltip: "Coming soon" },
@@ -3237,47 +3229,55 @@ registerPage("Adjustments", {
                     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                       {(activeTab === "prepayments" ? _PR_CARDS : _AR_CARDS).map(function(card) {
                         var initial = card.contactName ? card.contactName.charAt(0).toUpperCase() : "?";
+                        var isAccrual = activeTab !== "prepayments";
+                        var _starIcon = React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 20 20", fill: "none", style: { flexShrink: 0, marginTop: 2 } },
+                          React.createElement("path", { d: PATHS.starAi, fill: "#6389CF", stroke: "#6389CF", strokeWidth: "1.66667", strokeLinecap: "round", strokeLinejoin: "round" })
+                        );
                         return (
-                          <div key={card.key} style={{ border: "1px solid " + T.colorBorderDark, borderRadius: 12, background: T.colorSurfacePrimary, overflow: "hidden" }}>
-                            {/* Top row: avatar + contact | account | amount | allocations */}
-                            <div style={{ display: "flex", alignItems: "stretch" }}>
-                              {/* Contact column */}
-                              <div style={{ flex: "1 1 0", padding: "16px 16px", display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
-                                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#E8F5E9", color: T.colorBrandPrimary, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: 15, flexShrink: 0, fontFamily: T.fontFamily }}>{initial}</div>
-                                <div style={{ display: "flex", flexDirection: "column", gap: 1, minWidth: 0 }}>
-                                  <span style={{ fontWeight: 500, fontSize: 14, color: T.colorTextPrimary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{card.contactName}</span>
-                                  <span style={{ fontSize: 13, color: T.colorTextSecondary }}>{card.contactSub}</span>
-                                </div>
-                              </div>
-                              {/* Account column */}
-                              <div style={{ flex: "1 1 0", padding: "16px 16px", display: "flex", flexDirection: "column", justifyContent: "center", gap: 1, borderLeft: "1px solid " + T.colorBorderDark, minWidth: 0 }}>
-                                <span style={{ fontSize: 12, color: T.colorTextSecondary, fontWeight: 500 }}>Account</span>
-                                <span style={{ fontSize: 14, color: T.colorTextPrimary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{card.account}</span>
-                              </div>
-                              {/* Amount column */}
-                              <div style={{ flex: "0 0 auto", padding: "16px 16px", display: "flex", flexDirection: "column", justifyContent: "center", gap: 1, borderLeft: "1px solid " + T.colorBorderDark, minWidth: 100 }}>
-                                <span style={{ fontSize: 12, color: T.colorTextSecondary, fontWeight: 500 }}>Amount</span>
-                                <span style={{ fontSize: 14, color: T.colorTextPrimary, fontWeight: 500 }}>{card.amount}</span>
-                              </div>
-                              {/* Allocations column */}
-                              <div style={{ flex: "0 0 auto", padding: "16px 16px", display: "flex", flexDirection: "column", justifyContent: "center", gap: 1, borderLeft: "1px solid " + T.colorBorderDark, minWidth: 120 }}>
-                                <span style={{ fontSize: 12, color: T.colorTextSecondary, fontWeight: 500 }}>Allocations</span>
-                                <span style={{ fontSize: 14, color: T.colorTextPrimary }}>{card.allocations}</span>
-                              </div>
-                            </div>
-                            {/* AI insight bar */}
-                            <div style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "10px 16px", background: T.colorSurfaceSecondary, borderTop: "1px solid " + T.colorBorderDark }}>
-                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
-                                <path d="M8 1L9.2 5.5L13.5 4.5L10.5 8L13.5 11.5L9.2 10.5L8 15L6.8 10.5L2.5 11.5L5.5 8L2.5 4.5L6.8 5.5L8 1Z" fill={T.colorTextSecondary} opacity="0.6" />
-                              </svg>
-                              <span style={{ fontSize: 13, color: T.colorTextSecondary, lineHeight: "18px" }}>{card.aiInsight}</span>
-                            </div>
-                            {/* Action buttons */}
-                            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 16px", borderTop: "1px solid " + T.colorBorderDark }}>
-                              <button onClick={cfg.onRun} style={{ height: 36, padding: "0 16px", borderRadius: 8, border: "none", background: T.colorBrandPrimary, color: "#fff", fontSize: 14, fontWeight: 500, cursor: "pointer", fontFamily: T.fontFamily }}>{card.primaryLabel}</button>
-                              <button style={{ height: 36, padding: "0 16px", borderRadius: 8, border: "1px solid " + T.colorBorderDark, background: "transparent", color: T.colorTextSecondary, fontSize: 14, fontWeight: 400, cursor: "pointer", fontFamily: T.fontFamily }}>{card.secondaryLabel}</button>
-                            </div>
-                          </div>
+                          React.createElement("div", { key: card.key, style: { border: "1px solid " + T.colorBorderDark, borderRadius: 12, background: T.colorSurfacePrimary, overflow: "hidden" } },
+                            /* Top row: avatar + contact | account | amount | allocations (prepayments only) */
+                            React.createElement("div", { style: { display: "flex", alignItems: "center", padding: "16px 16px", gap: 0 } },
+                              /* Contact */
+                              React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12, minWidth: 0, flexShrink: 0 } },
+                                React.createElement("div", { style: { width: 36, height: 36, borderRadius: "50%", background: T.colorSuccessBg, color: T.colorBrandPrimary, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: 15, flexShrink: 0, fontFamily: T.fontFamily } }, initial),
+                                React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 1 } },
+                                  React.createElement("span", { style: { fontWeight: 500, fontSize: 14, color: T.colorTextPrimary } }, card.contactName),
+                                  React.createElement("span", { style: { fontSize: 13, color: T.colorTextSecondary } }, card.contactSub)
+                                )
+                              ),
+                              /* Divider */
+                              React.createElement("div", { style: { width: 1, height: 36, background: T.colorBorderDark, margin: "0 20px", flexShrink: 0 } }),
+                              /* Account */
+                              React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 1, minWidth: 0, flexShrink: 0 } },
+                                React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary, fontWeight: 500 } }, "Account"),
+                                React.createElement("span", { style: { fontSize: 14, color: T.colorTextPrimary } }, card.account)
+                              ),
+                              /* Divider */
+                              React.createElement("div", { style: { width: 1, height: 36, background: T.colorBorderDark, margin: "0 20px", flexShrink: 0 } }),
+                              /* Amount */
+                              React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 1, flexShrink: 0 } },
+                                React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary, fontWeight: 500 } }, "Amount"),
+                                React.createElement("span", { style: { fontSize: 14, color: T.colorTextPrimary, fontWeight: 500 } }, card.amount)
+                              ),
+                              /* Allocations — prepayments only */
+                              !isAccrual && card.allocations ? [
+                                React.createElement("div", { key: "div", style: { width: 1, height: 36, background: T.colorBorderDark, margin: "0 20px", flexShrink: 0 } }),
+                                React.createElement("div", { key: "alloc", style: { display: "flex", flexDirection: "column", gap: 1, flexShrink: 0 } },
+                                  React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary, fontWeight: 500 } }, "Allocations"),
+                                  React.createElement("span", { style: { fontSize: 14, color: T.colorTextPrimary } }, card.allocations)
+                                )
+                              ] : null
+                            ),
+                            /* AI insight banner */
+                            React.createElement("div", { style: { padding: "0 16px" } },
+                              React.createElement(Banner, { variant: "info", icon: _starIcon, style: { borderRadius: 8 } }, card.aiInsight)
+                            ),
+                            /* Action buttons */
+                            React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, padding: "16px 16px" } },
+                              React.createElement(PrimaryButton, { onClick: cfg.onRun }, card.primaryLabel),
+                              React.createElement(SecondaryButton, null, card.secondaryLabel)
+                            )
+                          )
                         );
                       })}
                     </div>
