@@ -3235,12 +3235,20 @@ registerPage("Adjustments", {
                 {_adjSubView === "suggestions"
                   ? (
                     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                      <RecommendationCard
-                        title={activeTab === "prepayments" ? "5 suggested prepayments" : "4 suggested accruals"}
-                        subtitle="Review suggestions from Mimo's analysis"
-                        actionLabel="Review suggestions"
-                        onAction={cfg.onRun}
-                      />
+                      {(activeTab === "prepayments" ? _PR_CARDS : _AR_CARDS).map(function(card) {
+                        return (
+                          <RecommendationCard
+                            key={card.key}
+                            title={card.title}
+                            description={card.description}
+                            tableRow={card.tableRow}
+                            primaryLabel={card.primaryLabel}
+                            secondaryLabel={card.secondaryLabel}
+                            onPrimaryAction={cfg.onRun}
+                            collapsed
+                          />
+                        );
+                      })}
                     </div>
                   )
                   : (
