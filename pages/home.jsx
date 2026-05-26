@@ -215,7 +215,7 @@ registerPage("Home", {
                 <p style={{ fontSize: 18, fontWeight: 500, color: T.colorTextHeading, margin: 0, lineHeight: "26px" }}>Associate adapts to your client</p>
                 <p style={{ fontSize: 15, color: T.colorTextSecondary, margin: 0, lineHeight: "24px" }}>The more you share about your client, the more relevant its suggestions and analysis will be.</p>
               </div>
-              <SecondaryButton style={{ alignSelf: "flex-start" }}>Manage client context</SecondaryButton>
+              <SecondaryButton style={{ alignSelf: "flex-start" }} onClick={function() { navigate("Client context"); }}>Manage client context</SecondaryButton>
             </div>
 
             </div>{/* end right column */}

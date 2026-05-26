@@ -86,8 +86,8 @@ function App() {
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: T.colorSurfacePrimary }}>
-      {/* Left sidebar — hidden during full-screen reconciliation flows */}
-      {!fullScreen && <MainMenu activeNav={activeNav} onNavChange={setActiveNav} />}
+      {/* Left sidebar — hidden during full-screen flows and settings pages (which have their own sidebar) */}
+      {!fullScreen && activeNav !== "Client context" && <MainMenu activeNav={activeNav} onNavChange={setActiveNav} />}
 
       {/* Pages — all mounted, shown/hidden via display */}
       {pages}

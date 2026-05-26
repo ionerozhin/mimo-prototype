@@ -89,13 +89,15 @@ const T = {
 function TabsNavigation({ tabs = [], activeTab, onChange, gap = 24 }) {
   const scrollRef = useRef(null);
   const tabRefs = useRef({});
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
   const [indicator, setIndicator] = useState({ left: 0, width: 0 });
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
   const [isInitial, setIsInitial] = useState(true);
 
   const updateIndicator = () => {
-    const tabEl = tabRefs.current[activeTab];
+    const tabEl = tabRefs.current[activeTabRef.current];
     if (tabEl) {
       setIndicator({ left: tabEl.offsetLeft, width: tabEl.offsetWidth });
       requestAnimationFrame(() => setIsInitial(false));

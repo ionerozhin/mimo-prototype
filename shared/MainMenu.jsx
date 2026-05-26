@@ -123,18 +123,19 @@ function MainMenu({
 
         {/* Settings */}
         <button
+          onClick={() => onNavChange?.("Client context")}
           style={{
             width: "calc(100% - 16px)", display: "flex", alignItems: "center", gap: 8,
             height: 40, padding: "0 12px", marginBottom: 1,
             marginLeft: 8, marginRight: 8,
             borderRadius: 6, border: "none", cursor: "pointer",
-            background: "transparent", textAlign: "left", boxShadow: "none",
+            background: activeNav === "Client context" ? "#F0F0F0" : "transparent", textAlign: "left", boxShadow: "none",
           }}
-          onMouseEnter={e => e.currentTarget.style.background = "rgba(0,0,0,0.04)"}
-          onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+          onMouseEnter={e => { if (activeNav !== "Client context") e.currentTarget.style.background = "rgba(0,0,0,0.04)"; }}
+          onMouseLeave={e => { if (activeNav !== "Client context") e.currentTarget.style.background = "transparent"; }}
         >
-          <NavIcon name="settings" color="#4F4F4F" />
-          <span style={{ fontSize: 14, fontWeight: 400, color: "#4F4F4F" }}>Settings</span>
+          <NavIcon name="settings" color={activeNav === "Client context" ? "#080908" : "#4F4F4F"} />
+          <span style={{ fontSize: 14, fontWeight: activeNav === "Client context" ? 600 : 400, color: activeNav === "Client context" ? "#080908" : "#4F4F4F" }}>Settings</span>
         </button>
 
       </nav>
