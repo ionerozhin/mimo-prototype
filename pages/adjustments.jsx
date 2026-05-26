@@ -3136,8 +3136,8 @@ registerPage("Adjustments", {
           {/* ── Adjustment type tabs ── */}
           <TabsNavigation
             tabs={[
-              { value: "prepayments", label: "Prepayments", count: prepaymentReviewState && prepaymentReviewState.hasResults ? prepaymentReviewState.total - prepaymentReviewState.resolved : 3 },
-              { value: "accruals", label: "Accruals", count: accrualReviewState && accrualReviewState.hasResults ? accrualReviewState.total - accrualReviewState.resolved : 1 },
+              { value: "prepayments", label: "Prepayments", count: prepaymentReviewState && prepaymentReviewState.hasResults ? prepaymentReviewState.total - prepaymentReviewState.resolved : 5 },
+              { value: "accruals", label: "Accruals", count: accrualReviewState && accrualReviewState.hasResults ? accrualReviewState.total - accrualReviewState.resolved : 4 },
               { value: "deferred_revenue", label: "Deferred revenue", disabled: true },
               { value: "accrued_income", label: "Accrued income", disabled: true },
               { value: "loan_amort", label: "Loan amortisation", disabled: true },
@@ -3214,7 +3214,7 @@ registerPage("Adjustments", {
                     var label = sw === "suggestions" ? "Suggestions" : "Scheduled this month";
                     return (
                       <button key={sw} onClick={function() { setAdjSubView(sw); }} style={{
-                        background: isActive ? T.colorSurfaceSecondary : "none", border: "none",
+                        background: isActive ? "#F0F0F0" : "none", border: "none",
                         padding: "6px 12px", borderRadius: 8, cursor: "pointer",
                         ...T.textSm, fontWeight: isActive ? 500 : 400,
                         color: isActive ? T.colorTextPrimary : T.colorTextSecondary,
@@ -3234,7 +3234,7 @@ registerPage("Adjustments", {
                   ? (
                     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                       <RecommendationCard
-                        title={activeTab === "prepayments" ? "3 suggested prepayments" : "1 suggested accrual"}
+                        title={activeTab === "prepayments" ? "5 suggested prepayments" : "4 suggested accruals"}
                         subtitle="Review suggestions from Mimo's analysis"
                         actionLabel="Review suggestions"
                         onAction={cfg.onRun}
