@@ -657,6 +657,7 @@ function Sidebar({
   children,
   footer,
   headerRight,
+  closeRef,
 }) {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
@@ -664,6 +665,7 @@ function Sidebar({
     else { setVisible(false); }
   }, [open]);
   const handleClose = () => { setVisible(false); onStartClose && onStartClose(); setTimeout(() => onClose && onClose(), 320); };
+  useEffect(() => { if (closeRef) closeRef.current = handleClose; });
   if (!open && !visible) return null;
   return (
     <>
