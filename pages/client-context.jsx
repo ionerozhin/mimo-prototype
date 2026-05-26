@@ -21,13 +21,13 @@ var CONTEXT_ENTRIES = [
     id: 1,
     categories: ["Prepayments"],
     date: "11/06/2024",
-    text: "Annual insurance premiums (Zurich EL and PL policies) are paid in April and released monthly over 12 months. The warehouse lease deposit with Prologis is not a prepayment — it sits in other debtors until the lease ends.",
+    text: "Annual insurance premiums (Zurich EL and PL policies) are paid in April and released monthly over 12 months. The warehouse lease deposit with Prologis is not a prepayment – it sits in other debtors until the lease ends.",
   },
   {
     id: 2,
     categories: ["Accruals", "Utilities"],
     date: "11/06/2024",
-    text: "Electricity and gas invoices from British Gas typically arrive 6–8 weeks in arrears. Accrue based on the prior month’s actual invoice, adjusted ±5% for seasonality. Water rates (Severn Trent) are billed quarterly in advance — do not accrue, already prepaid.",
+    text: "Electricity and gas invoices from British Gas typically arrive 6–8 weeks in arrears. Accrue based on the prior month’s actual invoice, adjusted ±5% for seasonality. Water rates (Severn Trent) are billed quarterly in advance – do not accrue, already prepaid.",
   },
   {
     id: 3,
@@ -39,7 +39,7 @@ var CONTEXT_ENTRIES = [
     id: 4,
     categories: ["Accruals", "Professional Fees"],
     date: "02/03/2024",
-    text: "Grant Thornton invoice the annual audit fee in two instalments — interim in November and final in June. Accrue 1/12th of the total agreed fee (£36,000) each month. Legal fees from Eversheds are expensed as incurred, no accrual needed unless a matter is ongoing at month-end.",
+    text: "Grant Thornton invoice the annual audit fee in two instalments – interim in November and final in June. Accrue 1/12th of the total agreed fee (£36,000) each month. Legal fees from Eversheds are expensed as incurred, no accrual needed unless a matter is ongoing at month-end.",
   },
   {
     id: 5,
@@ -468,22 +468,22 @@ function ClientContextPage({ ctx }) {
 
   var HISTORY_DATA = {
     1: [
-      { date: "11/06/2024", time: "01:24 PM", action: "Context changed", user: "Emilia Larson", document: "–", note: "Annual insurance premiums (Zurich EL and PL policies) are paid in April and released monthly over 12 months. The warehouse lease deposit with Prologis is not a prepayment — it sits in other debtors until the lease ends." },
+      { date: "11/06/2024", time: "01:24 PM", action: "Context changed", user: "Emilia Larson", document: "–", note: "Annual insurance premiums (Zurich EL and PL policies) are paid in April and released monthly over 12 months. The warehouse lease deposit with Prologis is not a prepayment – it sits in other debtors until the lease ends." },
       { date: "10/06/2024", time: "01:24 PM", action: "Client information provided", user: "John Williams", document: "–", note: "Prefers prepayments to be booked only for invoices above £5,000. Requires prepayments to be approved by the finance manager before posting." },
     ],
     2: [
-      { date: "11/06/2024", time: "03:10 PM", action: "Context changed", user: "Emilia Larson", document: "–", note: "Electricity and gas invoices from British Gas typically arrive 6–8 weeks in arrears. Accrue based on the prior month's actual invoice, adjusted ±5% for seasonality." },
+      { date: "11/06/2024", time: "03:10 PM", action: "Context changed", user: "Emilia Larson", document: "–", note: "Electricity and gas invoices from British Gas typically arrive 6–8 weeks in arrears. Accrue based on the prior month's actual invoice, adjusted ±5% for seasonality. Water rates (Severn Trent) are billed quarterly in advance – do not accrue, already prepaid." },
       { date: "08/06/2024", time: "09:45 AM", action: "Client information provided", user: "Laura Bennett", document: "–", note: "British Gas bills arrive late. Use previous month as baseline for accrual." },
     ],
     3: [
-      { date: "09/04/2024", time: "11:30 AM", action: "Context created", user: "Laura Bennett", document: "–", note: "Supermarket contracts (Tesco, Sainsbury's) include volume rebates settled quarterly. Revenue is recognised net of estimated rebates." },
+      { date: "09/04/2024", time: "11:30 AM", action: "Context created", user: "Laura Bennett", document: "–", note: "Supermarket contracts (Tesco, Sainsbury's) include volume rebates settled quarterly. Revenue is recognised net of estimated rebates. Rebate accruals should be reversed when the credit note is received, not when payment is made." },
     ],
     4: [
-      { date: "02/03/2024", time: "02:15 PM", action: "Context changed", user: "Emilia Larson", document: "–", note: "Grant Thornton invoice the annual audit fee in two instalments — interim in November and final in June. Accrue 1/12th of the total agreed fee (£36,000) each month." },
+      { date: "02/03/2024", time: "02:15 PM", action: "Context changed", user: "Emilia Larson", document: "–", note: "Grant Thornton invoice the annual audit fee in two instalments – interim in November and final in June. Accrue 1/12th of the total agreed fee (£36,000) each month. Legal fees from Eversheds are expensed as incurred, no accrual needed unless a matter is ongoing at month-end." },
       { date: "15/01/2024", time: "10:00 AM", action: "Client information provided", user: "John Williams", document: "–", note: "Audit fee agreed at £36,000 for the year. Legal fees from Eversheds expensed as incurred." },
     ],
     5: [
-      { date: "02/03/2024", time: "04:50 PM", action: "Context created", user: "Laura Bennett", document: "–", note: "Warehouse overtime spikes in October–December due to Christmas production. Monthly payroll accrual should include estimated overtime based on shift rotas." },
+      { date: "02/03/2024", time: "04:50 PM", action: "Context created", user: "Laura Bennett", document: "–", note: "Warehouse overtime spikes in October–December due to Christmas production. Monthly payroll accrual should include estimated overtime based on shift rotas, not just contracted hours. Bonus provisions for sales staff are accrued quarterly at 8% of gross salary, paid in arrears." },
     ],
   };
 
