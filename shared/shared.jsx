@@ -1041,7 +1041,7 @@ function Checkbox({ checked = false, onChange, label, disabled = false }) {
 }
 
 // ── DS Tooltip ──────────────────────────────────────────────────────────────
-function Tooltip({ text, children, placement = "top", delay = 0 }) {
+function Tooltip({ text, children, placement = "top", delay = 400 }) {
   var [visible, setVisible] = useState(false);
   var [pos, setPos] = useState({ x: 0, y: 0 });
   var ref = useRef(null);

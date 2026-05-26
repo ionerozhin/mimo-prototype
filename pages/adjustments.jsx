@@ -5,6 +5,9 @@
 // Schedule pages (full-screen overlays)
 // ═══════════════════════════════════════════════════════════════════════════
 
+var LAST_DAYS = { 0: 31, 1: 28, 2: 31, 3: 30, 4: 31, 5: 30, 6: 31, 7: 31, 8: 30, 9: 31, 10: 30, 11: 31 };
+var FULL_MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
 // ── Prepayment Schedule ────────────────────────────────────────────────────
 function PrepaymentSchedulePage(_ref) {
   var open = _ref.open, onClose = _ref.onClose;
@@ -347,25 +350,29 @@ function PrepaymentSchedulePage(_ref) {
 
   var fixedColsWidth = COL_WIDTHS.description + COL_WIDTHS.balance + COL_WIDTHS.account + COL_WIDTHS.invoiceDate + COL_WIDTHS.invoiceAmount;
 
-  var renderMonthCell = function(entry, isFooter) {
-    if (!entry) return React.createElement("span", { style: { color: "#B0B3B8" } }, "-");
+  var renderMonthCell = function(entry, isFooter, vm) {
+    if (!entry) return { content: React.createElement("span", { style: { color: "#B0B3B8" } }, "-"), isPublished: false };
     var addition = entry.addition, release = entry.release, status = entry.status;
     var isPublished = status === "published";
     var isScheduled = status === "scheduled";
-    var bg = isPublished ? T.colorSuccessBg : "transparent";
     var cellContent = [];
     if (addition) {
       cellContent.push(React.createElement("div", { key: "add", style: { ...T.textSm, color: T.colorTextPrimary } }, fmtAddition(addition)));
     }
     if (release) {
       if (isScheduled) {
-        cellContent.push(React.createElement(Tooltip, { key: "rel", text: "Scheduled for publishing on 30 April", delay: 800 }, React.createElement("div", { style: { display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm, cursor: "default" } }, fmtRelease(release), React.createElement(ClockIcon, null))));
+        cellContent.push(React.createElement(Tooltip, { key: "rel", text: "Scheduled for publishing on 30 April", delay: 400 }, React.createElement("div", { style: { display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm, cursor: "default" } }, fmtRelease(release), React.createElement(ClockIcon, null))));
       } else {
         cellContent.push(React.createElement("div", { key: "rel", style: { ...T.textSm, color: T.colorTextPrimary } }, fmtRelease(release)));
       }
     }
-    if (cellContent.length === 0) return React.createElement("span", { style: { color: "#B0B3B8" } }, "-");
-    return React.createElement("div", { style: { background: bg, borderRadius: bg !== "transparent" ? 4 : 0, padding: bg !== "transparent" ? "2px 6px" : 0, display: "inline-flex", flexDirection: "column", gap: 2 } }, cellContent);
+    if (cellContent.length === 0) return { content: React.createElement("span", { style: { color: "#B0B3B8" } }, "-"), isPublished: false };
+    var inner = React.createElement("div", { style: { display: "inline-flex", flexDirection: "column", gap: 2 } }, cellContent);
+    if (isPublished && vm) {
+      var tooltipText = "Published to Xero on " + LAST_DAYS[vm.m] + " " + FULL_MONTHS[vm.m] + " " + vm.y;
+      inner = React.createElement(Tooltip, { text: tooltipText, delay: 400 }, React.createElement("div", { style: { cursor: "default" } }, inner));
+    }
+    return { content: inner, isPublished: isPublished };
   };
 
   var ActiveBadge = function() {
@@ -458,7 +465,6 @@ function PrepaymentSchedulePage(_ref) {
                       <span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <span style={{ ...T.textXs, color: T.colorTextSecondary }}>{item.period}</span>
-                        <ActiveBadge />
                       </div>
                     </div>
                   </td>
@@ -471,7 +477,7 @@ function PrepaymentSchedulePage(_ref) {
                   <td style={{ ...cellStyle, color: T.colorTextPrimary }}>{item.expenseAccount}</td>
                   <td style={{ ...cellStyle, color: T.colorTextPrimary }}>{item.invoiceDate}</td>
                   <td style={{ ...cellStyle, color: T.colorTextPrimary, textAlign: "right" }}>{fmtGBP(item.invoiceAmount)}</td>
-                  {visibleMonths.map(function(vm) { return <td key={vm.key} style={{ ...cellStyle, textAlign: "right" }}>{renderMonthCell(item.entries[vm.key], false)}</td>; })}
+                  {visibleMonths.map(function(vm) { var cell = renderMonthCell(item.entries[vm.key], false, vm); return <td key={vm.key} style={{ ...cellStyle, textAlign: "right", background: cell.isPublished ? T.colorSuccessBg : undefined }}>{cell.content}</td>; })}
                 </tr>
               );
             })}
@@ -570,7 +576,7 @@ function AccrualSchedulePage({ open, onClose }) {
   const _asColWidths = { description: 260, balance: 200, account: 280, invoiceDate: 130, invoiceAmount: 160, month: 140 };
   const _asFixedColsWidth = _asColWidths.description + _asColWidths.balance + _asColWidths.account + _asColWidths.invoiceDate + _asColWidths.invoiceAmount;
 
-  const _asRenderMonthCell = (entry, isFooter) => { if (!entry) return <span style={{ color: "#B0B3B8" }}>-</span>; const { addition, reversal, status } = entry; const isPublished = status === "published"; const isScheduled = status === "scheduled"; const bg = isPublished ? T.colorSuccessBg : "transparent"; const cellContent = []; if (reversal) { if (isScheduled) { cellContent.push(<Tooltip key="rev" text="Scheduled for publishing on 30 April" delay={800}><div style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm, cursor: "default" }}>{_asFmtReversal(reversal)}<_asClockIcon /></div></Tooltip>); } else { cellContent.push(<div key="rev" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_asFmtReversal(reversal)}</div>); } } if (addition) { if (isScheduled && !reversal) { cellContent.push(<Tooltip key="add" text="Scheduled for publishing on 30 April" delay={800}><div style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm, cursor: "default" }}>{_asFmtAddition(addition)}<_asClockIcon /></div></Tooltip>); } else { cellContent.push(<div key="add" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_asFmtAddition(addition)}</div>); } } if (cellContent.length === 0) return <span style={{ color: "#B0B3B8" }}>-</span>; return (<div style={{ background: bg, borderRadius: bg !== "transparent" ? 4 : 0, padding: bg !== "transparent" ? "2px 6px" : 0, display: "inline-flex", flexDirection: "column", gap: 2 }}>{cellContent}</div>); };
+  const _asRenderMonthCell = (entry, isFooter, vm) => { if (!entry) return { content: <span style={{ color: "#B0B3B8" }}>-</span>, isPublished: false }; const { addition, reversal, status } = entry; const isPublished = status === "published"; const isScheduled = status === "scheduled"; const cellContent = []; if (reversal) { if (isScheduled) { cellContent.push(<Tooltip key="rev" text="Scheduled for publishing on 30 April" delay={400}><div style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm, cursor: "default" }}>{_asFmtReversal(reversal)}<_asClockIcon /></div></Tooltip>); } else { cellContent.push(<div key="rev" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_asFmtReversal(reversal)}</div>); } } if (addition) { if (isScheduled && !reversal) { cellContent.push(<Tooltip key="add" text="Scheduled for publishing on 30 April" delay={400}><div style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm, cursor: "default" }}>{_asFmtAddition(addition)}<_asClockIcon /></div></Tooltip>); } else { cellContent.push(<div key="add" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_asFmtAddition(addition)}</div>); } } if (cellContent.length === 0) return { content: <span style={{ color: "#B0B3B8" }}>-</span>, isPublished: false }; let inner = <div style={{ display: "inline-flex", flexDirection: "column", gap: 2 }}>{cellContent}</div>; if (isPublished && vm) { const tooltipText = "Published to Xero on " + LAST_DAYS[vm.m] + " " + FULL_MONTHS[vm.m] + " " + vm.y; inner = <Tooltip text={tooltipText} delay={400}><div style={{ cursor: "default" }}>{inner}</div></Tooltip>; } return { content: inner, isPublished }; };
 
   const _asActiveBadge = () => (<span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}><span style={{ width: 6, height: 6, borderRadius: 3, background: T.colorBrandPrimary, flexShrink: 0 }} />Active</span>);
   const _asToAllocateBadge = ({ amount }) => (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px", whiteSpace: "nowrap" }}>{_asFmtGBP(amount)} to allocate</span>);
@@ -606,12 +612,12 @@ function AccrualSchedulePage({ open, onClose }) {
           </tr></thead>
           <tbody>{_asFilteredData.map(item => (
             <tr key={item.id} style={{ cursor: "pointer" }} onMouseEnter={e => { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfacePrimary; }); }}>
-              <td data-sticky="1" style={{ ..._asCellStyle, ..._asStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}><_asActiveBadge /></div></div></td>
+              <td data-sticky="1" style={{ ..._asCellStyle, ..._asStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span></div></td>
               <td data-sticky="1" style={{ ..._asCellStyle, ..._asStickyCol1 }}><div style={{ display: "flex", flexDirection: "column", gap: 4 }}><span>{item.balanceForward != null ? _asFmtGBP(item.balanceForward) : "-"}</span>{item.toAllocate != null && <_asToAllocateBadge amount={item.toAllocate} />}</div></td>
               <td style={{ ..._asCellStyle, color: T.colorTextPrimary }}>{item.expenseAccount}</td>
               <td style={{ ..._asCellStyle, color: T.colorTextPrimary }}>{item.invoiceDate}</td>
               <td style={{ ..._asCellStyle, color: T.colorTextPrimary, textAlign: "right" }}>{item.invoiceAmount != null ? _asFmtGBP(item.invoiceAmount) : "-"}</td>
-              {_asVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._asCellStyle, textAlign: "right" }}>{_asRenderMonthCell(item.entries[vm.key], false)}</td>))}
+              {_asVisibleMonths.map(vm => { const cell = _asRenderMonthCell(item.entries[vm.key], false, vm); return <td key={vm.key} style={{ ..._asCellStyle, textAlign: "right", background: cell.isPublished ? T.colorSuccessBg : undefined }}>{cell.content}</td>; })}
             </tr>
           ))}</tbody>
           <tfoot>
@@ -671,7 +677,7 @@ function DeferredRevenueSchedulePage({ open, onClose }) {
   const _drColWidths = { description: 260, balance: 200, account: 280, invoiceDate: 130, invoiceAmount: 160, month: 140 };
   const _drFixedColsWidth = _drColWidths.description + _drColWidths.balance + _drColWidths.account + _drColWidths.invoiceDate + _drColWidths.invoiceAmount;
 
-  const _drRenderMonthCell = (entry, isFooter) => { if (!entry) return <span style={{ color: "#B0B3B8" }}>-</span>; const { addition, recognition, status } = entry; const isPublished = status === "published"; const isScheduled = status === "scheduled"; const bg = isPublished ? T.colorSuccessBg : "transparent"; const cellContent = []; if (addition) { cellContent.push(<div key="add" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_drFmtAddition(addition)}</div>); } if (recognition) { if (isScheduled) { cellContent.push(<div key="rec" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_drFmtRecognition(recognition)}<_drClockIcon /></div>); } else { cellContent.push(<div key="rec" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_drFmtRecognition(recognition)}</div>); } } if (cellContent.length === 0) return <span style={{ color: "#B0B3B8" }}>-</span>; return (<div style={{ background: bg, borderRadius: bg !== "transparent" ? 4 : 0, padding: bg !== "transparent" ? "2px 6px" : 0, display: "inline-flex", flexDirection: "column", gap: 2 }}>{cellContent}</div>); };
+  const _drRenderMonthCell = (entry, isFooter, vm) => { if (!entry) return { content: <span style={{ color: "#B0B3B8" }}>-</span>, isPublished: false }; const { addition, recognition, status } = entry; const isPublished = status === "published"; const isScheduled = status === "scheduled"; const cellContent = []; if (addition) { cellContent.push(<div key="add" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_drFmtAddition(addition)}</div>); } if (recognition) { if (isScheduled) { cellContent.push(<div key="rec" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_drFmtRecognition(recognition)}<_drClockIcon /></div>); } else { cellContent.push(<div key="rec" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_drFmtRecognition(recognition)}</div>); } } if (cellContent.length === 0) return { content: <span style={{ color: "#B0B3B8" }}>-</span>, isPublished: false }; let inner = <div style={{ display: "inline-flex", flexDirection: "column", gap: 2 }}>{cellContent}</div>; if (isPublished && vm) { const tooltipText = "Published to Xero on " + LAST_DAYS[vm.m] + " " + FULL_MONTHS[vm.m] + " " + vm.y; inner = <Tooltip text={tooltipText} delay={400}><div style={{ cursor: "default" }}>{inner}</div></Tooltip>; } return { content: inner, isPublished }; };
 
   const _drActiveBadge = () => (<span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}><span style={{ width: 6, height: 6, borderRadius: 3, background: T.colorBrandPrimary, flexShrink: 0 }} />Active</span>);
   const _drToAllocateBadge = ({ amount }) => (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px", whiteSpace: "nowrap" }}>{_drFmtGBP(amount)} to allocate</span>);
@@ -707,12 +713,12 @@ function DeferredRevenueSchedulePage({ open, onClose }) {
           </tr></thead>
           <tbody>{_drFilteredData.map(item => (
             <tr key={item.id} style={{ cursor: "pointer" }} onMouseEnter={e => { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfacePrimary; }); }}>
-              <td data-sticky="1" style={{ ..._drCellStyle, ..._drStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ ...T.textXs, color: T.colorTextSecondary }}>{item.period}</span><_drActiveBadge /></div></div></td>
+              <td data-sticky="1" style={{ ..._drCellStyle, ..._drStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ ...T.textXs, color: T.colorTextSecondary }}>{item.period}</span></div></div></td>
               <td data-sticky="1" style={{ ..._drCellStyle, ..._drStickyCol1 }}><div style={{ display: "flex", flexDirection: "column", gap: 4 }}><span>{item.balanceForward != null ? _drFmtGBP(item.balanceForward) : "-"}</span>{item.toAllocate != null && <_drToAllocateBadge amount={item.toAllocate} />}</div></td>
               <td style={{ ..._drCellStyle, color: T.colorTextPrimary }}>{item.revenueAccount}</td>
               <td style={{ ..._drCellStyle, color: T.colorTextPrimary }}>{item.invoiceDate}</td>
               <td style={{ ..._drCellStyle, color: T.colorTextPrimary, textAlign: "right" }}>{_drFmtGBP(item.invoiceAmount)}</td>
-              {_drVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._drCellStyle, textAlign: "right" }}>{_drRenderMonthCell(item.entries[vm.key], false)}</td>))}
+              {_drVisibleMonths.map(vm => { const cell = _drRenderMonthCell(item.entries[vm.key], false, vm); return <td key={vm.key} style={{ ..._drCellStyle, textAlign: "right", background: cell.isPublished ? T.colorSuccessBg : undefined }}>{cell.content}</td>; })}
             </tr>
           ))}</tbody>
           <tfoot>
@@ -772,7 +778,7 @@ function AccruedIncomeSchedulePage({ open, onClose }) {
   const _aiColWidths = { description: 260, balance: 200, account: 280, invoiceDate: 130, invoiceAmount: 160, month: 140 };
   const _aiFixedColsWidth = _aiColWidths.description + _aiColWidths.balance + _aiColWidths.account + _aiColWidths.invoiceDate + _aiColWidths.invoiceAmount;
 
-  const _aiRenderMonthCell = (entry, isFooter) => { if (!entry) return <span style={{ color: "#B0B3B8" }}>-</span>; const { addition, reversal, status } = entry; const isPublished = status === "published"; const isScheduled = status === "scheduled"; const bg = isPublished ? T.colorSuccessBg : "transparent"; const cellContent = []; if (reversal) { if (isScheduled) { cellContent.push(<div key="rev" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_aiFmtReversal(reversal)}<_aiClockIcon /></div>); } else { cellContent.push(<div key="rev" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_aiFmtReversal(reversal)}</div>); } } if (addition) { if (isScheduled && !reversal) { cellContent.push(<div key="add" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_aiFmtAddition(addition)}<_aiClockIcon /></div>); } else { cellContent.push(<div key="add" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_aiFmtAddition(addition)}</div>); } } if (cellContent.length === 0) return <span style={{ color: "#B0B3B8" }}>-</span>; return (<div style={{ background: bg, borderRadius: bg !== "transparent" ? 4 : 0, padding: bg !== "transparent" ? "2px 6px" : 0, display: "inline-flex", flexDirection: "column", gap: 2 }}>{cellContent}</div>); };
+  const _aiRenderMonthCell = (entry, isFooter, vm) => { if (!entry) return { content: <span style={{ color: "#B0B3B8" }}>-</span>, isPublished: false }; const { addition, reversal, status } = entry; const isPublished = status === "published"; const isScheduled = status === "scheduled"; const cellContent = []; if (reversal) { if (isScheduled) { cellContent.push(<div key="rev" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_aiFmtReversal(reversal)}<_aiClockIcon /></div>); } else { cellContent.push(<div key="rev" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_aiFmtReversal(reversal)}</div>); } } if (addition) { if (isScheduled && !reversal) { cellContent.push(<div key="add" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_aiFmtAddition(addition)}<_aiClockIcon /></div>); } else { cellContent.push(<div key="add" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_aiFmtAddition(addition)}</div>); } } if (cellContent.length === 0) return { content: <span style={{ color: "#B0B3B8" }}>-</span>, isPublished: false }; let inner = <div style={{ display: "inline-flex", flexDirection: "column", gap: 2 }}>{cellContent}</div>; if (isPublished && vm) { const tooltipText = "Published to Xero on " + LAST_DAYS[vm.m] + " " + FULL_MONTHS[vm.m] + " " + vm.y; inner = <Tooltip text={tooltipText} delay={400}><div style={{ cursor: "default" }}>{inner}</div></Tooltip>; } return { content: inner, isPublished }; };
 
   const _aiActiveBadge = () => (<span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}><span style={{ width: 6, height: 6, borderRadius: 3, background: T.colorBrandPrimary, flexShrink: 0 }} />Active</span>);
   const _aiToAllocateBadge = ({ amount }) => (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px", whiteSpace: "nowrap" }}>{_aiFmtGBP(amount)} to allocate</span>);
@@ -808,12 +814,12 @@ function AccruedIncomeSchedulePage({ open, onClose }) {
           </tr></thead>
           <tbody>{_aiFilteredData.map(item => (
             <tr key={item.id} style={{ cursor: "pointer" }} onMouseEnter={e => { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfacePrimary; }); }}>
-              <td data-sticky="1" style={{ ..._aiCellStyle, ..._aiStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ ...T.textXs, color: T.colorTextSecondary }}>{item.period}</span><_aiActiveBadge /></div></div></td>
+              <td data-sticky="1" style={{ ..._aiCellStyle, ..._aiStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ ...T.textXs, color: T.colorTextSecondary }}>{item.period}</span></div></div></td>
               <td data-sticky="1" style={{ ..._aiCellStyle, ..._aiStickyCol1 }}><div style={{ display: "flex", flexDirection: "column", gap: 4 }}><span>{item.balanceForward != null ? _aiFmtGBP(item.balanceForward) : "-"}</span>{item.toAllocate != null && <_aiToAllocateBadge amount={item.toAllocate} />}</div></td>
               <td style={{ ..._aiCellStyle, color: T.colorTextPrimary }}>{item.incomeAccount}</td>
               <td style={{ ..._aiCellStyle, color: T.colorTextPrimary }}>{item.invoiceDate}</td>
               <td style={{ ..._aiCellStyle, color: T.colorTextPrimary, textAlign: "right" }}>{item.invoiceAmount != null ? _aiFmtGBP(item.invoiceAmount) : "-"}</td>
-              {_aiVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._aiCellStyle, textAlign: "right" }}>{_aiRenderMonthCell(item.entries[vm.key], false)}</td>))}
+              {_aiVisibleMonths.map(vm => { const cell = _aiRenderMonthCell(item.entries[vm.key], false, vm); return <td key={vm.key} style={{ ..._aiCellStyle, textAlign: "right", background: cell.isPublished ? T.colorSuccessBg : undefined }}>{cell.content}</td>; })}
             </tr>
           ))}</tbody>
           <tfoot>
