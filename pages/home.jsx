@@ -28,13 +28,12 @@ registerPage("Home", {
     var [pageW, setPageW] = useState(window.innerWidth);
     var containerRef = useRef(null);
     useEffect(function() {
-      var obs = new ResizeObserver(function(entries) {
-        for (var i = 0; i < entries.length; i++) setPageW(entries[i].contentRect.width);
-      });
-      if (containerRef.current) obs.observe(containerRef.current);
-      return function() { obs.disconnect(); };
+      var handleResize = function() { setPageW(window.innerWidth); };
+      window.addEventListener("resize", handleResize);
+      return function() { window.removeEventListener("resize", handleResize); };
     }, []);
-    var isMedium = pageW < 768;
+    var isMedium = pageW < 1024;
+    var isStacked = pageW < 1200;
 
     var fullyReconciled = 0;
     reconciledAccounts.forEach(function(name) {
@@ -90,10 +89,10 @@ registerPage("Home", {
           <div style={{ maxWidth: 1440, margin: "0 auto" }}>
 
           {/* Two-column layout */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 24, alignItems: "flex-start" }}>
+          <div style={{ display: "flex", flexDirection: isStacked ? "column" : "row", gap: 24, alignItems: "flex-start" }}>
 
             {/* LEFT — Month-end close card */}
-            <div style={{ flex: "1 1 460px", minWidth: 0, border: "1px solid " + T.colorButtonSecondary, borderRadius: 8, background: T.colorSurfacePrimary, overflow: "hidden" }}>
+            <div style={{ flex: isStacked ? "none" : "1 1 460px", width: isStacked ? "100%" : undefined, minWidth: 0, border: "1px solid " + T.colorButtonSecondary, borderRadius: 8, background: T.colorSurfacePrimary, overflow: "hidden" }}>
 
               {/* Card header */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "24px 24px 16px 20px" }}>
@@ -164,7 +163,7 @@ registerPage("Home", {
             </div>
 
             {/* RIGHT column */}
-            <div style={{ flex: "1 1 400px", minWidth: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ flex: isStacked ? "none" : "1 1 400px", width: isStacked ? "100%" : undefined, minWidth: 0, display: "flex", flexDirection: "column", gap: 16 }}>
 
             {/* Workflows card */}
             <div style={{ border: "1px solid " + T.colorButtonSecondary, borderRadius: 8, background: T.colorSurfacePrimary, overflow: "hidden" }}>
