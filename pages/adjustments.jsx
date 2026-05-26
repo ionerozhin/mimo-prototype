@@ -3115,7 +3115,7 @@ registerPage("Adjustments", {
     return (
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <TopBar />
-        <div style={{ flex: 1, overflowY: "auto", padding: "0 48px 48px", display: "flex", flexDirection: "column", gap: 24, background: T.colorSurfacePrimary }}>
+        <div style={{ flex: 1, overflowY: "auto", scrollbarGutter: "stable", padding: "0 48px 48px", display: "flex", flexDirection: "column", gap: 24, background: T.colorSurfacePrimary }}>
           <div style={{ padding: "32px 0 8px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <h1 style={{ fontSize: 32, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "40px", letterSpacing: "-1px" }}>Adjustments</h1>
             <div style={{ display: "flex", gap: 8 }}>
