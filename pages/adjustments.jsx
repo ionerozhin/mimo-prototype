@@ -3611,7 +3611,7 @@ registerPage("Adjustments", {
 
         {/* Invoice preview panel (prepayment drawer) */}
         {React.createElement("div", {
-          style: { position: "fixed", top: 0, right: 520, bottom: 0, left: 0, zIndex: 202, background: T.colorSurfaceSecondary, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", transform: (_sugDrawerCard && _sugIsPrepayment && _sugDrawerStep === "details") ? "translateX(0)" : "translateX(100%)", opacity: (_sugDrawerCard && _sugIsPrepayment && _sugDrawerStep === "details") ? 1 : 0, transition: "transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.32s cubic-bezier(0.4, 0, 0.2, 1)", pointerEvents: (_sugDrawerCard && _sugIsPrepayment && _sugDrawerStep === "details") ? "auto" : "none" },
+          style: { position: "fixed", top: 0, right: 520, bottom: 0, left: 0, zIndex: 202, background: T.colorSurfaceSecondary, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", transform: (_sugDrawerCard && _sugIsPrepayment && _sugDrawerStep === "details") ? "translateX(0)" : "translateX(-100%)", opacity: (_sugDrawerCard && _sugIsPrepayment && _sugDrawerStep === "details") ? 1 : 0, transition: "transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease", pointerEvents: (_sugDrawerCard && _sugIsPrepayment && _sugDrawerStep === "details") ? "auto" : "none" },
         },
           React.createElement("div", { style: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 } },
             React.createElement("div", { style: { width: "100%", maxWidth: 520, background: "#fff", borderRadius: 8, border: "1px solid " + T.colorBorderDark, padding: "40px 36px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", fontFamily: "'Inter', sans-serif" } },

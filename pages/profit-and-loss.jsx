@@ -1256,13 +1256,17 @@ function ProfitAndLossPage(props) {
     ),
 
     // ── Invoice preview panel (to the left of prepayment drawer) ──
-    accrualDrawerSug && accrualDrawerSug.type === "prepayment" && drawerStep === "details" && React.createElement("div", {
+    React.createElement("div", {
       style: {
         position: "fixed", top: 0, right: 520, bottom: 0,
         left: 0, zIndex: 202,
         background: T.colorSurfaceSecondary,
         display: "flex", flexDirection: "column",
         fontFamily: "'Inter', sans-serif",
+        transform: (accrualDrawerSug && accrualDrawerSug.type === "prepayment" && drawerStep === "details") ? "translateX(0)" : "translateX(-100%)",
+        opacity: (accrualDrawerSug && accrualDrawerSug.type === "prepayment" && drawerStep === "details") ? 1 : 0,
+        transition: "transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease",
+        pointerEvents: (accrualDrawerSug && accrualDrawerSug.type === "prepayment" && drawerStep === "details") ? "auto" : "none",
       },
     },
       // Invoice document — centered, no scroll
