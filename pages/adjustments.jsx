@@ -2910,6 +2910,7 @@ registerPage("Adjustments", {
     var _sSchSearch = useState(""); var _schSearchValue = _sSchSearch[0], _setSchSearchValue = _sSchSearch[1];
     var _s2 = useState(false); var drawerOpen = _s2[0], setDrawerOpen = _s2[1];
     var _s3 = useState(false); var importDrawerOpen = _s3[0], setImportDrawerOpen = _s3[1];
+    var importCloseRef = useRef(null);
     var _s4 = useState(""); var importStartMonth = _s4[0], setImportStartMonth = _s4[1];
     var _s5 = useState(null); var importFile = _s5[0], setImportFile = _s5[1];
     var _s5b = useState(""); var importAdjType = _s5b[0], setImportAdjType = _s5b[1];
@@ -2944,6 +2945,8 @@ registerPage("Adjustments", {
     var _openSugDrawer = function(key) { _setSugDrawerKey(key); _setSugDrawerOpen(true); _setSugCreateJournal(true); _setSugDrawerStep("details"); _setSugDismissNote(""); _setSugDirectDismiss(false); };
     var _openSugDismiss = function(key) { _setSugDrawerKey(key); _setSugDrawerOpen(true); _setSugDrawerStep("dismiss"); _setSugDismissNote(""); _setSugDirectDismiss(true); };
     var _closeSugDrawer = function() { _setSugDrawerKey(null); _setSugDrawerStep("details"); _setSugDrawerOpen(false); _setSugDirectDismiss(false); };
+    var _sugCloseRef = useRef(null);
+    var _triggerSugClose = function() { if (_sugCloseRef.current) _sugCloseRef.current(); };
     var _sugAddToSchedule = function() {
       var key = _sugDrawerKey;
       _setSugReviewed(function(prev) { var o = Object.assign({}, prev); o[key] = { action: "Added to schedule" }; return o; });
@@ -3235,22 +3238,21 @@ registerPage("Adjustments", {
                 </div>
 
                 {/* Suggestions / Scheduled this month switch */}
-                <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                   {["suggestions", "scheduled"].map(function(sw) {
                     var isActive = _adjSubView === sw;
                     var label = sw === "suggestions" ? "Suggestions" : "Scheduled this month";
+                    var hasUnreviewed = sw === "suggestions" && (activeTab === "prepayments" ? _PR_CARDS : _AR_CARDS).some(function(c) { return !_sugReviewed[c.key]; });
                     return (
                       <button key={sw} onClick={function() { setAdjSubView(sw); }} style={{
-                        background: isActive ? "#F0F0F0" : "none", border: "none",
+                        background: isActive ? "#F0F0F0" : T.colorSurfaceSecondary, border: "none",
                         padding: "6px 12px", borderRadius: 8, cursor: "pointer",
-                        ...T.textSm, fontWeight: isActive ? 500 : 400,
-                        color: isActive ? T.colorTextPrimary : T.colorTextSecondary,
+                        ...T.textSm, fontWeight: 500,
+                        color: isActive ? T.colorTextPrimary : T.colorTextThird,
                         position: "relative", fontFamily: T.fontFamily,
                       }}>
-                        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          {label}
-                          {sw === "suggestions" && <div style={{ width: 6, height: 6, borderRadius: "50%", background: T.colorBrandPrimary, flexShrink: 0 }} />}
-                        </span>
+                        {label}
+                        {sw === "suggestions" && hasUnreviewed && <div style={{ position: "absolute", top: -4, right: -4, width: 8, height: 8, borderRadius: "50%", background: T.colorBrandPrimary }} />}
                       </button>
                     );
                   })}
@@ -3559,10 +3561,10 @@ registerPage("Adjustments", {
         </Sidebar>
 
         {/* Import Schedule Drawer */}
-        <Sidebar open={importDrawerOpen} onClose={function() { setImportDrawerOpen(false); }} title="Import adjustment schedule" width={600}
+        <Sidebar open={importDrawerOpen} onClose={function() { setImportDrawerOpen(false); }} closeRef={importCloseRef} title="Import adjustment schedule" width={600}
           footer={<>
-            <SecondaryButton onClick={function() { setImportDrawerOpen(false); }} style={{ height: 40, padding: "8px 16px", fontSize: 14 }}>Cancel</SecondaryButton>
-            <PrimaryButton onClick={function() { setImportDrawerOpen(false); }} style={{ flex: 1, height: 40, padding: "8px 16px", fontSize: 14, justifyContent: "center" }}>Continue to preview</PrimaryButton>
+            <SecondaryButton onClick={function() { if (importCloseRef.current) importCloseRef.current(); }} style={{ height: 40, padding: "8px 16px", fontSize: 14 }}>Cancel</SecondaryButton>
+            <PrimaryButton onClick={function() { if (importCloseRef.current) importCloseRef.current(); }} style={{ flex: 1, height: 40, padding: "8px 16px", fontSize: 14, justifyContent: "center" }}>Continue to preview</PrimaryButton>
           </>}>
           <div style={{ padding: 32, display: "flex", flexDirection: "column", gap: 24 }}>
             <Banner variant="success" icon={<svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0, marginTop: 2 }}><path d={PATHS.starAi} fill={T.colorBrandPrimary} stroke={T.colorBrandPrimary} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" /></svg>}>
@@ -3582,6 +3584,7 @@ registerPage("Adjustments", {
           open: !!_sugDrawerCard,
           onClose: _closeSugDrawer,
           onStartClose: function() { _setSugDrawerOpen(false); },
+          closeRef: _sugCloseRef,
           title: _sugDrawerStep === "dismiss"
             ? (_sugIsPrepayment ? "Dismiss Prepayment draft" : "Dismiss Accrual draft")
             : (_sugDrawerCard ? (_sugDrawerCard.drawerTitle || _sugDrawerCard.title) : ""),
@@ -3590,7 +3593,7 @@ registerPage("Adjustments", {
             ? null
             : _sugDrawerStep === "dismiss"
               ? React.createElement(React.Fragment, null,
-                  React.createElement(SecondaryButton, { onClick: _sugDirectDismiss ? _closeSugDrawer : _sugDismissBack, style: { height: 44, padding: "0 20px" } }, "Cancel"),
+                  React.createElement(SecondaryButton, { onClick: _sugDirectDismiss ? _triggerSugClose : _sugDismissBack, style: { height: 44, padding: "0 20px" } }, "Cancel"),
                   React.createElement(PrimaryButton, { onClick: _sugDismissConfirm, style: { flex: 1, height: 44, justifyContent: "center" } }, _sugIsPrepayment ? "Dismiss Prepayment draft" : "Dismiss Accrual draft")
                 )
               : React.createElement(React.Fragment, null,
