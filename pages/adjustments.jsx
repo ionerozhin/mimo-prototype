@@ -2910,6 +2910,7 @@ registerPage("Adjustments", {
     var ctx = _ref.ctx;
 
     var _s1 = useState("prepayments"); var activeTab = _s1[0], setActiveTab = _s1[1];
+    var _sSubView = useState("suggestions"); var _adjSubView = _sSubView[0], setAdjSubView = _sSubView[1];
     var _s2 = useState(false); var drawerOpen = _s2[0], setDrawerOpen = _s2[1];
     var _s3 = useState(false); var importDrawerOpen = _s3[0], setImportDrawerOpen = _s3[1];
     var _s4 = useState("jan_2026"); var importStartMonth = _s4[0], setImportStartMonth = _s4[1];
@@ -3132,109 +3133,186 @@ registerPage("Adjustments", {
             </div>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <OverviewCard
-              title="Prepayments"
-              onViewSchedule={function() { setScheduleOpen(true); }}
-              onRun={function() { setPrepaymentReviewOpen(true); }}
-              workflow={prepaymentReviewState && prepaymentReviewState.hasResults
-                ? { label: "Review prepayments", status: "suggestions", resolved: prepaymentReviewState.resolved, total: prepaymentReviewState.total }
-                : { label: "Review prepayments", status: "not_started" }}
-              metrics={{
-                opening: "£22,615.00",
-                openingGl: null,
-                additions: "£4,560.00",
-                releases: "(£3,775.00)",
-                closing: "£23,400.00",
-                closingGl: _computeGlBadge(_glConfig.prepayments, prepaymentReviewState),
-              }}
-            />
+          {/* ── Adjustment type tabs ── */}
+          <TabsNavigation
+            tabs={[
+              { value: "prepayments", label: "Prepayments", count: prepaymentReviewState && prepaymentReviewState.hasResults ? prepaymentReviewState.total - prepaymentReviewState.resolved : 3 },
+              { value: "accruals", label: "Accruals", count: accrualReviewState && accrualReviewState.hasResults ? accrualReviewState.total - accrualReviewState.resolved : 1 },
+              { value: "deferred_revenue", label: "Deferred revenue", disabled: true },
+              { value: "accrued_income", label: "Accrued income", disabled: true },
+              { value: "loan_amort", label: "Loan amortisation", disabled: true },
+              { value: "depreciation", label: "Depreciation (FAR)", disabled: true },
+            ]}
+            activeTab={activeTab}
+            onChange={setActiveTab}
+          />
 
-            <OverviewCard
-              title="Accruals"
-              onViewSchedule={function() { setAccrualScheduleOpen(true); }}
-              onRun={function() { setAccrualReviewOpen(true); }}
-              workflow={accrualReviewState && accrualReviewState.hasResults
-                ? { label: "Review accruals", status: "suggestions", resolved: accrualReviewState.resolved, total: accrualReviewState.total }
-                : { label: "Review accruals", status: "not_started" }}
-              metrics={{
-                opening: "£28,315.00",
-                openingGl: null,
-                additions: "£8,285.00",
-                releases: "(£5,400.00)",
-                closing: "£31,200.00",
-                closingGl: _computeGlBadge(_glConfig.accruals, accrualReviewState),
-              }}
-            />
+          {/* ── Overview card for active tab ── */}
+          {(function() {
+            var tabConfig = {
+              prepayments: {
+                metrics: { opening: "£22,615.00", openingGl: null, additions: "£4,560.00", releases: "(£3,775.00)", closing: "£23,400.00", closingGl: _computeGlBadge(_glConfig.prepayments, prepaymentReviewState) },
+                onViewSchedule: function() { setScheduleOpen(true); },
+                onRun: function() { setPrepaymentReviewOpen(true); },
+                reviewState: prepaymentReviewState,
+              },
+              accruals: {
+                metrics: { opening: "£28,315.00", openingGl: null, additions: "£8,285.00", releases: "(£5,400.00)", closing: "£31,200.00", closingGl: _computeGlBadge(_glConfig.accruals, accrualReviewState) },
+                onViewSchedule: function() { setAccrualScheduleOpen(true); },
+                onRun: function() { setAccrualReviewOpen(true); },
+                reviewState: accrualReviewState,
+              },
+            };
+            var cfg = tabConfig[activeTab];
+            if (!cfg) return null;
+            var m = cfg.metrics;
 
-            <OverviewCard
-              title="Deferred revenue"
-              onViewSchedule={function() { setDeferredRevenueScheduleOpen(true); }}
-              onRun={function() { setDeferredRevenueReviewOpen(true); }}
-              workflow={deferredRevenueReviewState && deferredRevenueReviewState.hasResults
-                ? { label: "Review deferred revenue", status: "suggestions", resolved: deferredRevenueReviewState.resolved, total: deferredRevenueReviewState.total }
-                : { label: "Review deferred revenue", status: "not_started" }}
-              metrics={{
-                opening: "£21,600.00",
-                openingGl: null,
-                additions: "£3,200.00",
-                releases: "(£6,800.00)",
-                closing: "£18,000.00",
-                closingGl: _computeGlBadge(_glConfig.deferredRevenue, deferredRevenueReviewState),
-              }}
-            />
+            return (
+              <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                {/* Overview metrics + View full schedule */}
+                <div style={{
+                  background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark,
+                  borderRadius: 16, padding: "24px 24px 20px", display: "flex", alignItems: "center", gap: 32,
+                }}>
+                  <div style={{ flex: 1, display: "flex", gap: 32 }}>
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <span style={{ ...T.textSm, fontWeight: 400, color: T.colorTextSecondary }}>Opening balance</span>
+                        {_ovInfoIcon}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 18, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{m.opening}</span>
+                        {_ovGlBadge(m.openingGl)}
+                      </div>
+                    </div>
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
+                      <span style={{ ...T.textSm, fontWeight: 400, color: T.colorTextSecondary }}>Additions</span>
+                      <span style={{ fontSize: 18, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{m.additions}</span>
+                    </div>
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
+                      <span style={{ ...T.textSm, fontWeight: 400, color: T.colorTextSecondary }}>Releases</span>
+                      <span style={{ fontSize: 18, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{m.releases}</span>
+                    </div>
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
+                      <span style={{ ...T.textSm, fontWeight: 400, color: T.colorTextSecondary }}>Closing balance</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 18, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{m.closing}</span>
+                        {_ovGlBadge(m.closingGl)}
+                      </div>
+                    </div>
+                  </div>
+                  <SecondaryButton onClick={cfg.onViewSchedule} style={{ height: 40, padding: "8px 16px 8px 12px", fontSize: 14, gap: 8, whiteSpace: "nowrap", flexShrink: 0 }}>
+                    {calendarBtnIcon}
+                    View full schedule
+                  </SecondaryButton>
+                </div>
 
-            <OverviewCard
-              title="Accrued income"
-              onViewSchedule={function() { setAccruedIncomeScheduleOpen(true); }}
-              onRun={function() { setAccruedIncomeReviewOpen(true); }}
-              workflow={accruedIncomeReviewState && accruedIncomeReviewState.hasResults
-                ? { label: "Review accrued income", status: "suggestions", resolved: accruedIncomeReviewState.resolved, total: accruedIncomeReviewState.total }
-                : { label: "Review accrued income", status: "not_started" }}
-              metrics={{
-                opening: "£9,800.00",
-                openingGl: null,
-                additions: "£5,200.00",
-                releases: "(£3,750.00)",
-                closing: "£11,250.00",
-                closingGl: _computeGlBadge(_glConfig.accruedIncome, accruedIncomeReviewState),
-              }}
-            />
+                {/* Suggestions / Scheduled this month switch */}
+                <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+                  {["suggestions", "scheduled"].map(function(sw) {
+                    var isActive = _adjSubView === sw;
+                    var label = sw === "suggestions" ? "Suggestions" : "Scheduled this month";
+                    return (
+                      <button key={sw} onClick={function() { setAdjSubView(sw); }} style={{
+                        background: isActive ? T.colorSurfaceSecondary : "none", border: "none",
+                        padding: "6px 12px", borderRadius: 8, cursor: "pointer",
+                        ...T.textSm, fontWeight: isActive ? 500 : 400,
+                        color: isActive ? T.colorTextPrimary : T.colorTextSecondary,
+                        position: "relative", fontFamily: T.fontFamily,
+                      }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          {label}
+                          {sw === "suggestions" && <div style={{ width: 6, height: 6, borderRadius: "50%", background: T.colorBrandPrimary, flexShrink: 0 }} />}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
 
-            <OverviewCard
-              title="Loan amortisation"
-              onViewSchedule={function() {}}
-              onRun={function() { setLoanReviewOpen(true); }}
-              workflow={loanReviewState && loanReviewState.hasResults
-                ? { label: "Review loan schedules", status: "suggestions", resolved: loanReviewState.resolved, total: loanReviewState.total }
-                : { label: "Review loan schedules", status: "not_started" }}
-              metrics={{
-                opening: "£205,800.00",
-                openingGl: null,
-                additions: "£0.00",
-                releases: "(£4,400.00)",
-                closing: "£202,400.00",
-                closingGl: _computeGlBadge(_glConfig.loanAmort, loanReviewState),
-              }}
-            />
-
-            <OverviewCard
-              title="Depreciation (FAR)"
-              onViewSchedule={function() {}}
-              onRun={function() { setDepreciationReviewOpen(true); }}
-              workflow={depreciationReviewState && depreciationReviewState.hasResults
-                ? { label: "Review depreciation charges", status: "suggestions", resolved: depreciationReviewState.resolved, total: depreciationReviewState.total }
-                : { label: "Review depreciation charges", status: "not_started" }}
-              metrics={{
-                opening: "£644,462.00",
-                openingGl: null,
-                additions: "£8,012.00",
-                releases: "£0.00",
-                closing: "£636,450.00",
-                closingGl: _computeGlBadge(_glConfig.depreciation, depreciationReviewState),
-              }}
-            />
-          </div>
+                {/* Content area */}
+                {_adjSubView === "suggestions"
+                  ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                      <RecommendationCard
+                        title={activeTab === "prepayments" ? "3 suggested prepayments" : "1 suggested accrual"}
+                        subtitle="Review suggestions from Mimo's analysis"
+                        actionLabel="Review suggestions"
+                        onAction={cfg.onRun}
+                      />
+                    </div>
+                  )
+                  : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                    {/* Search + filter bar */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                      <div style={{ position: "relative", flex: 1, maxWidth: 320 }}>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}>
+                          <circle cx="7" cy="7" r="5.5" stroke={T.colorTextSecondary} strokeWidth="1.25" />
+                          <path d="M11 11L14 14" stroke={T.colorTextSecondary} strokeWidth="1.25" strokeLinecap="round" />
+                        </svg>
+                        <input type="text" placeholder="Search..." style={{ width: "100%", height: 40, paddingLeft: 36, paddingRight: 12, border: "1px solid " + T.colorBorderMedium, borderRadius: 8, fontSize: 14, fontFamily: T.fontFamily, color: T.colorTextPrimary, outline: "none", boxSizing: "border-box", background: T.colorSurfacePrimary }} />
+                      </div>
+                      <div style={{ marginLeft: "auto" }}>
+                        <Dropdown value="all" options={[{ value: "all", label: "All expense accounts" }]} onChange={function(){}} size="sm" width={200} />
+                      </div>
+                    </div>
+                    <DataTable
+                      columns={[
+                        { key: "description", label: "Description", width: "minmax(200px, 1fr)", render: function(v, row) {
+                          return (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                              <span style={{ fontWeight: 500 }}>{v}</span>
+                              <span style={{ ...T.textSm, color: T.colorTextSecondary }}>{row.period}</span>
+                            </div>
+                          );
+                        }},
+                        { key: "expenseAccount", label: "Expense account", width: "200px" },
+                        { key: "openingBalance", label: "Opening balance", width: "140px", align: "right" },
+                        { key: "movement", label: "Movement", width: "140px", align: "right", render: function(v) {
+                          if (!v || v === "-") return <span>-</span>;
+                          return (
+                            <div style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>
+                              {v}
+                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0 }}>
+                                <circle cx="6" cy="6" r="5" stroke={T.colorTextSecondary} strokeWidth="1" />
+                                <path d="M6 3.5V6L7.5 7.5" stroke={T.colorTextSecondary} strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </div>
+                          );
+                        }},
+                        { key: "closingBalance", label: "Closing balance", width: "140px", align: "right" },
+                      ]}
+                      rows={activeTab === "prepayments" ? [
+                        { description: "Peel Holdings – warehouse lease", period: "Dec 25 – Nov 26 (12m)", expenseAccount: "6000 – Rent", openingBalance: "£6,400.00", movement: "(£800.00)", closingBalance: "£5,600.00" },
+                        { description: "Hiscox – PI cover FY 25/26", period: "Nov 25 – Oct 26 (12m)", expenseAccount: "6030 – Insurance", openingBalance: "£2,625.00", movement: "(£375.00)", closingBalance: "£2,250.00" },
+                        { description: "Microsoft 365 Business", period: "Jan 26 – Dec 26 (12m)", expenseAccount: "6220 – Subscriptions", openingBalance: "£3,600.00", movement: "(£400.00)", closingBalance: "£3,200.00" },
+                        { description: "Zurich – EL policy 26/27", period: "Apr 26 – Mar 27 (12m)", expenseAccount: "6030 – Insurance", openingBalance: "-", movement: "£6,600.00", closingBalance: "£6,600.00" },
+                        { description: "Red Havas – marketing retainer", period: "Jan 26 – Jun 26 (6m)", expenseAccount: "6110 – Advertising & marketing", openingBalance: "£3,000.00", movement: "(£1,000.00)", closingBalance: "£2,000.00" },
+                        { description: "BRC Global Standards certification", period: "Jan 26 – Dec 26 (12m)", expenseAccount: "6220 – Subscriptions", openingBalance: "£1,080.00", movement: "(£120.00)", closingBalance: "£960.00" },
+                        { description: "Datto SaaS Protection", period: "Apr 26 – Mar 27 (12m)", expenseAccount: "6220 – Subscriptions", openingBalance: "-", movement: "£880.00", closingBalance: "£880.00" },
+                        { description: "Regus – hot desk licence", period: "Mar 26 – Feb 27 (12m)", expenseAccount: "6000 – Rent", openingBalance: "£2,145.00", movement: "(£195.00)", closingBalance: "£1,950.00" },
+                      ] : [
+                        { description: "Grant Thornton – statutory audit fee", period: "Recurring (monthly)", expenseAccount: "6200 – Professional fees", openingBalance: "£9,000.00", movement: "£1,500.00", closingBalance: "£10,500.00" },
+                        { description: "British Gas – electricity estimate", period: "Recurring (quarterly)", expenseAccount: "6020 – Light, heat & power", openingBalance: "£4,200.00", movement: "(£2,750.00)", closingBalance: "£1,450.00" },
+                        { description: "Thames Water – water rates", period: "Recurring (monthly)", expenseAccount: "6010 – Rates", openingBalance: "£2,430.00", movement: "£530.00", closingBalance: "£2,960.00" },
+                        { description: "DHL Supply Chain – freight accrual", period: "Recurring (quarterly)", expenseAccount: "5020 – Freight & carriage", openingBalance: "£4,650.00", movement: "(£3,100.00)", closingBalance: "£1,550.00" },
+                        { description: "Vodafone – mobile fleet", period: "Recurring (monthly)", expenseAccount: "6230 – Telephone & internet", openingBalance: "£780.00", movement: "-", closingBalance: "£780.00" },
+                        { description: "Aviva – pension contributions", period: "Recurring (quarterly)", expenseAccount: "7003 – Pension costs", openingBalance: "£6,480.00", movement: "(£4,320.00)", closingBalance: "£2,160.00" },
+                        { description: "Clifton & Harrow – legal retainer", period: "Recurring (monthly)", expenseAccount: "6200 – Professional fees", openingBalance: "£4,950.00", movement: "£1,650.00", closingBalance: "£6,600.00" },
+                        { description: "Building maintenance – planned works", period: "Recurring (monthly)", expenseAccount: "6040 – Repairs & maintenance", openingBalance: "£4,400.00", movement: "£800.00", closingBalance: "£5,200.00" },
+                      ]}
+                      footerRow={activeTab === "prepayments"
+                        ? { description: "Total", expenseAccount: "", openingBalance: "£18,850.00", movement: "£4,590.00", closingBalance: "£23,440.00" }
+                        : { description: "Total", expenseAccount: "", openingBalance: "£36,890.00", movement: "(£5,690.00)", closingBalance: "£31,200.00" }
+                      }
+                      minWidth={860}
+                    />
+                    </div>
+                  )
+                }
+              </div>
+            );
+          })()}
 
         </div>
 

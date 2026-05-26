@@ -146,12 +146,13 @@ function TabsNavigation({ tabs = [], activeTab, onChange, gap = 24 }) {
       <div ref={scrollRef} onScroll={updateArrows} style={{ display: "flex", gap, overflowX: "auto", scrollbarWidth: "none", msOverflowStyle: "none", position: "relative", paddingLeft: showLeftArrow ? 28 : 0, paddingRight: showRightArrow ? 28 : 0, transition: "padding 0.2s ease" }}>
         {tabs.map((tab) => {
           const active = activeTab === tab.value;
+          const isDisabled = tab.disabled === true;
           const hasCount = tab.count !== undefined && tab.count !== null;
           const hasDot = tab.showDot === true;
           const displayCount = hasCount ? (tab.count > 99 ? "99+" : tab.count) : null;
           return (
-            <button key={tab.value} ref={(el) => { tabRefs.current[tab.value] = el; }} onClick={() => { if (onChange) onChange(tab.value); }}
-              style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", padding: 0, paddingBottom: 12, cursor: "pointer", position: "relative", flexShrink: 0 }}>
+            <button key={tab.value} ref={(el) => { tabRefs.current[tab.value] = el; }} onClick={() => { if (!isDisabled && onChange) onChange(tab.value); }}
+              style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", padding: 0, paddingBottom: 12, cursor: isDisabled ? "default" : "pointer", position: "relative", flexShrink: 0, opacity: isDisabled ? 0.4 : 1 }}>
               <span style={{ position: "relative", display: "inline-flex", flexDirection: "column" }}>
                 <span aria-hidden="true" style={{ ...T.textSm, fontWeight: 500, letterSpacing: "0.15px", whiteSpace: "nowrap", height: 0, overflow: "hidden", visibility: "hidden", pointerEvents: "none" }}>{tab.label}</span>
                 <span style={{ ...T.textSm, fontWeight: active ? 500 : 400, color: active ? T.colorTextPrimary: T.colorTextMuted, letterSpacing: "0.15px", whiteSpace: "nowrap", transition: "color 0.2s ease, font-weight 0.2s ease" }}>{tab.label}</span>
