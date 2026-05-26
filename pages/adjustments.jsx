@@ -3609,6 +3609,77 @@ registerPage("Adjustments", {
           )
         )}
 
+        {/* Invoice preview panel (prepayment drawer) */}
+        {_sugDrawerCard && _sugIsPrepayment && _sugDrawerStep === "details" && React.createElement("div", {
+          style: { position: "fixed", top: 0, right: 520, bottom: 0, left: 0, zIndex: 202, background: T.colorSurfaceSecondary, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif" },
+        },
+          React.createElement("div", { style: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 } },
+            React.createElement("div", { style: { width: "100%", maxWidth: 520, background: "#fff", borderRadius: 8, border: "1px solid " + T.colorBorderDark, padding: "40px 36px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", fontFamily: "'Inter', sans-serif" } },
+              // Invoice header
+              React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 } },
+                React.createElement("div", null,
+                  React.createElement("div", { style: { fontSize: 18, fontWeight: 700, color: "#1A1A2E", letterSpacing: "-0.3px" } }, "Datto"),
+                  React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, marginTop: 4, lineHeight: "16px" } }, "Datto, Inc.", React.createElement("br"), "101 Merritt 7 Corporate Park", React.createElement("br"), "Norwalk, CT 06851")
+                ),
+                React.createElement("div", { style: { textAlign: "right" } },
+                  React.createElement("div", { style: { fontSize: 22, fontWeight: 700, color: "#1A1A2E", letterSpacing: "-0.5px" } }, "INVOICE"),
+                  React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, marginTop: 4 } }, "#DAT-8821")
+                )
+              ),
+              // Bill to + dates
+              React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginBottom: 24, paddingBottom: 16, borderBottom: "1px solid " + T.colorBorderDark } },
+                React.createElement("div", null,
+                  React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Bill to"),
+                  React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary, lineHeight: "18px" } }, "Tidewater Solutions Ltd", React.createElement("br"), "45 Harbour Road", React.createElement("br"), "Southampton SO14 2AQ")
+                ),
+                React.createElement("div", { style: { textAlign: "right" } },
+                  React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Invoice date"),
+                  React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary, marginBottom: 12 } }, "25 March 2026"),
+                  React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Due date"),
+                  React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary } }, "24 April 2026")
+                )
+              ),
+              // Table header
+              React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 60px 80px 80px", gap: 0, borderBottom: "2px solid #1A1A2E", paddingBottom: 8, marginBottom: 0 } },
+                React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px" } }, "Description"),
+                React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "center" } }, "Qty"),
+                React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "right" } }, "Unit price"),
+                React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "right" } }, "Amount")
+              ),
+              // Line item
+              React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 60px 80px 80px", gap: 0, padding: "12px 0", borderBottom: "1px solid " + T.colorBorderDark } },
+                React.createElement("div", null,
+                  React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary, fontWeight: 500 } }, "SaaS Protection"),
+                  React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, marginTop: 2 } }, "12-month licence, Apr 2026 – Mar 2027")
+                ),
+                React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "center" } }, "1"),
+                React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "right" } }, "£800.00"),
+                React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "right", fontWeight: 500 } }, "£800.00")
+              ),
+              // Subtotal, VAT, Total
+              React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, paddingTop: 16 } },
+                React.createElement("div", { style: { display: "flex", gap: 32, width: 200 } },
+                  React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary, flex: 1 } }, "Subtotal"),
+                  React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "right" } }, "£800.00")
+                ),
+                React.createElement("div", { style: { display: "flex", gap: 32, width: 200 } },
+                  React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary, flex: 1 } }, "VAT (20%)"),
+                  React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "right" } }, "£160.00")
+                ),
+                React.createElement("div", { style: { display: "flex", gap: 32, width: 200, paddingTop: 8, borderTop: "2px solid #1A1A2E", marginTop: 4 } },
+                  React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: "#1A1A2E", flex: 1 } }, "Total"),
+                  React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: "#1A1A2E", textAlign: "right" } }, "£960.00")
+                )
+              ),
+              // Payment terms
+              React.createElement("div", { style: { marginTop: 28, paddingTop: 16, borderTop: "1px solid " + T.colorBorderDark } },
+                React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Payment terms"),
+                React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, lineHeight: "16px" } }, "Net 30 days. Please reference invoice #DAT-8821 with payment.")
+              )
+            )
+          )
+        )}
+
         {/* Schedule full-screen overlays */}
         <PrepaymentSchedulePage open={scheduleOpen} onClose={function() { setScheduleOpen(false); }} />
         <AccrualSchedulePage open={accrualScheduleOpen} onClose={function() { setAccrualScheduleOpen(false); }} />
