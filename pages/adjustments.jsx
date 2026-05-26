@@ -2911,6 +2911,7 @@ registerPage("Adjustments", {
 
     var _s1 = useState("prepayments"); var activeTab = _s1[0], setActiveTab = _s1[1];
     var _sSubView = useState("suggestions"); var _adjSubView = _sSubView[0], setAdjSubView = _sSubView[1];
+    var _sSchSearch = useState(""); var _schSearchValue = _sSchSearch[0], _setSchSearchValue = _sSchSearch[1];
     var _s2 = useState(false); var drawerOpen = _s2[0], setDrawerOpen = _s2[1];
     var _s3 = useState(false); var importDrawerOpen = _s3[0], setImportDrawerOpen = _s3[1];
     var _s4 = useState("jan_2026"); var importStartMonth = _s4[0], setImportStartMonth = _s4[1];
@@ -3250,7 +3251,7 @@ registerPage("Adjustments", {
                           <circle cx="7" cy="7" r="5.5" stroke={T.colorTextSecondary} strokeWidth="1.25" />
                           <path d="M11 11L14 14" stroke={T.colorTextSecondary} strokeWidth="1.25" strokeLinecap="round" />
                         </svg>
-                        <input type="text" placeholder="Search..." style={{ width: "100%", height: 36, paddingLeft: 36, paddingRight: 12, border: "1px solid " + T.colorBorderDark, borderRadius: 8, fontSize: 14, fontFamily: T.fontFamily, color: T.colorTextPrimary, outline: "none", boxSizing: "border-box", background: T.colorSurfacePrimary }} />
+                        <input type="text" placeholder="Search..." value={_schSearchValue} onChange={function(e) { _setSchSearchValue(e.target.value); }} style={{ width: "100%", height: 36, paddingLeft: 36, paddingRight: 12, border: "1px solid " + T.colorBorderDark, borderRadius: 8, fontSize: 14, fontFamily: T.fontFamily, color: T.colorTextPrimary, outline: "none", boxSizing: "border-box", background: T.colorSurfacePrimary }} onFocus={function(e) { e.target.style.borderColor = T.colorBrandPrimary; e.target.style.borderWidth = "2px"; e.target.style.padding = "0 11px 0 35px"; }} onBlur={function(e) { e.target.style.borderColor = T.colorBorderDark; e.target.style.borderWidth = "1px"; e.target.style.padding = "0 12px 0 36px"; }} />
                       </div>
                       <div style={{ marginLeft: "auto" }}>
                         <Dropdown value="all" options={[{ value: "all", label: "All expense accounts" }]} onChange={function(){}} size="sm" width={200} />
@@ -3291,7 +3292,7 @@ registerPage("Adjustments", {
                         }},
                         { key: "closingBalance", label: "Closing balance", width: "140px", align: "right" },
                       ]}
-                      rows={activeTab === "prepayments" ? [
+                      rows={(activeTab === "prepayments" ? [
                         { description: "Peel Holdings – warehouse lease", period: "Dec 25 – Nov 26 (12m)", expenseAccount: "6000 – Rent", openingBalance: "£6,400.00", movement: "(£800.00)", closingBalance: "£5,600.00" },
                         { description: "Hiscox – PI cover FY 25/26", period: "Nov 25 – Oct 26 (12m)", expenseAccount: "6030 – Insurance", openingBalance: "£2,625.00", movement: "(£375.00)", closingBalance: "£2,250.00" },
                         { description: "Microsoft 365 Business", period: "Jan 26 – Dec 26 (12m)", expenseAccount: "6220 – Subscriptions", openingBalance: "£3,600.00", movement: "(£400.00)", closingBalance: "£3,200.00" },
@@ -3309,7 +3310,7 @@ registerPage("Adjustments", {
                         { description: "Aviva – pension contributions", period: "Recurring (quarterly)", expenseAccount: "7003 – Pension costs", openingBalance: "£6,480.00", movement: ["£2,160.00", "(£6,480.00)"], closingBalance: "£2,160.00" },
                         { description: "Clifton & Harrow – legal retainer", period: "Recurring (monthly)", expenseAccount: "6200 – Professional fees", openingBalance: "£4,950.00", movement: "£1,650.00", closingBalance: "£6,600.00" },
                         { description: "Building maintenance – planned works", period: "Recurring (monthly)", expenseAccount: "6040 – Repairs & maintenance", openingBalance: "£4,400.00", movement: "£800.00", closingBalance: "£5,200.00" },
-                      ]}
+                      ]).filter(function(r) { if (!_schSearchValue) return true; var q = _schSearchValue.toLowerCase(); return r.description.toLowerCase().indexOf(q) !== -1 || r.expenseAccount.toLowerCase().indexOf(q) !== -1; })}
                       footerRow={activeTab === "prepayments"
                         ? { description: "Total", expenseAccount: "", openingBalance: "£18,850.00", movement: React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 } }, React.createElement("span", null, "£8,160.00"), React.createElement("span", null, "(£3,570.00)")), closingBalance: (function() {
                             var gl = _computeGlBadge(_glConfig.prepayments, prepaymentReviewState);
