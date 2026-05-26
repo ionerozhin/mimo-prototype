@@ -1030,10 +1030,11 @@ function Checkbox({ checked = false, onChange, label, disabled = false }) {
 }
 
 // ── DS Tooltip ──────────────────────────────────────────────────────────────
-function Tooltip({ text, children, placement = "top" }) {
+function Tooltip({ text, children, placement = "top", delay = 0 }) {
   var [visible, setVisible] = useState(false);
   var [pos, setPos] = useState({ x: 0, y: 0 });
   var ref = useRef(null);
+  var timerRef = useRef(null);
   return (
     <span ref={ref} style={{ display: "inline-flex", alignItems: "center" }}
       onMouseEnter={function() {
@@ -1041,9 +1042,13 @@ function Tooltip({ text, children, placement = "top" }) {
           var rect = ref.current.getBoundingClientRect();
           setPos({ x: rect.left + rect.width / 2, y: placement === "bottom" ? rect.bottom : rect.top });
         }
-        setVisible(true);
+        if (delay > 0) {
+          timerRef.current = setTimeout(function() { setVisible(true); }, delay);
+        } else {
+          setVisible(true);
+        }
       }}
-      onMouseLeave={function() { setVisible(false); }}>
+      onMouseLeave={function() { if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; } setVisible(false); }}>
       {children}
       {visible && (
         <div style={{

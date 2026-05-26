@@ -3281,7 +3281,7 @@ registerPage("Adjustments", {
                             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
                               {lines.map(function(line, i) {
                                 return (
-                                  <Tooltip key={i} text="Scheduled for publishing on 30 April">
+                                  <Tooltip key={i} text="Scheduled for publishing on 30 April" delay={800}>
                                     <div style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm, cursor: "default" }}>
                                       {line}
                                       {clockIcon}
