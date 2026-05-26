@@ -844,7 +844,7 @@ var _PR_STEPS = [
 ];
 
 var _PR_CARDS = [
-  { idx: 0, key: "datto", contactName: "Datto", contactSub: "Apr 26 – Mar 27", account: "Subscriptions (6220)", amount: "£960.00", allocations: "12 x £80.00/month", aiInsight: "Invoice #DAT-8821 for £960 covers Apr 2026–Mar 2027. Full amount posted to 6220 in March — only £80 relates to this period.", title: "Datto SaaS Protection – 12-month licence prepayment", contact: "Datto – SaaS Protection", description: "Invoice #DAT-8821 for £960.00 dated 25 March 2026 covers a 12-month licence from April 2026 to March 2027. The full amount has been posted to 6220 – Subscriptions. This should be prepaid and released at £80.00 per month.", tableRow: { account: "6220 – Subscriptions", amount: "£960.00", period: "12 months from Apr 26", invoice: "DAT-8821" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss", drawer: { contact: "Datto", invoice: "DAT-8821.pdf", invoiceDate: "March 2026", aiInsight: "Invoice #DAT-8821 for £960 covers Apr 2026–Mar 2027. Full amount posted to 6220 in March — only £80 relates to this period.", adjType: "prepayment_expense", description: "SaaS Protection – Datto", amount: "960.00", expenseAccount: "6220 – Subscriptions", invoiceDateField: "25/03/2026" } },
+  { idx: 0, key: "datto", contactName: "Datto", contactSub: "Apr 26 – Mar 27", account: "Subscriptions (6220)", amount: "£960.00", allocations: "12 x £80.00/month", aiInsight: "Invoice #DAT-8821 for £960 covers Apr 2026–Mar 2027. Full amount posted to 6220 in March — only £80 relates to this period.", title: "Datto SaaS Protection – 12-month licence prepayment", contact: "Datto – SaaS Protection", description: "Invoice #DAT-8821 for £960.00 dated 25 March 2026 covers a 12-month licence from April 2026 to March 2027. The full amount has been posted to 6220 – Subscriptions. This should be prepaid and released at £80.00 per month.", tableRow: { account: "6220 – Subscriptions", amount: "£960.00", period: "12 months from Apr 26", invoice: "DAT-8821" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss", type: "prepayment", drawerTitle: "Datto SaaS Protection", adjustmentName: "Datto SaaS Protection", drawerAmount: "960.00", expenseAccount: "6220 – Subscriptions", invoiceDate: "25/03/2026", fromPeriod: "April 2026", toPeriod: "March 2027", context: "Invoice #DAT-8821 for £960 covers Apr 2026–Mar 2027. Full amount posted to 6220 in March — only £80 relates to this period. Confidence: Critical.", drawerAllocations: [{ period: "April 2026", amount: "80.00" },{ period: "May 2026", amount: "80.00" },{ period: "June 2026", amount: "80.00" },{ period: "July 2026", amount: "80.00" },{ period: "August 2026", amount: "80.00" },{ period: "September 2026", amount: "80.00" },{ period: "October 2026", amount: "80.00" },{ period: "November 2026", amount: "80.00" },{ period: "December 2026", amount: "80.00" },{ period: "January 2027", amount: "80.00" },{ period: "February 2027", amount: "80.00" },{ period: "March 2027", amount: "80.00" }] },
 ];
 
 var _PR_NAV_CATS = [
@@ -1334,9 +1334,9 @@ var _AR_STEPS = [
 ];
 
 var _AR_CARDS = [
-  { idx: 0, key: "audit_accrual", contactName: "Grant Thornton", contactSub: "Apr 26", account: "Professional fees (6200)", amount: "£4,400.00", aiInsight: "Regular supplier invoice from Grant Thornton expected this period but not posted. Confidence: High.", title: "Audit fee accrual – Grant Thornton UK LLP", contact: "Grant Thornton – annual audit", description: "A regular supplier invoice from Grant Thornton UK LLP is expected this period but has not been posted. Based on prior-year patterns, an accrual of £4,400.00 should be raised against Professional fees (6200) to ensure the expense is recognised in the correct period.", tableRow: { account: "6200 – Professional fees", amount: "£4,400.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss" },
-  { idx: 1, key: "insurance_release", contactName: "Zurich", contactSub: "Apr 26", account: "Insurance (6030)", amount: "£300.00", aiInsight: "Regular monthly insurance invoice not yet posted for this period. Confidence: Critical.", title: "Insurance prepayment release – Zurich EL policy", contact: "Zurich – employers' liability", description: "The regular monthly insurance invoice from Zurich for the employers' liability policy has not yet been posted for April 2026. An accrual of £300.00 should be raised against Insurance (6030) to match the expense to the correct period.", tableRow: { account: "6030 – Insurance", amount: "£300.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss" },
-  { idx: 2, key: "freight_accrual", contactName: "DHL", contactSub: "Apr 26", account: "Freight & carriage (5020)", amount: "£1,420.00", aiInsight: "Supplier invoice for April deliveries received after cut-off but not accrued. Confidence: High.", title: "Freight accrual – DHL invoice received after period end", contact: "DHL – freight & carriage", description: "A supplier invoice from DHL for April deliveries was received after the period-end cut-off but has not been accrued. An accrual of £1,420.00 should be raised against Freight & carriage (5020) to ensure the cost is recognised in April.", tableRow: { account: "5020 – Freight & carriage", amount: "£1,420.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss" },
+  { idx: 0, key: "audit_accrual", contactName: "Grant Thornton", contactSub: "Apr 26", account: "Professional fees (6200)", amount: "£4,400.00", aiInsight: "Regular supplier invoice from Grant Thornton expected this period but not posted. Confidence: High.", title: "Audit fee accrual – Grant Thornton UK LLP", contact: "Grant Thornton – annual audit", description: "Audit fee accrual – Professional fees (Grant Thornton UK LLP)", tableRow: { account: "6200 – Professional fees", amount: "£4,400.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss", context: "Regular supplier invoice from Grant Thornton expected this period but not posted. Confidence: High.", expenseAccount: "Professional fees (6200)", accrualDate: "30/04/2026", reversalDate: "30/05/2026" },
+  { idx: 1, key: "insurance_release", contactName: "Zurich", contactSub: "Apr 26", account: "Insurance (6030)", amount: "£300.00", aiInsight: "Regular monthly insurance invoice not yet posted for this period. Confidence: Critical.", title: "Insurance prepayment release – Zurich EL policy", contact: "Zurich – employers' liability", description: "Insurance prepayment release – Zurich EL policy", tableRow: { account: "6030 – Insurance", amount: "£300.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss", context: "Regular monthly insurance invoice not yet posted for this period. Confidence: Critical.", expenseAccount: "Insurance (6030)", accrualDate: "30/04/2026", reversalDate: "30/05/2026" },
+  { idx: 2, key: "freight_accrual", contactName: "DHL", contactSub: "Apr 26", account: "Freight & carriage (5020)", amount: "£1,420.00", aiInsight: "Supplier invoice for April deliveries received after cut-off but not accrued. Confidence: High.", title: "Freight accrual – DHL invoice received after period end", contact: "DHL – freight & carriage", description: "Freight accrual – DHL invoice received after period end", tableRow: { account: "5020 – Freight & carriage", amount: "£1,420.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss", context: "Supplier invoice for April deliveries received after cut-off but not accrued. Confidence: High.", expenseAccount: "Freight & carriage (5020)", accrualDate: "30/04/2026", reversalDate: "30/05/2026" },
 ];
 
 var _AR_NAV_CATS = [
@@ -2911,9 +2911,9 @@ registerPage("Adjustments", {
     var _s8 = useState(false); var deferredRevenueScheduleOpen = _s8[0], setDeferredRevenueScheduleOpen = _s8[1];
     var _s9 = useState(false); var accruedIncomeScheduleOpen = _s9[0], setAccruedIncomeScheduleOpen = _s9[1];
     var _s10 = useState(false); var prepaymentReviewOpen = _s10[0], setPrepaymentReviewOpen = _s10[1];
-    var _s11 = useState({ resolved: 0, total: 5, hasResults: true, resolvedArray: [], ignoredArray: [], cardActions: {} }); var prepaymentReviewState = _s11[0], setPrepaymentReviewState = _s11[1];
+    var _s11 = useState(null); var prepaymentReviewState = _s11[0], setPrepaymentReviewState = _s11[1];
     var _s12 = useState(false); var accrualReviewOpen = _s12[0], setAccrualReviewOpen = _s12[1];
-    var _s13 = useState({ resolved: 0, total: 4, hasResults: true, resolvedArray: [], ignoredArray: [], cardActions: {} }); var accrualReviewState = _s13[0], setAccrualReviewState = _s13[1];
+    var _s13 = useState(null); var accrualReviewState = _s13[0], setAccrualReviewState = _s13[1];
     var _s14 = useState(false); var deferredRevenueReviewOpen = _s14[0], setDeferredRevenueReviewOpen = _s14[1];
     var _s15 = useState(null); var deferredRevenueReviewState = _s15[0], setDeferredRevenueReviewState = _s15[1];
     var _s16 = useState(false); var accruedIncomeReviewOpen = _s16[0], setAccruedIncomeReviewOpen = _s16[1];
@@ -2922,6 +2922,19 @@ registerPage("Adjustments", {
     var _s31 = useState(null); var loanReviewState = _s31[0], setLoanReviewState = _s31[1];
     var _s32 = useState(false); var depreciationReviewOpen = _s32[0], setDepreciationReviewOpen = _s32[1];
     var _s33 = useState(null); var depreciationReviewState = _s33[0], setDepreciationReviewState = _s33[1];
+
+    // Suggestion drawer state
+    var _sSugKey = useState(null); var _sugDrawerKey = _sSugKey[0], _setSugDrawerKey = _sSugKey[1];
+    var _sSugStep = useState("details"); var _sugDrawerStep = _sSugStep[0], _setSugDrawerStep = _sSugStep[1];
+    var _sSugJournal = useState(true); var _sugCreateJournal = _sSugJournal[0], _setSugCreateJournal = _sSugJournal[1];
+    var _sugDrawerCard = _sugDrawerKey ? (_PR_CARDS.concat(_AR_CARDS)).find(function(c) { return c.key === _sugDrawerKey; }) : null;
+    var _sugIsPrepayment = _sugDrawerCard ? !!_sugDrawerCard.allocations : false;
+    var _openSugDrawer = function(key) { _setSugDrawerKey(key); _setSugCreateJournal(true); _setSugDrawerStep("details"); };
+    var _closeSugDrawer = function() { _setSugDrawerKey(null); _setSugDrawerStep("details"); };
+    var _sugAddToSchedule = function() { _setSugDrawerKey(null); _setSugDrawerStep("details"); };
+    var _sugDismissStep = function() { _setSugDrawerStep("dismiss"); };
+    var _sugDismissBack = function() { _setSugDrawerStep("details"); };
+    var _sugDismissConfirm = function() { _setSugDrawerKey(null); _setSugDrawerStep("details"); };
 
     // GL impact per suggestion card
     var _glConfig = {
@@ -3232,7 +3245,7 @@ registerPage("Adjustments", {
                           React.createElement("path", { d: PATHS.starAi, fill: "#6BAC5B", stroke: "#6BAC5B", strokeWidth: "1.66667", strokeLinecap: "round", strokeLinejoin: "round" })
                         );
                         return (
-                          React.createElement("div", { key: card.key, style: { border: "1px solid " + T.colorBorderDark, borderRadius: 12, background: T.colorSurfacePrimary, overflow: "hidden" } },
+                          React.createElement("div", { key: card.key, onClick: function() { _openSugDrawer(card.key); }, style: { border: "1px solid " + T.colorBorderDark, borderRadius: 12, background: T.colorSurfacePrimary, overflow: "hidden", cursor: "pointer", transition: "background 0.15s ease" }, onMouseEnter: function(e) { e.currentTarget.style.background = T.colorSurfaceSecondary; }, onMouseLeave: function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; } },
                             /* Top row: avatar + contact | account | amount | allocations (prepayments only) */
                             React.createElement("div", { style: { display: "flex", alignItems: "center", padding: "16px 16px" } },
                               /* Contact */
@@ -3272,8 +3285,8 @@ registerPage("Adjustments", {
                             ),
                             /* Action buttons */
                             React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, padding: "16px 16px" } },
-                              React.createElement(PrimaryButton, { onClick: cfg.onRun }, card.primaryLabel),
-                              React.createElement(SecondaryButton, null, card.secondaryLabel)
+                              React.createElement(PrimaryButton, { onClick: function(e) { e.stopPropagation(); _openSugDrawer(card.key); } }, card.primaryLabel),
+                              React.createElement(SecondaryButton, { onClick: function(e) { e.stopPropagation(); } }, card.secondaryLabel)
                             )
                           )
                         );
@@ -3513,6 +3526,88 @@ registerPage("Adjustments", {
             <UploadBox file={importFile} onFileChange={setImportFile} />
           </div>
         </Sidebar>
+
+        {/* Suggestion drawer */}
+        {React.createElement(Sidebar, {
+          open: !!_sugDrawerCard,
+          onClose: _closeSugDrawer,
+          title: _sugDrawerStep === "dismiss"
+            ? (_sugIsPrepayment ? "Dismiss Prepayment draft" : "Dismiss Accrual draft")
+            : (_sugDrawerCard ? (_sugDrawerCard.drawerTitle || _sugDrawerCard.title) : ""),
+          width: 520,
+          footer: _sugDrawerStep === "dismiss"
+            ? React.createElement(React.Fragment, null,
+                React.createElement(SecondaryButton, { onClick: _sugDismissBack, style: { height: 44, padding: "0 20px" } }, "Cancel"),
+                React.createElement(PrimaryButton, { onClick: _sugDismissConfirm, style: { flex: 1, height: 44, justifyContent: "center" } }, _sugIsPrepayment ? "Dismiss Prepayment draft" : "Dismiss Accrual draft")
+              )
+            : React.createElement(React.Fragment, null,
+                React.createElement(SecondaryButton, { onClick: _sugDismissStep, style: { flex: 1, height: 44, justifyContent: "center" } }, "Dismiss"),
+                React.createElement(PrimaryButton, { onClick: _sugAddToSchedule, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
+              ),
+        },
+          // Prepayment drawer content
+          _sugDrawerStep === "details" && _sugDrawerCard && _sugIsPrepayment
+            ? React.createElement("div", { style: { padding: 24, display: "flex", flexDirection: "column", gap: 24 } },
+                React.createElement(Banner, { variant: "success", icon: React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" }, React.createElement("path", { d: "M10 1.5L11.5 7L17 8.5L11.5 10L10 15.5L8.5 10L3 8.5L8.5 7L10 1.5Z", fill: T.colorBrandPrimary, stroke: T.colorBrandPrimary, strokeWidth: 1.5, strokeLinejoin: "round", paintOrder: "stroke" })) }, _sugDrawerCard.context),
+                React.createElement(Dropdown, { label: "Adjustment type", value: "prepayment_expense", options: [{ value: "prepayment_expense", label: "Prepayment expense" }, { value: "accrued_expense", label: "Accrued Expense" }], onChange: function() {} }),
+                React.createElement(Input, { label: "Adjustment name", value: _sugDrawerCard.adjustmentName, onChange: function() {} }),
+                React.createElement(Input, { label: "Amount", value: _sugDrawerCard.drawerAmount, onChange: function() {}, leftSlotType: "currency", currencySymbol: "£" }),
+                React.createElement(Dropdown, { label: "Expense account", value: "expense", options: [{ value: "expense", label: _sugDrawerCard.expenseAccount }], onChange: function() {}, searchable: true }),
+                React.createElement(Input, { label: "Invoice date (optional)", value: _sugDrawerCard.invoiceDate, onChange: function() {}, leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+                React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 } },
+                  React.createElement(Dropdown, { label: "From", value: "from", options: [{ value: "from", label: _sugDrawerCard.fromPeriod }], onChange: function() {} }),
+                  React.createElement(Dropdown, { label: "To", value: "to", options: [{ value: "to", label: _sugDrawerCard.toPeriod }], onChange: function() {} })
+                ),
+                React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
+                React.createElement("span", { style: Object.assign({}, T.textMd, { fontWeight: T.fontWeightSemibold, color: T.colorTextPrimary }) }, "Allocations"),
+                React.createElement(RadioGroup, { value: "even", onChange: function() {}, options: [{ value: "even", label: "Even split" }, { value: "custom", label: "Custom" }], direction: "horizontal", gap: 24 }),
+                React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 16 } },
+                  _sugDrawerCard.drawerAllocations && _sugDrawerCard.drawerAllocations.map(function(alloc) {
+                    return React.createElement(Input, { key: alloc.period, label: alloc.period, value: alloc.amount, onChange: function() {}, state: "readonly", leftSlotType: "currency", currencySymbol: "£" });
+                  })
+                )
+              )
+
+            // Accrual drawer content
+            : _sugDrawerStep === "details" && _sugDrawerCard && React.createElement("div", { style: { padding: 24, display: "flex", flexDirection: "column", gap: 24 } },
+                React.createElement(Banner, { variant: "success", icon: React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" }, React.createElement("path", { d: "M10 1.5L11.5 7L17 8.5L11.5 10L10 15.5L8.5 10L3 8.5L8.5 7L10 1.5Z", fill: T.colorBrandPrimary, stroke: T.colorBrandPrimary, strokeWidth: 1.5, strokeLinejoin: "round", paintOrder: "stroke" })) }, _sugDrawerCard.context),
+                React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+                  React.createElement("div", { style: Object.assign({ display: "flex", gap: 4, fontWeight: 500, color: T.colorTextPrimary }, T.textMd) },
+                    React.createElement("span", null, "Adjustment type"),
+                    React.createElement("span", { style: { color: "#DC5C40" } }, "*")
+                  ),
+                  React.createElement(Dropdown, { value: "accrued_expense", options: [{ value: "accrued_expense", label: "Accrued Expense" }, { value: "prepaid_expense", label: "Prepaid Expense" }], onChange: function() {} })
+                ),
+                React.createElement(Input, { label: "Description", mandatory: true, value: _sugDrawerCard.description, onChange: function() {} }),
+                React.createElement(Input, { label: "Accrual Amount", mandatory: true, value: _sugDrawerCard.amount, onChange: function() {} }),
+                React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+                  React.createElement("div", { style: Object.assign({ display: "flex", gap: 4, fontWeight: 500, color: T.colorTextPrimary }, T.textMd) },
+                    React.createElement("span", null, "Expense account"),
+                    React.createElement("span", { style: { color: "#DC5C40" } }, "*")
+                  ),
+                  React.createElement(Dropdown, { value: "account", options: [{ value: "account", label: _sugDrawerCard.expenseAccount }], onChange: function() {}, searchable: true })
+                ),
+                React.createElement(Input, { label: "Accrual date", mandatory: true, value: _sugDrawerCard.accrualDate, onChange: function() {}, leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+                React.createElement("div", { onClick: function() { _setSugCreateJournal(function(v) { return !v; }); }, style: { display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", userSelect: "none" } },
+                  React.createElement("div", { style: { width: 20, height: 20, borderRadius: 4, flexShrink: 0, marginTop: 1, background: _sugCreateJournal ? T.colorBrandPrimary : T.colorSurfacePrimary, border: _sugCreateJournal ? "none" : "1.5px solid " + T.colorBorderHover, display: "flex", alignItems: "center", justifyContent: "center" } },
+                    _sugCreateJournal && React.createElement("svg", { width: 12, height: 12, viewBox: "0 0 12 12", fill: "none" }, React.createElement("path", { d: "M2.5 6L5 8.5L9.5 3.5", stroke: "white", strokeWidth: "1.5", strokeLinecap: "round", strokeLinejoin: "round" }))
+                  ),
+                  React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 2 } },
+                    React.createElement("span", { style: Object.assign({}, T.textSm, { fontWeight: T.fontWeightMedium, color: T.colorTextPrimary }) }, "Create journal entry for this accrual"),
+                    React.createElement("span", { style: Object.assign({}, T.textSm, { color: T.colorTextSecondary }) }, "Leave unchecked to publish reversal only")
+                  )
+                ),
+                React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
+                React.createElement(Input, { label: "Reversal date", value: _sugDrawerCard.reversalDate, onChange: function() {}, helpText: "The accrual will be fully reversed on the selected date", leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+                React.createElement(Banner, { variant: "info" }, "You can leave the reversal date empty and choose it later when ready.")
+              ),
+
+          // Dismiss step
+          _sugDrawerStep === "dismiss" && React.createElement("div", { style: { padding: 24, display: "flex", flexDirection: "column", gap: 16 } },
+            React.createElement("span", { style: Object.assign({}, T.textMd, { fontWeight: T.fontWeightMedium, color: T.colorTextPrimary }) }, "Tell us more (optional)"),
+            React.createElement("textarea", { placeholder: "Tell us why you dismissed this so we can give better suggestions in the future", style: { width: "100%", minHeight: 100, padding: "12px 14px", borderRadius: 8, border: "1px solid " + T.colorBorderDark, fontSize: 14, fontFamily: T.fontFamily, lineHeight: "22px", color: T.colorTextPrimary, resize: "vertical", outline: "none", boxSizing: "border-box" }, onFocus: function(e) { e.target.style.borderColor = T.colorBrandPrimary; }, onBlur: function(e) { e.target.style.borderColor = T.colorBorderDark; } })
+          )
+        )}
 
         {/* Schedule full-screen overlays */}
         <PrepaymentSchedulePage open={scheduleOpen} onClose={function() { setScheduleOpen(false); }} />

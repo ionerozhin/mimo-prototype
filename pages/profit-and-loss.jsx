@@ -82,7 +82,7 @@ var PL_SUGGESTIONS = [
     adjusted: { actual: "£2,750.00", variance: "£300.00", pctDiff: "+12.2%", pctStatus: null } },
   { key: "freight_accrual", accountCode: "5020", description: "Freight accrual – DHL invoice received after period end", date: "30 Apr", amount: "£1,420.00", vat: "-", context: "Supplier invoice for April deliveries received after cut-off but not accrued. Confidence: High.", buttonLabel: "View suggested accrual", adjustmentType: "Accrued Expense", expenseAccount: "Freight & carriage (502)", accrualDate: "30/04/2026", reversalDate: "30/05/2026",
     adjusted: { actual: "£13,270.00", variance: "£3,070.00", pctDiff: "+30.1%", pctStatus: null } },
-  { key: "datto_prepayment", accountCode: "6220", type: "prepayment", description: "Datto SaaS Protection – 12-month licence prepayment", date: "30 Apr", amount: "£880.00", vat: "-", context: "Invoice #DAT-8821 for £960 covers Apr 2026–Mar 2027. Full amount posted to 6220 in March — only £80 relates to this period. Confidence: Critical.", buttonLabel: "View suggested prepayment",
+  { key: "datto_prepayment", accountCode: "6220", type: "prepayment", description: "Datto SaaS Protection – 12-month licence prepayment", date: "30 Apr", amount: "£960.00", vat: "-", context: "Invoice #DAT-8821 for £960 covers Apr 2026–Mar 2027. Full amount posted to 6220 in March — only £80 relates to this period. Confidence: Critical.", buttonLabel: "View suggested prepayment",
     drawerTitle: "Datto SaaS Protection", adjustmentName: "Datto SaaS Protection", drawerAmount: "960.00", expenseAccount: "6220 – Subscriptions", invoiceDate: "25/03/2026", fromPeriod: "April 2026", toPeriod: "March 2027",
     allocations: [
       { period: "April 2026", amount: "80.00" }, { period: "May 2026", amount: "80.00" },
