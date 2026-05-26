@@ -844,7 +844,7 @@ var _PR_STEPS = [
 ];
 
 var _PR_CARDS = [
-  { idx: 0, key: "datto", contactName: "Datto", contactSub: "Apr 26 – Mar 27", account: "Subscriptions (6220)", amount: "£960.00", allocations: "12 x £80.00/month", aiInsight: "Invoice #DAT-8821 for £960 covers Apr 2026–Mar 2027. Full amount posted to 6220 in March — only £80 relates to this period.", title: "Datto SaaS Protection – 12-month licence prepayment", contact: "Datto – SaaS Protection", description: "Invoice #DAT-8821 for £960.00 dated 25 March 2026 covers a 12-month licence from April 2026 to March 2027. The full amount has been posted to 6220 – Subscriptions. This should be prepaid and released at £80.00 per month.", tableRow: { account: "6220 – Subscriptions", amount: "£960.00", period: "12 months from Apr 26", invoice: "DAT-8821" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss", type: "prepayment", drawerTitle: "Datto SaaS Protection", adjustmentName: "Datto SaaS Protection", drawerAmount: "960.00", expenseAccount: "6220 – Subscriptions", invoiceDate: "25/03/2026", fromPeriod: "April 2026", toPeriod: "March 2027", context: "Invoice #DAT-8821 for £960 covers Apr 2026–Mar 2027. Full amount posted to 6220 in March — only £80 relates to this period. Confidence: Critical.", drawerAllocations: [{ period: "April 2026", amount: "80.00" },{ period: "May 2026", amount: "80.00" },{ period: "June 2026", amount: "80.00" },{ period: "July 2026", amount: "80.00" },{ period: "August 2026", amount: "80.00" },{ period: "September 2026", amount: "80.00" },{ period: "October 2026", amount: "80.00" },{ period: "November 2026", amount: "80.00" },{ period: "December 2026", amount: "80.00" },{ period: "January 2027", amount: "80.00" },{ period: "February 2027", amount: "80.00" },{ period: "March 2027", amount: "80.00" }] },
+  { idx: 0, key: "datto", contactName: "Datto SaaS Protection", contactSub: "Apr 26 – Mar 27", account: "Subscriptions (6220)", amount: "£960.00", allocations: "12 x £80.00/month", aiInsight: "Invoice #DAT-8821 for £960 covers Apr 2026–Mar 2027. Full amount posted to 6220 in March — only £80 relates to this period.", title: "Datto SaaS Protection – 12-month licence prepayment", contact: "Datto – SaaS Protection", description: "Invoice #DAT-8821 for £960.00 dated 25 March 2026 covers a 12-month licence from April 2026 to March 2027. The full amount has been posted to 6220 – Subscriptions. This should be prepaid and released at £80.00 per month.", tableRow: { account: "6220 – Subscriptions", amount: "£960.00", period: "12 months from Apr 26", invoice: "DAT-8821" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss", type: "prepayment", drawerTitle: "Datto SaaS Protection", adjustmentName: "Datto SaaS Protection", drawerAmount: "960.00", expenseAccount: "6220 – Subscriptions", invoiceDate: "25/03/2026", fromPeriod: "April 2026", toPeriod: "March 2027", context: "Invoice #DAT-8821 for £960 covers Apr 2026–Mar 2027. Full amount posted to 6220 in March — only £80 relates to this period. Confidence: Critical.", drawerAllocations: [{ period: "April 2026", amount: "80.00" },{ period: "May 2026", amount: "80.00" },{ period: "June 2026", amount: "80.00" },{ period: "July 2026", amount: "80.00" },{ period: "August 2026", amount: "80.00" },{ period: "September 2026", amount: "80.00" },{ period: "October 2026", amount: "80.00" },{ period: "November 2026", amount: "80.00" },{ period: "December 2026", amount: "80.00" },{ period: "January 2027", amount: "80.00" },{ period: "February 2027", amount: "80.00" },{ period: "March 2027", amount: "80.00" }] },
 ];
 
 var _PR_NAV_CATS = [
@@ -1334,9 +1334,9 @@ var _AR_STEPS = [
 ];
 
 var _AR_CARDS = [
-  { idx: 0, key: "audit_accrual", contactName: "Grant Thornton", contactSub: "Apr 26", account: "Professional fees (6200)", amount: "£4,400.00", aiInsight: "Regular supplier invoice from Grant Thornton expected this period but not posted. Confidence: High.", title: "Audit fee accrual – Grant Thornton UK LLP", contact: "Grant Thornton – annual audit", description: "Audit fee accrual – Professional fees (Grant Thornton UK LLP)", tableRow: { account: "6200 – Professional fees", amount: "£4,400.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss", context: "Regular supplier invoice from Grant Thornton expected this period but not posted. Confidence: High.", expenseAccount: "Professional fees (6200)", accrualDate: "30/04/2026", reversalDate: "30/05/2026" },
-  { idx: 1, key: "insurance_release", contactName: "Zurich", contactSub: "Apr 26", account: "Insurance (6030)", amount: "£300.00", aiInsight: "Regular monthly insurance invoice not yet posted for this period. Confidence: Critical.", title: "Insurance prepayment release – Zurich EL policy", contact: "Zurich – employers' liability", description: "Insurance prepayment release – Zurich EL policy", tableRow: { account: "6030 – Insurance", amount: "£300.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss", context: "Regular monthly insurance invoice not yet posted for this period. Confidence: Critical.", expenseAccount: "Insurance (6030)", accrualDate: "30/04/2026", reversalDate: "30/05/2026" },
-  { idx: 2, key: "freight_accrual", contactName: "DHL", contactSub: "Apr 26", account: "Freight & carriage (5020)", amount: "£1,420.00", aiInsight: "Supplier invoice for April deliveries received after cut-off but not accrued. Confidence: High.", title: "Freight accrual – DHL invoice received after period end", contact: "DHL – freight & carriage", description: "Freight accrual – DHL invoice received after period end", tableRow: { account: "5020 – Freight & carriage", amount: "£1,420.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss", context: "Supplier invoice for April deliveries received after cut-off but not accrued. Confidence: High.", expenseAccount: "Freight & carriage (5020)", accrualDate: "30/04/2026", reversalDate: "30/05/2026" },
+  { idx: 0, key: "audit_accrual", contactName: "Grant Thornton UK LLP", contactSub: "Audit fee – Apr 26", account: "Professional fees (6200)", amount: "£4,400.00", aiInsight: "Regular supplier invoice from Grant Thornton expected this period but not posted. Confidence: High.", title: "Audit fee accrual – Grant Thornton UK LLP", contact: "Grant Thornton – annual audit", description: "Professional fees – Grant Thornton UK LLP annual audit", tableRow: { account: "6200 – Professional fees", amount: "£4,400.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss", context: "Regular supplier invoice from Grant Thornton expected this period but not posted. Confidence: High.", expenseAccount: "Professional fees (6200)", accrualDate: "30/04/2026", reversalDate: "30/05/2026" },
+  { idx: 1, key: "insurance_release", contactName: "Zurich Insurance", contactSub: "EL policy – Apr 26", account: "Insurance (6030)", amount: "£300.00", aiInsight: "Regular monthly insurance invoice not yet posted for this period. Confidence: Critical.", title: "Insurance prepayment release – Zurich EL policy", contact: "Zurich – employers' liability", description: "Insurance – Zurich employers' liability monthly release", tableRow: { account: "6030 – Insurance", amount: "£300.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss", context: "Regular monthly insurance invoice not yet posted for this period. Confidence: Critical.", expenseAccount: "Insurance (6030)", accrualDate: "30/04/2026", reversalDate: "30/05/2026" },
+  { idx: 2, key: "freight_accrual", contactName: "DHL Express", contactSub: "Freight – Apr 26", account: "Freight & carriage (5020)", amount: "£1,420.00", aiInsight: "Supplier invoice for April deliveries received after cut-off but not accrued. Confidence: High.", title: "Freight accrual – DHL invoice received after period end", contact: "DHL – freight & carriage", description: "Freight & carriage – DHL April deliveries post-cutoff", tableRow: { account: "5020 – Freight & carriage", amount: "£1,420.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "Dismiss", context: "Supplier invoice for April deliveries received after cut-off but not accrued. Confidence: High.", expenseAccount: "Freight & carriage (5020)", accrualDate: "30/04/2026", reversalDate: "30/05/2026" },
 ];
 
 var _AR_NAV_CATS = [
@@ -2928,14 +2928,28 @@ registerPage("Adjustments", {
     var _sSugOpen = useState(false); var _sugDrawerOpen = _sSugOpen[0], _setSugDrawerOpen = _sSugOpen[1];
     var _sSugStep = useState("details"); var _sugDrawerStep = _sSugStep[0], _setSugDrawerStep = _sSugStep[1];
     var _sSugJournal = useState(true); var _sugCreateJournal = _sSugJournal[0], _setSugCreateJournal = _sSugJournal[1];
+    var _sSugReviewed = useState({}); var _sugReviewed = _sSugReviewed[0], _setSugReviewed = _sSugReviewed[1];
+    var _sSugDismissNote = useState(""); var _sugDismissNote = _sSugDismissNote[0], _setSugDismissNote = _sSugDismissNote[1];
     var _sugDrawerCard = _sugDrawerKey ? (_PR_CARDS.concat(_AR_CARDS)).find(function(c) { return c.key === _sugDrawerKey; }) : null;
     var _sugIsPrepayment = _sugDrawerCard ? !!_sugDrawerCard.allocations : false;
-    var _openSugDrawer = function(key) { _setSugDrawerKey(key); _setSugDrawerOpen(true); _setSugCreateJournal(true); _setSugDrawerStep("details"); };
-    var _closeSugDrawer = function() { _setSugDrawerKey(null); _setSugDrawerStep("details"); _setSugDrawerOpen(false); };
-    var _sugAddToSchedule = function() { _setSugDrawerKey(null); _setSugDrawerStep("details"); _setSugDrawerOpen(false); };
-    var _sugDismissStep = function() { _setSugDrawerStep("dismiss"); };
+    var _sugIsReviewed = _sugDrawerKey ? !!_sugReviewed[_sugDrawerKey] : false;
+    var _sSugDirect = useState(false); var _sugDirectDismiss = _sSugDirect[0], _setSugDirectDismiss = _sSugDirect[1];
+    var _openSugDrawer = function(key) { _setSugDrawerKey(key); _setSugDrawerOpen(true); _setSugCreateJournal(true); _setSugDrawerStep("details"); _setSugDismissNote(""); _setSugDirectDismiss(false); };
+    var _openSugDismiss = function(key) { _setSugDrawerKey(key); _setSugDrawerOpen(true); _setSugDrawerStep("dismiss"); _setSugDismissNote(""); _setSugDirectDismiss(true); };
+    var _closeSugDrawer = function() { _setSugDrawerKey(null); _setSugDrawerStep("details"); _setSugDrawerOpen(false); _setSugDirectDismiss(false); };
+    var _sugAddToSchedule = function() {
+      var key = _sugDrawerKey;
+      _setSugReviewed(function(prev) { var o = Object.assign({}, prev); o[key] = { action: "Added to schedule" }; return o; });
+      _setSugDrawerKey(null); _setSugDrawerStep("details"); _setSugDrawerOpen(false);
+    };
+    var _sugDismissStep = function() { _setSugDrawerStep("dismiss"); _setSugDirectDismiss(false); };
     var _sugDismissBack = function() { _setSugDrawerStep("details"); };
-    var _sugDismissConfirm = function() { _setSugDrawerKey(null); _setSugDrawerStep("details"); _setSugDrawerOpen(false); };
+    var _sugDismissConfirm = function() {
+      var key = _sugDrawerKey;
+      var note = _sugDismissNote.trim();
+      _setSugReviewed(function(prev) { var o = Object.assign({}, prev); o[key] = { action: "Dismissed", note: note || null }; return o; });
+      _setSugDrawerKey(null); _setSugDrawerStep("details"); _setSugDrawerOpen(false); _setSugDismissNote(""); _setSugDirectDismiss(false);
+    };
 
     // GL impact per suggestion card
     var _glConfig = {
@@ -3142,8 +3156,8 @@ registerPage("Adjustments", {
           {/* ── Adjustment type tabs ── */}
           <TabsNavigation
             tabs={[
-              { value: "prepayments", label: "Prepayments", count: prepaymentReviewState && prepaymentReviewState.hasResults ? Math.min(prepaymentReviewState.total, _PR_CARDS.length) - prepaymentReviewState.resolved : _PR_CARDS.length },
-              { value: "accruals", label: "Accruals", count: accrualReviewState && accrualReviewState.hasResults ? Math.min(accrualReviewState.total, _AR_CARDS.length) - accrualReviewState.resolved : _AR_CARDS.length },
+              { value: "prepayments", label: "Prepayments", count: _PR_CARDS.filter(function(c) { return !_sugReviewed[c.key]; }).length },
+              { value: "accruals", label: "Accruals", count: _AR_CARDS.filter(function(c) { return !_sugReviewed[c.key]; }).length },
               { value: "deferred_revenue", label: "Deferred revenue", disabled: true, tooltip: "Coming soon" },
               { value: "accrued_income", label: "Accrued income", disabled: true, tooltip: "Coming soon" },
               { value: "loan_amort", label: "Loan amortisation", disabled: true, tooltip: "Coming soon" },
@@ -3237,63 +3251,102 @@ registerPage("Adjustments", {
 
                 {/* Content area */}
                 {_adjSubView === "suggestions"
-                  ? (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                      {(activeTab === "prepayments" ? _PR_CARDS : _AR_CARDS).map(function(card) {
-                        var initial = card.contactName ? card.contactName.charAt(0).toUpperCase() : "?";
-                        var isAccrual = activeTab !== "prepayments";
-                        var _starIcon = React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 20 20", fill: "none", style: { flexShrink: 0, marginTop: 2 } },
-                          React.createElement("path", { d: PATHS.starAi, fill: "#6BAC5B", stroke: "#6BAC5B", strokeWidth: "1.66667", strokeLinecap: "round", strokeLinejoin: "round" })
-                        );
-                        return (
-                          React.createElement("div", { key: card.key, onClick: function() { _openSugDrawer(card.key); }, style: { border: "1px solid " + T.colorBorderDark, borderRadius: 12, background: T.colorSurfacePrimary, overflow: "hidden", cursor: "pointer", transition: "background 0.15s ease" }, onMouseEnter: function(e) { e.currentTarget.style.background = T.colorSurfaceSecondary; }, onMouseLeave: function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; } },
-                            /* Top row: avatar + contact | account | amount | allocations (prepayments only) */
-                            React.createElement("div", { style: { display: "flex", alignItems: "center", padding: "16px 16px" } },
-                              /* Contact */
-                              React.createElement("div", { style: { flex: 1, display: "flex", alignItems: "center", gap: 12, minWidth: 0 } },
-                                React.createElement("div", { style: { width: 44, height: 44, borderRadius: 8, background: T.colorInfoBg, color: "#6389CF", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: 17, flexShrink: 0, fontFamily: T.fontFamily } }, initial),
-                                React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 1 } },
-                                  React.createElement("span", { style: { fontWeight: 500, fontSize: 14, color: T.colorTextPrimary } }, card.contactName),
-                                  React.createElement("span", { style: { fontSize: 13, color: T.colorTextSecondary } }, card.contactSub)
-                                )
-                              ),
-                              /* Divider */
-                              React.createElement("div", { style: { width: 1, alignSelf: "stretch", background: T.colorBorderDark, margin: "0 20px", flexShrink: 0 } }),
-                              /* Account */
-                              React.createElement("div", { style: { flex: 1, display: "flex", flexDirection: "column", gap: 1, minWidth: 0 } },
-                                React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary, fontWeight: 500 } }, "Account"),
-                                React.createElement("span", { style: { fontSize: 14, color: T.colorTextPrimary } }, card.account)
-                              ),
-                              /* Divider */
-                              React.createElement("div", { style: { width: 1, alignSelf: "stretch", background: T.colorBorderDark, margin: "0 20px", flexShrink: 0 } }),
-                              /* Amount */
-                              React.createElement("div", { style: { flex: 1, display: "flex", flexDirection: "column", gap: 1 } },
-                                React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary, fontWeight: 500 } }, "Amount"),
-                                React.createElement("span", { style: { fontSize: 14, color: T.colorTextPrimary, fontWeight: 500 } }, card.amount)
-                              ),
-                              /* Allocations — prepayments only */
-                              !isAccrual && card.allocations ? [
-                                React.createElement("div", { key: "div", style: { width: 1, alignSelf: "stretch", background: T.colorBorderDark, margin: "0 20px", flexShrink: 0 } }),
-                                React.createElement("div", { key: "alloc", style: { flex: 1, display: "flex", flexDirection: "column", gap: 1 } },
-                                  React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary, fontWeight: 500 } }, "Allocations"),
-                                  React.createElement("span", { style: { fontSize: 14, color: T.colorTextPrimary } }, card.allocations)
-                                )
-                              ] : null
+                  ? (function() {
+                    var allCards = activeTab === "prepayments" ? _PR_CARDS : _AR_CARDS;
+                    var isAccrual = activeTab !== "prepayments";
+                    var unreviewedCards = allCards.filter(function(c) { return !_sugReviewed[c.key]; });
+                    var reviewedCards = allCards.filter(function(c) { return !!_sugReviewed[c.key]; });
+
+                    var _renderSugCard = function(card, reviewed) {
+                      var initial = card.contactName ? card.contactName.charAt(0).toUpperCase() : "?";
+                      var reviewInfo = _sugReviewed[card.key];
+                      var _starIcon = React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 20 20", fill: "none", style: { flexShrink: 0, marginTop: 2 } },
+                        React.createElement("path", { d: PATHS.starAi, fill: "#6BAC5B", stroke: "#6BAC5B", strokeWidth: "1.66667", strokeLinecap: "round", strokeLinejoin: "round" })
+                      );
+                      return (
+                        React.createElement("div", { key: card.key, onClick: function() { _openSugDrawer(card.key); }, style: { border: "1px solid " + T.colorBorderDark, borderRadius: 12, background: T.colorSurfacePrimary, overflow: "hidden", cursor: "pointer", transition: "background 0.15s ease" }, onMouseEnter: function(e) { e.currentTarget.style.background = T.colorSurfaceSecondary; }, onMouseLeave: function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; } },
+                          /* Status badge row for reviewed cards */
+                          reviewed && reviewInfo && React.createElement("div", { style: { padding: "12px 16px 0" } },
+                            React.createElement(StatusBadge, { variant: reviewInfo.action === "Added to schedule" ? "success" : "neutral", size: "mini" }, reviewInfo.action)
+                          ),
+                          /* Top row: avatar + contact | account | amount | allocations (prepayments only) */
+                          React.createElement("div", { style: { display: "flex", alignItems: "center", padding: "16px 16px" } },
+                            /* Contact */
+                            React.createElement("div", { style: { flex: 1, display: "flex", alignItems: "center", gap: 12, minWidth: 0 } },
+                              React.createElement("div", { style: { width: 44, height: 44, borderRadius: 8, background: T.colorInfoBg, color: "#6389CF", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: 17, flexShrink: 0, fontFamily: T.fontFamily } }, initial),
+                              React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 1 } },
+                                React.createElement("span", { style: { fontWeight: 500, fontSize: 14, color: T.colorTextPrimary } }, card.contactName),
+                                React.createElement("span", { style: { fontSize: 13, color: T.colorTextSecondary } }, card.contactSub)
+                              )
                             ),
-                            /* AI insight banner */
-                            React.createElement("div", { style: { padding: "0 16px" } },
-                              React.createElement(Banner, { variant: "success", icon: _starIcon, style: { borderRadius: 8, background: T.colorSurfaceSecondary, border: "1px solid " + T.colorBorderDark } }, card.aiInsight)
+                            /* Divider */
+                            React.createElement("div", { style: { width: 1, alignSelf: "stretch", background: T.colorBorderDark, margin: "0 20px", flexShrink: 0 } }),
+                            /* Account */
+                            React.createElement("div", { style: { flex: 1, display: "flex", flexDirection: "column", gap: 1, minWidth: 0 } },
+                              React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary, fontWeight: 500 } }, "Account"),
+                              React.createElement("span", { style: { fontSize: 14, color: T.colorTextPrimary } }, card.account)
                             ),
-                            /* Action buttons */
-                            React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, padding: "16px 16px" } },
-                              React.createElement(PrimaryButton, { onClick: function(e) { e.stopPropagation(); _openSugDrawer(card.key); } }, card.primaryLabel),
-                              React.createElement(SecondaryButton, { onClick: function(e) { e.stopPropagation(); } }, card.secondaryLabel)
+                            /* Divider */
+                            React.createElement("div", { style: { width: 1, alignSelf: "stretch", background: T.colorBorderDark, margin: "0 20px", flexShrink: 0 } }),
+                            /* Amount */
+                            React.createElement("div", { style: { flex: 1, display: "flex", flexDirection: "column", gap: 1 } },
+                              React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary, fontWeight: 500 } }, "Amount"),
+                              React.createElement("span", { style: { fontSize: 14, color: T.colorTextPrimary, fontWeight: 500 } }, card.amount)
+                            ),
+                            /* Allocations — prepayments only */
+                            !isAccrual && card.allocations ? [
+                              React.createElement("div", { key: "div", style: { width: 1, alignSelf: "stretch", background: T.colorBorderDark, margin: "0 20px", flexShrink: 0 } }),
+                              React.createElement("div", { key: "alloc", style: { flex: 1, display: "flex", flexDirection: "column", gap: 1 } },
+                                React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary, fontWeight: 500 } }, "Allocations"),
+                                React.createElement("span", { style: { fontSize: 14, color: T.colorTextPrimary } }, card.allocations)
+                              )
+                            ] : null
+                          ),
+                          /* AI insight banner */
+                          React.createElement("div", { style: { padding: "0 16px" } },
+                            React.createElement(Banner, { variant: "success", icon: _starIcon, style: { borderRadius: 8, background: T.colorSurfaceSecondary, border: "1px solid " + T.colorBorderDark } }, card.aiInsight)
+                          ),
+                          /* Action buttons — only for unreviewed */
+                          !reviewed && React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, padding: "16px 16px" } },
+                            React.createElement(PrimaryButton, { onClick: function(e) { e.stopPropagation(); _openSugDrawer(card.key); } }, card.primaryLabel),
+                            React.createElement(SecondaryButton, { onClick: function(e) { e.stopPropagation(); _openSugDismiss(card.key); } }, card.secondaryLabel)
+                          ),
+                          /* Dismiss note — only for reviewed cards dismissed with a note */
+                          reviewed && reviewInfo && reviewInfo.note && React.createElement("div", { style: { padding: "0 16px 16px", display: "flex", flexDirection: "column", gap: 12 } },
+                            React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
+                            React.createElement("span", { style: { fontSize: 13, fontWeight: 600, color: T.colorTextPrimary } }, "Note"),
+                            React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 4 } },
+                              React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+                                React.createElement("div", { style: { width: 24, height: 24, borderRadius: "50%", background: T.colorBorderDark, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, color: T.colorTextThird, flexShrink: 0, fontFamily: T.fontFamily } }, "IR"),
+                                React.createElement("span", { style: { fontSize: 13, fontWeight: 600, color: T.colorTextPrimary } }, "Ivan Rozhin"),
+                                React.createElement("span", { style: { fontSize: 13, color: T.colorTextSecondary } }, "just now")
+                              ),
+                              React.createElement("p", { style: { fontSize: 14, lineHeight: "22px", color: T.colorTextPrimary, margin: 0, paddingLeft: 32 } }, reviewInfo.note)
                             )
-                          )
-                        );
-                      })}
-                    </div>
-                  )
+                          ),
+                          /* Bottom padding for reviewed cards without notes */
+                          reviewed && !(reviewInfo && reviewInfo.note) && React.createElement("div", { style: { height: 16 } })
+                        )
+                      );
+                    };
+
+                    return React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } },
+                      unreviewedCards.map(function(c) { return _renderSugCard(c, false); }),
+                      React.createElement(Accordion, {
+                        key: "reviewed-accordion",
+                        title: "Reviewed suggestions (" + reviewedCards.length + ")",
+                        style: { marginTop: 4 },
+                      },
+                        reviewedCards.length > 0
+                          ? React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } },
+                              reviewedCards.map(function(c) { return _renderSugCard(c, true); })
+                            )
+                          : React.createElement("div", { style: { padding: "24px 0", textAlign: "center", fontSize: 14, color: T.colorTextSecondary, fontFamily: T.fontFamily } },
+                              "No suggestions reviewed yet"
+                            )
+                      )
+                    );
+                  })()
                   : (
                     <div style={{ border: "1px solid " + T.colorBorderDark, borderRadius: 8, overflow: "hidden" }}>
                     {/* Search + filter bar */}
@@ -3537,32 +3590,37 @@ registerPage("Adjustments", {
             ? (_sugIsPrepayment ? "Dismiss Prepayment draft" : "Dismiss Accrual draft")
             : (_sugDrawerCard ? (_sugDrawerCard.drawerTitle || _sugDrawerCard.title) : ""),
           width: 520,
-          footer: _sugDrawerStep === "dismiss"
-            ? React.createElement(React.Fragment, null,
-                React.createElement(SecondaryButton, { onClick: _sugDismissBack, style: { height: 44, padding: "0 20px" } }, "Cancel"),
-                React.createElement(PrimaryButton, { onClick: _sugDismissConfirm, style: { flex: 1, height: 44, justifyContent: "center" } }, _sugIsPrepayment ? "Dismiss Prepayment draft" : "Dismiss Accrual draft")
-              )
-            : React.createElement(React.Fragment, null,
-                React.createElement(SecondaryButton, { onClick: _sugDismissStep, style: { flex: 1, height: 44, justifyContent: "center" } }, "Dismiss"),
-                React.createElement(PrimaryButton, { onClick: _sugAddToSchedule, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
-              ),
+          footer: _sugIsReviewed
+            ? null
+            : _sugDrawerStep === "dismiss"
+              ? React.createElement(React.Fragment, null,
+                  React.createElement(SecondaryButton, { onClick: _sugDirectDismiss ? _closeSugDrawer : _sugDismissBack, style: { height: 44, padding: "0 20px" } }, "Cancel"),
+                  React.createElement(PrimaryButton, { onClick: _sugDismissConfirm, style: { flex: 1, height: 44, justifyContent: "center" } }, _sugIsPrepayment ? "Dismiss Prepayment draft" : "Dismiss Accrual draft")
+                )
+              : React.createElement(React.Fragment, null,
+                  React.createElement(SecondaryButton, { onClick: _sugDismissStep, style: { flex: 1, height: 44, justifyContent: "center" } }, "Dismiss"),
+                  React.createElement(PrimaryButton, { onClick: _sugAddToSchedule, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
+                ),
         },
           // Prepayment drawer content
           _sugDrawerStep === "details" && _sugDrawerCard && _sugIsPrepayment
             ? React.createElement("div", { style: { padding: 24, display: "flex", flexDirection: "column", gap: 24 } },
+                _sugIsReviewed && React.createElement("div", { style: { marginBottom: -8 } },
+                  React.createElement(StatusBadge, { variant: _sugReviewed[_sugDrawerKey].action === "Added to schedule" ? "success" : "neutral" }, _sugReviewed[_sugDrawerKey].action)
+                ),
                 React.createElement(Banner, { variant: "success", icon: React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" }, React.createElement("path", { d: "M10 1.5L11.5 7L17 8.5L11.5 10L10 15.5L8.5 10L3 8.5L8.5 7L10 1.5Z", fill: T.colorBrandPrimary, stroke: T.colorBrandPrimary, strokeWidth: 1.5, strokeLinejoin: "round", paintOrder: "stroke" })) }, _sugDrawerCard.context),
-                React.createElement(Dropdown, { label: "Adjustment type", value: "prepayment_expense", options: [{ value: "prepayment_expense", label: "Prepayment expense" }, { value: "accrued_expense", label: "Accrued Expense" }], onChange: function() {} }),
-                React.createElement(Input, { label: "Adjustment name", value: _sugDrawerCard.adjustmentName, onChange: function() {} }),
-                React.createElement(Input, { label: "Amount", value: _sugDrawerCard.drawerAmount, onChange: function() {}, leftSlotType: "currency", currencySymbol: "£" }),
-                React.createElement(Dropdown, { label: "Expense account", value: "expense", options: [{ value: "expense", label: _sugDrawerCard.expenseAccount }], onChange: function() {}, searchable: true }),
-                React.createElement(Input, { label: "Invoice date (optional)", value: _sugDrawerCard.invoiceDate, onChange: function() {}, leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+                React.createElement(Dropdown, { label: "Adjustment type", value: "prepayment_expense", options: [{ value: "prepayment_expense", label: "Prepayment expense" }, { value: "accrued_expense", label: "Accrued Expense" }], onChange: function() {}, disabled: _sugIsReviewed }),
+                React.createElement(Input, { label: "Adjustment name", value: _sugDrawerCard.adjustmentName, onChange: function() {}, state: _sugIsReviewed ? "readonly" : "enabled" }),
+                React.createElement(Input, { label: "Amount", value: _sugDrawerCard.drawerAmount, onChange: function() {}, leftSlotType: "currency", currencySymbol: "£", state: _sugIsReviewed ? "readonly" : "enabled" }),
+                React.createElement(Dropdown, { label: "Expense account", value: "expense", options: [{ value: "expense", label: _sugDrawerCard.expenseAccount }], onChange: function() {}, searchable: true, disabled: _sugIsReviewed }),
+                React.createElement(Input, { label: "Invoice date (optional)", value: _sugDrawerCard.invoiceDate, onChange: function() {}, state: _sugIsReviewed ? "readonly" : "enabled", leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
                 React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 } },
-                  React.createElement(Dropdown, { label: "From", value: "from", options: [{ value: "from", label: _sugDrawerCard.fromPeriod }], onChange: function() {} }),
-                  React.createElement(Dropdown, { label: "To", value: "to", options: [{ value: "to", label: _sugDrawerCard.toPeriod }], onChange: function() {} })
+                  React.createElement(Dropdown, { label: "From", value: "from", options: [{ value: "from", label: _sugDrawerCard.fromPeriod }], onChange: function() {}, disabled: _sugIsReviewed }),
+                  React.createElement(Dropdown, { label: "To", value: "to", options: [{ value: "to", label: _sugDrawerCard.toPeriod }], onChange: function() {}, disabled: _sugIsReviewed })
                 ),
                 React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
                 React.createElement("span", { style: Object.assign({}, T.textMd, { fontWeight: T.fontWeightSemibold, color: T.colorTextPrimary }) }, "Allocations"),
-                React.createElement(RadioGroup, { value: "even", onChange: function() {}, options: [{ value: "even", label: "Even split" }, { value: "custom", label: "Custom" }], direction: "horizontal", gap: 24 }),
+                !_sugIsReviewed && React.createElement(RadioGroup, { value: "even", onChange: function() {}, options: [{ value: "even", label: "Even split" }, { value: "custom", label: "Custom" }], direction: "horizontal", gap: 24 }),
                 React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 16 } },
                   _sugDrawerCard.drawerAllocations && _sugDrawerCard.drawerAllocations.map(function(alloc) {
                     return React.createElement(Input, { key: alloc.period, label: alloc.period, value: alloc.amount, onChange: function() {}, state: "readonly", leftSlotType: "currency", currencySymbol: "£" });
@@ -3572,25 +3630,28 @@ registerPage("Adjustments", {
 
             // Accrual drawer content
             : _sugDrawerStep === "details" && _sugDrawerCard && React.createElement("div", { style: { padding: 24, display: "flex", flexDirection: "column", gap: 24 } },
+                _sugIsReviewed && React.createElement("div", { style: { marginBottom: -8 } },
+                  React.createElement(StatusBadge, { variant: _sugReviewed[_sugDrawerKey].action === "Added to schedule" ? "success" : "neutral" }, _sugReviewed[_sugDrawerKey].action)
+                ),
                 React.createElement(Banner, { variant: "success", icon: React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" }, React.createElement("path", { d: "M10 1.5L11.5 7L17 8.5L11.5 10L10 15.5L8.5 10L3 8.5L8.5 7L10 1.5Z", fill: T.colorBrandPrimary, stroke: T.colorBrandPrimary, strokeWidth: 1.5, strokeLinejoin: "round", paintOrder: "stroke" })) }, _sugDrawerCard.context),
                 React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
                   React.createElement("div", { style: Object.assign({ display: "flex", gap: 4, fontWeight: 500, color: T.colorTextPrimary }, T.textMd) },
                     React.createElement("span", null, "Adjustment type"),
-                    React.createElement("span", { style: { color: "#DC5C40" } }, "*")
+                    !_sugIsReviewed && React.createElement("span", { style: { color: "#DC5C40" } }, "*")
                   ),
-                  React.createElement(Dropdown, { value: "accrued_expense", options: [{ value: "accrued_expense", label: "Accrued Expense" }, { value: "prepaid_expense", label: "Prepaid Expense" }], onChange: function() {} })
+                  React.createElement(Dropdown, { value: "accrued_expense", options: [{ value: "accrued_expense", label: "Accrued Expense" }, { value: "prepaid_expense", label: "Prepaid Expense" }], onChange: function() {}, disabled: _sugIsReviewed })
                 ),
-                React.createElement(Input, { label: "Description", mandatory: true, value: _sugDrawerCard.description, onChange: function() {} }),
-                React.createElement(Input, { label: "Accrual Amount", mandatory: true, value: _sugDrawerCard.amount, onChange: function() {} }),
+                React.createElement(Input, { label: "Description", mandatory: !_sugIsReviewed, value: _sugDrawerCard.description, onChange: function() {}, state: _sugIsReviewed ? "readonly" : "enabled" }),
+                React.createElement(Input, { label: "Accrual Amount", mandatory: !_sugIsReviewed, value: _sugDrawerCard.amount, onChange: function() {}, state: _sugIsReviewed ? "readonly" : "enabled" }),
                 React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
                   React.createElement("div", { style: Object.assign({ display: "flex", gap: 4, fontWeight: 500, color: T.colorTextPrimary }, T.textMd) },
                     React.createElement("span", null, "Expense account"),
-                    React.createElement("span", { style: { color: "#DC5C40" } }, "*")
+                    !_sugIsReviewed && React.createElement("span", { style: { color: "#DC5C40" } }, "*")
                   ),
-                  React.createElement(Dropdown, { value: "account", options: [{ value: "account", label: _sugDrawerCard.expenseAccount }], onChange: function() {}, searchable: true })
+                  React.createElement(Dropdown, { value: "account", options: [{ value: "account", label: _sugDrawerCard.expenseAccount }], onChange: function() {}, searchable: true, disabled: _sugIsReviewed })
                 ),
-                React.createElement(Input, { label: "Accrual date", mandatory: true, value: _sugDrawerCard.accrualDate, onChange: function() {}, leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
-                React.createElement("div", { onClick: function() { _setSugCreateJournal(function(v) { return !v; }); }, style: { display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", userSelect: "none" } },
+                React.createElement(Input, { label: "Accrual date", mandatory: !_sugIsReviewed, value: _sugDrawerCard.accrualDate, onChange: function() {}, state: _sugIsReviewed ? "readonly" : "enabled", leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+                !_sugIsReviewed && React.createElement("div", { onClick: function() { _setSugCreateJournal(function(v) { return !v; }); }, style: { display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", userSelect: "none" } },
                   React.createElement("div", { style: { width: 20, height: 20, borderRadius: 4, flexShrink: 0, marginTop: 1, background: _sugCreateJournal ? T.colorBrandPrimary : T.colorSurfacePrimary, border: _sugCreateJournal ? "none" : "1.5px solid " + T.colorBorderHover, display: "flex", alignItems: "center", justifyContent: "center" } },
                     _sugCreateJournal && React.createElement("svg", { width: 12, height: 12, viewBox: "0 0 12 12", fill: "none" }, React.createElement("path", { d: "M2.5 6L5 8.5L9.5 3.5", stroke: "white", strokeWidth: "1.5", strokeLinecap: "round", strokeLinejoin: "round" }))
                   ),
@@ -3600,14 +3661,27 @@ registerPage("Adjustments", {
                   )
                 ),
                 React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
-                React.createElement(Input, { label: "Reversal date", value: _sugDrawerCard.reversalDate, onChange: function() {}, helpText: "The accrual will be fully reversed on the selected date", leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
-                React.createElement(Banner, { variant: "info" }, "You can leave the reversal date empty and choose it later when ready.")
+                React.createElement(Input, { label: "Reversal date", value: _sugDrawerCard.reversalDate, onChange: function() {}, state: _sugIsReviewed ? "readonly" : "enabled", helpText: _sugIsReviewed ? null : "The accrual will be fully reversed on the selected date", leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+                !_sugIsReviewed && React.createElement(Banner, { variant: "info" }, "You can leave the reversal date empty and choose it later when ready."),
+                /* Dismiss note shown in read-only drawer */
+                _sugIsReviewed && _sugReviewed[_sugDrawerKey] && _sugReviewed[_sugDrawerKey].note && React.createElement(React.Fragment, null,
+                  React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
+                  React.createElement("span", { style: { fontSize: 13, fontWeight: 600, color: T.colorTextPrimary } }, "Note"),
+                  React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 4 } },
+                    React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+                      React.createElement("div", { style: { width: 24, height: 24, borderRadius: "50%", background: T.colorBorderDark, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, color: T.colorTextThird, flexShrink: 0, fontFamily: T.fontFamily } }, "IR"),
+                      React.createElement("span", { style: { fontSize: 13, fontWeight: 600, color: T.colorTextPrimary } }, "Ivan Rozhin"),
+                      React.createElement("span", { style: { fontSize: 13, color: T.colorTextSecondary } }, "just now")
+                    ),
+                    React.createElement("p", { style: { fontSize: 14, lineHeight: "22px", color: T.colorTextPrimary, margin: 0, paddingLeft: 32 } }, _sugReviewed[_sugDrawerKey].note)
+                  )
+                )
               ),
 
-          // Dismiss step
-          _sugDrawerStep === "dismiss" && React.createElement("div", { style: { padding: 24, display: "flex", flexDirection: "column", gap: 16 } },
+          // Dismiss step (only for unreviewed)
+          !_sugIsReviewed && _sugDrawerStep === "dismiss" && React.createElement("div", { style: { padding: 24, display: "flex", flexDirection: "column", gap: 16 } },
             React.createElement("span", { style: Object.assign({}, T.textMd, { fontWeight: T.fontWeightMedium, color: T.colorTextPrimary }) }, "Tell us more (optional)"),
-            React.createElement("textarea", { placeholder: "Tell us why you dismissed this so we can give better suggestions in the future", style: { width: "100%", minHeight: 100, padding: "12px 14px", borderRadius: 8, border: "1px solid " + T.colorBorderDark, fontSize: 14, fontFamily: T.fontFamily, lineHeight: "22px", color: T.colorTextPrimary, resize: "vertical", outline: "none", boxSizing: "border-box" }, onFocus: function(e) { e.target.style.borderColor = T.colorBrandPrimary; }, onBlur: function(e) { e.target.style.borderColor = T.colorBorderDark; } })
+            React.createElement("textarea", { placeholder: "Tell us why you dismissed this so we can give better suggestions in the future", value: _sugDismissNote, onChange: function(e) { _setSugDismissNote(e.target.value); }, style: { width: "100%", minHeight: 100, padding: "12px 14px", borderRadius: 8, border: "1px solid " + T.colorBorderDark, fontSize: 14, fontFamily: T.fontFamily, lineHeight: "22px", color: T.colorTextPrimary, resize: "vertical", outline: "none", boxSizing: "border-box" }, onFocus: function(e) { e.target.style.borderColor = T.colorBrandPrimary; }, onBlur: function(e) { e.target.style.borderColor = T.colorBorderDark; } })
           )
         )}
 
