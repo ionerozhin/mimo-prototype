@@ -32,7 +32,7 @@ var PL_SECTIONS = [
       { code: "4100", account: "4100 – Other income",                context: "Includes pallet return credits",              actual: "£5,400.00",   ref: "£4,250.00",   variance: "£1,150.00",   pctDiff: "+27.1%", pctStatus: null },
       { code: "4200", account: "4200 – Rental income",               context: "Sublease of warehouse unit B",                actual: "£1,950.00",   ref: "£1,950.00",   variance: "£0.00",       pctDiff: "0.0%",   pctStatus: null },
     ],
-    footer: "Total Revenue: £348,720.00",
+    footer: { label: "Total Revenue", actual: "£348,720.00", ref: "£336,100.00", variance: "£12,620.00", pctDiff: "+3.8%" },
   },
   {
     heading: "Cost of Sales",
@@ -44,7 +44,7 @@ var PL_SECTIONS = [
       { code: "5030", account: "5030 – Stock adjustments",           context: "Ties to BS 1200 – Stock",                    actual: "£3,420.00",   ref: "£3,680.00",   variance: "-£260.00",    pctDiff: "-7.1%",  pctStatus: null },
       { code: "5040", account: "5040 – Production overheads",        context: "No big variances or suggestions",            actual: "£3,230.00",   ref: "£3,150.00",   variance: "£80.00",      pctDiff: "+2.5%",  pctStatus: null },
     ],
-    footer: "Total Cost of Sales: £203,640.00  |  Gross Profit: £145,080.00",
+    footer: { label: "Total Cost of Sales", actual: "£203,640.00", ref: "£196,830.00", variance: "£6,810.00", pctDiff: "+3.5%" },
   },
   {
     heading: "Operating Expenses",
@@ -70,7 +70,7 @@ var PL_SECTIONS = [
       { code: "8010", account: "8010 – Amortisation",                context: "Ties to BS 0050 – Goodwill",                 actual: "£2,000.00",   ref: "£2,000.00",   variance: "£0.00",       pctDiff: "0.0%",   pctStatus: null },
       { code: "8100", account: "8100 – Bad debts",                   context: "Provision increase for overdue debtor",      actual: "£1,240.00",   ref: "£0.00",       variance: "£1,240.00",   pctDiff: null,     pctStatus: "review" },
     ],
-    footer: "Total Operating Expenses: £96,805.00  |  Operating Profit (EBIT): £48,275.00",
+    footer: { label: "Total Operating Expenses", actual: "£96,805.00", ref: "£84,305.00", variance: "£12,500.00", pctDiff: "+14.8%" },
   },
 ];
 
@@ -940,12 +940,21 @@ function ProfitAndLossPage(props) {
 
       // ── P&L Data Sections ────────────────────────────────────────────────
       adjustedSections.map(function(section, si) {
+        var ft = section.footer;
         return React.createElement("div", { key: si, style: { display: "flex", flexDirection: "column", gap: 0, marginTop: si === 0 ? 28 : 32 } },
           React.createElement(DataTable, {
             title: section.heading,
             columns: plColumns,
             rows: section.rows,
-            footerLabel: section.footer,
+            footerRow: ft ? {
+              account: ft.label,
+              actual: ft.actual,
+              ref: ft.ref,
+              variance: React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 } },
+                React.createElement("span", null, ft.variance),
+                ft.pctDiff && React.createElement(StatusBadge, { variant: "neutral", size: "mini" }, ft.pctDiff)
+              ),
+            } : undefined,
             showExpandColumn: true,
             renderExpanded: function(row) {
               var rc = ctx.store.rowComments || {};

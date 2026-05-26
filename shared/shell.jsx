@@ -261,7 +261,7 @@ function DataTable({
 
       {/* Footer row (bold summary row using same grid) */}
       {footerRow && (
-        <div style={{ display: "grid", gridTemplateColumns: gridTemplate, borderTop: `1px solid ${T.colorBorderDark}`, background: T.colorSurfacePrimary }}>
+        <div style={{ display: "grid", gridTemplateColumns: gridTemplate, background: T.colorSurfaceSecondary, borderTop: `1px solid ${T.colorBorderDark}` }}>
           {showExpandColumn && <div style={{ borderRight: `1px solid ${T.colorBorderDark}` }} />}
           {columns.map((col, ci) => (
             <div key={col.key} style={{
@@ -271,7 +271,7 @@ function DataTable({
               padding: "14px 16px",
               borderRight: ci < columns.length - 1 ? `1px solid ${T.colorBorderDark}` : "none",
             }}>
-              {col.render ? col.render(footerRow[col.key], footerRow, -1) : footerRow[col.key]}
+              {footerRow[col.key]}
             </div>
           ))}
           {showCommentColumn && <div style={{ borderLeft: `1px solid ${T.colorBorderDark}` }} />}
