@@ -3130,8 +3130,8 @@ registerPage("Adjustments", {
           {/* ── Adjustment type tabs ── */}
           <TabsNavigation
             tabs={[
-              { value: "prepayments", label: "Prepayments", count: prepaymentReviewState && prepaymentReviewState.hasResults ? prepaymentReviewState.total - prepaymentReviewState.resolved : _PR_CARDS.length },
-              { value: "accruals", label: "Accruals", count: accrualReviewState && accrualReviewState.hasResults ? accrualReviewState.total - accrualReviewState.resolved : _AR_CARDS.length },
+              { value: "prepayments", label: "Prepayments", count: prepaymentReviewState && prepaymentReviewState.hasResults ? Math.min(prepaymentReviewState.total, _PR_CARDS.length) - prepaymentReviewState.resolved : _PR_CARDS.length },
+              { value: "accruals", label: "Accruals", count: accrualReviewState && accrualReviewState.hasResults ? Math.min(accrualReviewState.total, _AR_CARDS.length) - accrualReviewState.resolved : _AR_CARDS.length },
               { value: "deferred_revenue", label: "Deferred revenue", disabled: true, tooltip: "Coming soon" },
               { value: "accrued_income", label: "Accrued income", disabled: true, tooltip: "Coming soon" },
               { value: "loan_amort", label: "Loan amortisation", disabled: true, tooltip: "Coming soon" },
@@ -3270,7 +3270,7 @@ registerPage("Adjustments", {
                             ),
                             /* AI insight banner */
                             React.createElement("div", { style: { padding: "0 16px" } },
-                              React.createElement(Banner, { variant: "success", icon: _starIcon, style: { borderRadius: 8 } }, card.aiInsight)
+                              React.createElement(Banner, { variant: "success", icon: _starIcon, style: { borderRadius: 8, background: T.colorSurfaceSecondary, border: "1px solid " + T.colorBorderDark } }, card.aiInsight)
                             ),
                             /* Action buttons */
                             React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, padding: "16px 16px" } },
