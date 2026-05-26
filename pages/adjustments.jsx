@@ -2950,6 +2950,7 @@ registerPage("Adjustments", {
       if (Math.abs(remaining) < 0.01) return null;
       var abs = Math.abs(remaining);
       var label = (remaining > 0 ? "GL +£" : "GL –£") + abs.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      if (abs < 1) return { label: label, color: T.colorTextSecondary, bg: T.colorSurfaceSecondary };
       return { label: label, color: T.colorError, bg: T.colorErrorBg };
     };
 
