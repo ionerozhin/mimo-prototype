@@ -359,7 +359,7 @@ function PrepaymentSchedulePage(_ref) {
     }
     if (release) {
       if (isScheduled) {
-        cellContent.push(React.createElement("div", { key: "rel", style: { display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm } }, fmtRelease(release), React.createElement(ClockIcon, null)));
+        cellContent.push(React.createElement(Tooltip, { key: "rel", text: "Scheduled for publishing on 30 April", delay: 800 }, React.createElement("div", { style: { display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm, cursor: "default" } }, fmtRelease(release), React.createElement(ClockIcon, null))));
       } else {
         cellContent.push(React.createElement("div", { key: "rel", style: { ...T.textSm, color: T.colorTextPrimary } }, fmtRelease(release)));
       }
@@ -570,7 +570,7 @@ function AccrualSchedulePage({ open, onClose }) {
   const _asColWidths = { description: 260, balance: 200, account: 280, invoiceDate: 130, invoiceAmount: 160, month: 140 };
   const _asFixedColsWidth = _asColWidths.description + _asColWidths.balance + _asColWidths.account + _asColWidths.invoiceDate + _asColWidths.invoiceAmount;
 
-  const _asRenderMonthCell = (entry, isFooter) => { if (!entry) return <span style={{ color: "#B0B3B8" }}>-</span>; const { addition, reversal, status } = entry; const isPublished = status === "published"; const isScheduled = status === "scheduled"; const bg = isPublished ? T.colorSuccessBg : "transparent"; const cellContent = []; if (reversal) { if (isScheduled) { cellContent.push(<div key="rev" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_asFmtReversal(reversal)}<_asClockIcon /></div>); } else { cellContent.push(<div key="rev" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_asFmtReversal(reversal)}</div>); } } if (addition) { if (isScheduled && !reversal) { cellContent.push(<div key="add" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_asFmtAddition(addition)}<_asClockIcon /></div>); } else { cellContent.push(<div key="add" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_asFmtAddition(addition)}</div>); } } if (cellContent.length === 0) return <span style={{ color: "#B0B3B8" }}>-</span>; return (<div style={{ background: bg, borderRadius: bg !== "transparent" ? 4 : 0, padding: bg !== "transparent" ? "2px 6px" : 0, display: "inline-flex", flexDirection: "column", gap: 2 }}>{cellContent}</div>); };
+  const _asRenderMonthCell = (entry, isFooter) => { if (!entry) return <span style={{ color: "#B0B3B8" }}>-</span>; const { addition, reversal, status } = entry; const isPublished = status === "published"; const isScheduled = status === "scheduled"; const bg = isPublished ? T.colorSuccessBg : "transparent"; const cellContent = []; if (reversal) { if (isScheduled) { cellContent.push(<Tooltip key="rev" text="Scheduled for publishing on 30 April" delay={800}><div style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm, cursor: "default" }}>{_asFmtReversal(reversal)}<_asClockIcon /></div></Tooltip>); } else { cellContent.push(<div key="rev" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_asFmtReversal(reversal)}</div>); } } if (addition) { if (isScheduled && !reversal) { cellContent.push(<Tooltip key="add" text="Scheduled for publishing on 30 April" delay={800}><div style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm, cursor: "default" }}>{_asFmtAddition(addition)}<_asClockIcon /></div></Tooltip>); } else { cellContent.push(<div key="add" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_asFmtAddition(addition)}</div>); } } if (cellContent.length === 0) return <span style={{ color: "#B0B3B8" }}>-</span>; return (<div style={{ background: bg, borderRadius: bg !== "transparent" ? 4 : 0, padding: bg !== "transparent" ? "2px 6px" : 0, display: "inline-flex", flexDirection: "column", gap: 2 }}>{cellContent}</div>); };
 
   const _asActiveBadge = () => (<span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}><span style={{ width: 6, height: 6, borderRadius: 3, background: T.colorBrandPrimary, flexShrink: 0 }} />Active</span>);
   const _asToAllocateBadge = ({ amount }) => (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px", whiteSpace: "nowrap" }}>{_asFmtGBP(amount)} to allocate</span>);
@@ -3139,10 +3139,10 @@ registerPage("Adjustments", {
             tabs={[
               { value: "prepayments", label: "Prepayments", count: prepaymentReviewState && prepaymentReviewState.hasResults ? prepaymentReviewState.total - prepaymentReviewState.resolved : 5 },
               { value: "accruals", label: "Accruals", count: accrualReviewState && accrualReviewState.hasResults ? accrualReviewState.total - accrualReviewState.resolved : 4 },
-              { value: "deferred_revenue", label: "Deferred revenue", disabled: true },
-              { value: "accrued_income", label: "Accrued income", disabled: true },
-              { value: "loan_amort", label: "Loan amortisation", disabled: true },
-              { value: "depreciation", label: "Depreciation (FAR)", disabled: true },
+              { value: "deferred_revenue", label: "Deferred revenue", disabled: true, tooltip: "Coming soon" },
+              { value: "accrued_income", label: "Accrued income", disabled: true, tooltip: "Coming soon" },
+              { value: "loan_amort", label: "Loan amortisation", disabled: true, tooltip: "Coming soon" },
+              { value: "depreciation", label: "Depreciation (FAR)", disabled: true, tooltip: "Coming soon" },
             ]}
             activeTab={activeTab}
             onChange={setActiveTab}

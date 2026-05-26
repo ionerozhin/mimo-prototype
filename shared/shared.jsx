@@ -150,7 +150,7 @@ function TabsNavigation({ tabs = [], activeTab, onChange, gap = 24 }) {
           const hasCount = tab.count !== undefined && tab.count !== null;
           const hasDot = tab.showDot === true;
           const displayCount = hasCount ? (tab.count > 99 ? "99+" : tab.count) : null;
-          return (
+          var tabButton = (
             <button key={tab.value} ref={(el) => { tabRefs.current[tab.value] = el; }} onClick={() => { if (!isDisabled && onChange) onChange(tab.value); }}
               style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", padding: 0, paddingBottom: 12, cursor: isDisabled ? "default" : "pointer", position: "relative", flexShrink: 0, opacity: isDisabled ? 0.4 : 1 }}>
               <span style={{ position: "relative", display: "inline-flex", flexDirection: "column" }}>
@@ -163,6 +163,10 @@ function TabsNavigation({ tabs = [], activeTab, onChange, gap = 24 }) {
               {hasDot && <div style={{ width: 6, height: 6, borderRadius: "50%", background: T.colorError, flexShrink: 0 }} />}
             </button>
           );
+          if (isDisabled && tab.tooltip) {
+            return <Tooltip key={tab.value} text={tab.tooltip} delay={500} placement="bottom">{tabButton}</Tooltip>;
+          }
+          return tabButton;
         })}
         <div style={{ position: "absolute", bottom: 0, height: 2, background: T.colorBrandPrimary, borderRadius: 1, zIndex: 1, left: indicator.left, width: indicator.width, transition: isInitial ? "none" : "left 0.25s ease, width 0.25s ease", pointerEvents: "none" }} />
       </div>
