@@ -3151,13 +3151,13 @@ registerPage("Adjustments", {
           {(function() {
             var tabConfig = {
               prepayments: {
-                metrics: { opening: "£22,615.00", openingGl: null, additions: "£4,560.00", releases: "(£3,775.00)", closing: "£23,400.00", closingGl: _computeGlBadge(_glConfig.prepayments, prepaymentReviewState) },
+                metrics: { opening: "£18,850.00", openingGl: null, additions: "£8,160.00", releases: "(£3,570.00)", closing: "£23,440.00", closingGl: _computeGlBadge(_glConfig.prepayments, prepaymentReviewState) },
                 onViewSchedule: function() { setScheduleOpen(true); },
                 onRun: function() { setPrepaymentReviewOpen(true); },
                 reviewState: prepaymentReviewState,
               },
               accruals: {
-                metrics: { opening: "£28,315.00", openingGl: null, additions: "£8,285.00", releases: "(£5,400.00)", closing: "£31,200.00", closingGl: _computeGlBadge(_glConfig.accruals, accrualReviewState) },
+                metrics: { opening: "£36,890.00", openingGl: null, additions: "£10,420.00", releases: "(£16,110.00)", closing: "£31,200.00", closingGl: _computeGlBadge(_glConfig.accruals, accrualReviewState) },
                 onViewSchedule: function() { setAccrualScheduleOpen(true); },
                 onRun: function() { setAccrualReviewOpen(true); },
                 reviewState: accrualReviewState,
@@ -3310,7 +3310,7 @@ registerPage("Adjustments", {
                         { description: "Building maintenance – planned works", period: "Recurring (monthly)", expenseAccount: "6040 – Repairs & maintenance", openingBalance: "£4,400.00", movement: "£800.00", closingBalance: "£5,200.00" },
                       ]}
                       footerRow={activeTab === "prepayments"
-                        ? { description: "Total", expenseAccount: "", openingBalance: "£18,850.00", movement: "£4,590.00", closingBalance: (function() {
+                        ? { description: "Total", expenseAccount: "", openingBalance: "£18,850.00", movement: React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 } }, React.createElement("span", null, "£8,160.00"), React.createElement("span", null, "(£3,570.00)")), closingBalance: (function() {
                             var gl = _computeGlBadge(_glConfig.prepayments, prepaymentReviewState);
                             return React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 } },
                               React.createElement("span", null, "£23,440.00"),
@@ -3318,7 +3318,7 @@ registerPage("Adjustments", {
                                 : React.createElement("span", { style: { fontSize: 12, fontWeight: 500, color: T.colorBrandPrimary, background: T.colorSuccessBg, borderRadius: 6, padding: "1px 5px", lineHeight: "17px", letterSpacing: "0.15px", whiteSpace: "nowrap" } }, "Reconciled")
                             );
                           })() }
-                        : { description: "Total", expenseAccount: "", openingBalance: "£36,890.00", movement: "(£5,690.00)", closingBalance: (function() {
+                        : { description: "Total", expenseAccount: "", openingBalance: "£36,890.00", movement: React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 } }, React.createElement("span", null, "£10,420.00"), React.createElement("span", null, "(£16,110.00)")), closingBalance: (function() {
                             var gl = _computeGlBadge(_glConfig.accruals, accrualReviewState);
                             return React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 } },
                               React.createElement("span", null, "£31,200.00"),
