@@ -32,7 +32,7 @@ function App() {
   var navigateTo = function(label) {
     var extLink = NAV_EXTERNAL_LINKS[label];
     if (extLink) {
-      window.open(extLink, "_blank");
+      window.location.href = extLink;
       return;
     }
     setActiveNav(label);

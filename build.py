@@ -39,7 +39,7 @@ if os.path.exists(avatar_path):
 
 # Load avatar photo if present (jpg/png) and embed as base64 data URL
 avatar_photo_script = ''
-for ext in ['avatar.jpg', 'avatar.png']:
+for ext in ['laurabennett.png', 'avatar.jpg', 'avatar.png']:
     ap = os.path.join(base, ext)
     if os.path.exists(ap):
         import base64 as b64
