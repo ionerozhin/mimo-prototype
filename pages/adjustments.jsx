@@ -4058,29 +4058,58 @@ registerPage("Adjustments", {
     };
 
     // Compute scheduled journal entries from all review states
+    // Each entry uses adjType to determine correct debit/credit direction
     var _scheduledJournals = [];
     var _sjNextNum = 49995;
+    var _sjCurrentPeriod = "April 2026";
     var _sjCollectEntries = function(reviewState, cards, category) {
       if (!reviewState || !reviewState.cardActions) return;
       cards.forEach(function(card) {
-        if (reviewState.cardActions[card.idx] === "Added to schedule") {
-          var amount = card.drawer.amount;
-          var desc = card.drawer.description;
-          var debitAccount, creditAccount;
-          if (category === "prepayments") {
-            debitAccount = card.drawer.expenseAccount;
-            creditAccount = "1103 – Prepayments";
-          } else if (category === "accruals") {
-            debitAccount = card.drawer.expenseAccount;
-            creditAccount = "2109 – Accruals";
-          } else if (category === "deferred_revenue") {
-            debitAccount = "2110 – Deferred income";
-            creditAccount = card.drawer.revenueAccount;
-          } else if (category === "accrued_income") {
-            debitAccount = card.drawer.incomeAccount;
-            creditAccount = "4000 – Sales";
+        if (reviewState.cardActions[card.idx] !== "Added to schedule") return;
+        var desc = card.drawer.description;
+        var adjType = card.drawer.adjType;
+
+        if (category === "prepayments") {
+          var isMultiPeriod = card.drawer.drawerAllocations && card.drawer.drawerAllocations.length > 1;
+          // For new multi-period prepayments: initial recognition (full amount) + release
+          if (isMultiPeriod) {
+            var fullAmount = card.drawer.amount;
+            _scheduledJournals.push({ description: desc + " (initial recognition)", debitAccount: "1103 – Prepayments", creditAccount: card.drawer.expenseAccount, amount: fullAmount });
           }
-          _scheduledJournals.push({ description: desc, debitAccount: debitAccount, creditAccount: creditAccount, amount: amount });
+          // Monthly release for current period
+          var periodAmount = card.drawer.amount;
+          if (card.drawer.drawerAllocations) {
+            var aprAlloc = card.drawer.drawerAllocations.filter(function(a) { return a.period === _sjCurrentPeriod; })[0];
+            if (aprAlloc) periodAmount = aprAlloc.amount;
+          }
+          _scheduledJournals.push({ description: desc + (isMultiPeriod ? " (Apr release)" : ""), debitAccount: card.drawer.expenseAccount, creditAccount: "1103 – Prepayments", amount: periodAmount });
+
+        } else if (category === "accruals") {
+          if (adjType === "accrual_reversal") {
+            // Reversals: Dr Accruals (reduce liability) / Cr Expense (reduce cost)
+            _scheduledJournals.push({ description: desc, debitAccount: "2109 – Accruals", creditAccount: card.drawer.expenseAccount === "2109 – Accruals" ? "6230 – Telephone & internet" : card.drawer.expenseAccount, amount: card.drawer.amount });
+          } else {
+            // New accrual: Dr Expense / Cr Accruals
+            _scheduledJournals.push({ description: desc, debitAccount: card.drawer.expenseAccount, creditAccount: "2109 – Accruals", amount: card.drawer.amount });
+          }
+
+        } else if (category === "deferred_revenue") {
+          if (adjType === "defer_revenue") {
+            // Deferral: Dr Sales (reduce revenue) / Cr Deferred income (increase liability)
+            _scheduledJournals.push({ description: desc, debitAccount: card.drawer.revenueAccount, creditAccount: "2110 – Deferred income", amount: card.drawer.amount });
+          } else {
+            // Release: Dr Deferred income (reduce liability) / Cr Sales (recognise revenue)
+            _scheduledJournals.push({ description: desc, debitAccount: "2110 – Deferred income", creditAccount: card.drawer.revenueAccount, amount: card.drawer.amount });
+          }
+
+        } else if (category === "accrued_income") {
+          if (adjType === "write_off") {
+            // Write-off: Dr Sales (reverse revenue) / Cr Accrued income (remove asset)
+            _scheduledJournals.push({ description: desc, debitAccount: "4000 – Sales", creditAccount: "1104 – Accrued income", amount: card.drawer.amount });
+          } else {
+            // New accrual: Dr Accrued income (recognise asset) / Cr Sales (recognise revenue)
+            _scheduledJournals.push({ description: desc, debitAccount: "1104 – Accrued income", creditAccount: "4000 – Sales", amount: card.drawer.amount });
+          }
         }
       });
     };
