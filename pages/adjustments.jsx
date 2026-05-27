@@ -810,6 +810,63 @@ function PrepaymentSchedulePage(_ref) {
           )
         )
       )}
+      {_psDrawerCard && _psDrawerCard.drawer && _psDrawerCard.drawer.invoice && React.createElement("div", {
+        style: { position: "fixed", top: 0, right: 520, bottom: 0, left: 0, zIndex: 311, background: T.colorSurfaceSecondary, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", pointerEvents: "auto" }
+      },
+        React.createElement("div", { style: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 } },
+          React.createElement("div", { style: { width: "100%", maxWidth: 520, background: "#fff", borderRadius: 8, border: "1px solid " + T.colorBorderDark, padding: "40px 36px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" } },
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 } },
+              React.createElement("div", null,
+                React.createElement("div", { style: { fontSize: 18, fontWeight: 700, color: "#1A1A2E", letterSpacing: "-0.3px" } }, _psDrawerCard.drawer.contact.split(" –")[0] || _psDrawerCard.drawer.contact),
+                React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, marginTop: 4, lineHeight: "16px" } }, _psDrawerCard.drawer.contact)
+              ),
+              React.createElement("div", { style: { textAlign: "right" } },
+                React.createElement("div", { style: { fontSize: 22, fontWeight: 700, color: "#1A1A2E", letterSpacing: "-0.5px" } }, "INVOICE"),
+                React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, marginTop: 4 } }, "#" + _psDrawerCard.drawer.invoice.replace(".pdf", ""))
+              )
+            ),
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginBottom: 24, paddingBottom: 16, borderBottom: "1px solid " + T.colorBorderDark } },
+              React.createElement("div", null,
+                React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Bill to"),
+                React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary, lineHeight: "18px" } }, "Tidewater Solutions Ltd")
+              ),
+              React.createElement("div", { style: { textAlign: "right" } },
+                React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Invoice date"),
+                React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary } }, _psDrawerCard.drawer.invoiceDate)
+              )
+            ),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 60px 80px 80px", borderBottom: "2px solid #1A1A2E", paddingBottom: 8 } },
+              React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px" } }, "Description"),
+              React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "center" } }, "Qty"),
+              React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "right" } }, "Unit price"),
+              React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "right" } }, "Amount")
+            ),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 60px 80px 80px", padding: "12px 0", borderBottom: "1px solid " + T.colorBorderDark } },
+              React.createElement("div", null,
+                React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary, fontWeight: 500 } }, _psDrawerCard.drawer.description),
+                React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, marginTop: 2 } }, _psDrawerCard.drawer.fromPeriod ? (_psDrawerCard.drawer.fromPeriod + " – " + _psDrawerCard.drawer.toPeriod) : "")
+              ),
+              React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "center" } }, "1"),
+              React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "right" } }, "£" + _psDrawerCard.drawer.amount),
+              React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "right", fontWeight: 500 } }, "£" + _psDrawerCard.drawer.amount)
+            ),
+            React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, paddingTop: 16 } },
+              React.createElement("div", { style: { display: "flex", gap: 32, width: 200 } },
+                React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary, flex: 1 } }, "Subtotal"),
+                React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "right" } }, "£" + _psDrawerCard.drawer.amount)
+              ),
+              React.createElement("div", { style: { display: "flex", gap: 32, width: 200, paddingTop: 8, borderTop: "2px solid #1A1A2E", marginTop: 4 } },
+                React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: "#1A1A2E", flex: 1 } }, "Total"),
+                React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: "#1A1A2E", textAlign: "right" } }, "£" + _psDrawerCard.drawer.amount)
+              )
+            ),
+            React.createElement("div", { style: { marginTop: 28, paddingTop: 16, borderTop: "1px solid " + T.colorBorderDark } },
+              React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Payment terms"),
+              React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, lineHeight: "16px" } }, "Net 30 days. Please reference invoice #" + _psDrawerCard.drawer.invoice.replace(".pdf", "") + " with payment.")
+            )
+          )
+        )
+      )}
       </div>
     </div>
   );
@@ -1277,6 +1334,65 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
           React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
           React.createElement(Input, { label: "Recognition date", value: _drDrawerCard.drawer.recognitionDate || "", onChange: function() {}, helpText: "Revenue will be recognised starting from this date", leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
           React.createElement(Banner, { variant: "info" }, "You can leave the recognition date empty and choose it later when ready.")
+        )
+      )}
+      {_drDrawerCard && _drDrawerCard.drawer && React.createElement("div", {
+        style: { position: "fixed", top: 0, right: 520, bottom: 0, left: 0, zIndex: 311, background: T.colorSurfaceSecondary, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", pointerEvents: "auto" }
+      },
+        React.createElement("div", { style: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 } },
+          React.createElement("div", { style: { width: "100%", maxWidth: 520, background: "#fff", borderRadius: 8, border: "1px solid " + T.colorBorderDark, padding: "40px 36px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" } },
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 } },
+              React.createElement("div", null,
+                React.createElement("div", { style: { fontSize: 18, fontWeight: 700, color: "#1A1A2E", letterSpacing: "-0.3px" } }, _drDrawerCard.drawer.contact.split(" –")[0] || _drDrawerCard.drawer.contact),
+                React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, marginTop: 4, lineHeight: "16px" } }, _drDrawerCard.drawer.contact)
+              ),
+              React.createElement("div", { style: { textAlign: "right" } },
+                React.createElement("div", { style: { fontSize: 22, fontWeight: 700, color: "#1A1A2E", letterSpacing: "-0.5px" } }, "INVOICE"),
+                React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, marginTop: 4 } }, "#ADV-" + (2026000 + _drDrawerCard.idx))
+              )
+            ),
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginBottom: 24, paddingBottom: 16, borderBottom: "1px solid " + T.colorBorderDark } },
+              React.createElement("div", null,
+                React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Bill to"),
+                React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary, lineHeight: "18px" } }, "Tidewater Solutions Ltd")
+              ),
+              React.createElement("div", { style: { textAlign: "right" } },
+                React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Invoice date"),
+                React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary, marginBottom: 12 } }, _drDrawerCard.drawer.deferralDate || ""),
+                React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Service period"),
+                React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary } }, _drDrawerCard.drawer.period || "")
+              )
+            ),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 60px 80px 80px", borderBottom: "2px solid #1A1A2E", paddingBottom: 8 } },
+              React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px" } }, "Description"),
+              React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "center" } }, "Qty"),
+              React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "right" } }, "Unit price"),
+              React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "right" } }, "Amount")
+            ),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 60px 80px 80px", padding: "12px 0", borderBottom: "1px solid " + T.colorBorderDark } },
+              React.createElement("div", null,
+                React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary, fontWeight: 500 } }, _drDrawerCard.drawer.description),
+                React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, marginTop: 2 } }, _drDrawerCard.drawer.period || "")
+              ),
+              React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "center" } }, "1"),
+              React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "right" } }, "£" + _drDrawerCard.drawer.amount),
+              React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "right", fontWeight: 500 } }, "£" + _drDrawerCard.drawer.amount)
+            ),
+            React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, paddingTop: 16 } },
+              React.createElement("div", { style: { display: "flex", gap: 32, width: 200 } },
+                React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary, flex: 1 } }, "Subtotal"),
+                React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "right" } }, "£" + _drDrawerCard.drawer.amount)
+              ),
+              React.createElement("div", { style: { display: "flex", gap: 32, width: 200, paddingTop: 8, borderTop: "2px solid #1A1A2E", marginTop: 4 } },
+                React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: "#1A1A2E", flex: 1 } }, "Total"),
+                React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: "#1A1A2E", textAlign: "right" } }, "£" + _drDrawerCard.drawer.amount)
+              )
+            ),
+            React.createElement("div", { style: { marginTop: 28, paddingTop: 16, borderTop: "1px solid " + T.colorBorderDark } },
+              React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Payment terms"),
+              React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, lineHeight: "16px" } }, "Advance payment received. Revenue to be recognised over the service period.")
+            )
+          )
         )
       )}
       </div>
@@ -1955,64 +2071,96 @@ function PrepaymentReviewFlow(_ref) {
           </div>
         )}
       </div>
-      {_prDrawerCard && (
-        <Sidebar open={true} onClose={function() { _prSetDrawerCard(null); }} title={_prDrawerCard.drawer.contact} width={600}
-          footer={React.createElement(React.Fragment, null,
-            React.createElement(SecondaryButton, { onClick: function() { _prSetDrawerCard(null); }, style: { height: 40, padding: "8px 16px", fontSize: 14 } }, "Cancel"),
+      {_prDrawerCard && _prDrawerCard.drawer && React.createElement(Sidebar, { open: true, onClose: function() { _prSetDrawerCard(null); }, title: _prDrawerCard.drawer.contact, width: 520,
+          footer: React.createElement(React.Fragment, null,
+            React.createElement(SecondaryButton, { onClick: function() { _prSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Dismiss"),
             React.createElement(PrimaryButton, { onClick: function() {
               var idx = _prDrawerCard.idx;
               _prSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [idx])); });
               _prSetCardActions(function(prev) { var o = Object.assign({}, prev); o[idx] = "Journal posted"; return o; });
               _prSetDrawerCard(null);
-            }, style: { flex: 1, height: 40, padding: "8px 16px", fontSize: 14, justifyContent: "center" } }, "Add to schedule")
-          )}>
-          <div style={{ padding: "32px 32px 64px", display: "flex", flexDirection: "column", gap: 24 }}>
-
-            {/* Invoice section */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <div style={Object.assign({}, T.textSm, { fontWeight: 500, color: T.colorTextPrimary })}>Invoice</div>
-              <div style={{ border: "1px solid " + T.colorBorderDark, borderRadius: 8, padding: "12px 16px", display: "flex", alignItems: "center", gap: 12 }}>
-                <svg width="28" height="32" viewBox="0 0 28 32" fill="none"><rect width="28" height="32" rx="4" fill="#F4E8E8"/><text x="14" y="22" textAnchor="middle" fontSize="10" fontWeight="600" fill="#D32F2F">PDF</text></svg>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span style={{ fontSize: 14, fontWeight: 500, color: T.colorTextPrimary }}>{_prDrawerCard.drawer.invoice}</span>
-                  <span style={{ fontSize: 13, color: T.colorTextSecondary }}>{_prDrawerCard.drawer.invoiceDate}</span>
-                </div>
-              </div>
-              <div style={{ background: "#FEFCE8", border: "1px solid #FDE68A", borderRadius: 8, padding: "12px 16px", display: "flex", gap: 10, alignItems: "flex-start" }}>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><path d="M10 1L12.39 6.26L18.18 7.27L14.09 11.64L14.76 17.5L10 15.27L5.24 17.5L5.91 11.64L1.82 7.27L7.61 6.26L10 1Z" fill="#EAB308" stroke="#EAB308" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                <span style={{ fontSize: 14, color: T.colorTextPrimary, lineHeight: "20px" }}>{_prDrawerCard.drawer.aiInsight}</span>
-              </div>
-            </div>
-
-            {/* Adjustment type dropdown */}
-            <Dropdown label="Adjustment type" value={_prDrawerCard.drawer.adjType} onChange={function(){}} size="lg" options={[
-              { value: "prepayment_expense", label: "Prepayment expense" },
-              { value: "prepayment_income", label: "Prepayment income" },
-            ]} />
-
-            {/* Description */}
-            <Input label="Description" value={_prDrawerCard.drawer.description} onChange={function(){}} />
-
-            {/* Amount */}
-            <Input label="Amount" value={_prDrawerCard.drawer.amount} onChange={function(){}} leftSlotType="currency" currencySymbol="£" />
-
-            {/* Expense account dropdown */}
-            <Dropdown label="Expense account" value={_prDrawerCard.drawer.expenseAccount} onChange={function(){}} size="lg" options={[
-              { value: _prDrawerCard.drawer.expenseAccount, label: _prDrawerCard.drawer.expenseAccount },
-            ]} />
-
-            {/* Invoice date */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <Dropdown label="Invoice date" value={_prDrawerCard.drawer.invoiceDateField} onChange={function(){}} size="lg" icon={function() { return React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" }, React.createElement("path", { d: "M17.5 8.33H2.5M13.33 1.67V5M6.67 1.67V5M6.5 18.33H13.5C14.9 18.33 15.6 18.33 16.14 18.06C16.61 17.82 16.99 17.44 17.23 16.97C17.5 16.43 17.5 15.73 17.5 14.33V7.33C17.5 5.93 17.5 5.23 17.23 4.7C16.99 4.23 16.61 3.85 16.14 3.61C15.6 3.33 14.9 3.33 13.5 3.33H6.5C5.1 3.33 4.4 3.33 3.87 3.61C3.39 3.85 3.01 4.23 2.77 4.7C2.5 5.23 2.5 5.93 2.5 7.33V14.33C2.5 15.73 2.5 16.43 2.77 16.97C3.01 17.44 3.39 17.82 3.87 18.06C4.4 18.33 5.1 18.33 6.5 18.33Z", stroke: "currentColor", strokeWidth: "1.25", strokeLinecap: "round", strokeLinejoin: "round" })); }} options={[
-                { value: _prDrawerCard.drawer.invoiceDateField, label: _prDrawerCard.drawer.invoiceDateField },
-              ]} />
-              <span style={Object.assign({}, T.textSm, { color: T.colorTextSecondary })}>Will be used for initial recognition for new prepayments</span>
-            </div>
-
-            {/* Checkbox */}
-            <Checkbox checked={true} onChange={function(){}} label="Create journal entry to recognise prepayment" />
-          </div>
-        </Sidebar>
+            }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
+          ) },
+        React.createElement("div", { style: { padding: 24, display: "flex", flexDirection: "column", gap: 24 } },
+          React.createElement(Banner, { variant: "success", icon: React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" }, React.createElement("path", { d: "M10 1.5L11.5 7L17 8.5L11.5 10L10 15.5L8.5 10L3 8.5L8.5 7L10 1.5Z", fill: T.colorBrandPrimary, stroke: T.colorBrandPrimary, strokeWidth: 1.5, strokeLinejoin: "round", paintOrder: "stroke" })) }, _prDrawerCard.drawer.aiInsight),
+          React.createElement(Dropdown, { label: "Adjustment type", value: "prepayment_expense", options: [{ value: "prepayment_expense", label: "Prepayment expense" }, { value: "prepayment_income", label: "Prepayment income" }], onChange: function() {} }),
+          React.createElement(Input, { label: "Adjustment name", value: _prDrawerCard.drawer.description, onChange: function() {} }),
+          React.createElement(Input, { label: "Amount", value: _prDrawerCard.drawer.amount, onChange: function() {}, leftSlotType: "currency", currencySymbol: "£" }),
+          React.createElement(Dropdown, { label: "Expense account", value: "expense", options: [{ value: "expense", label: _prDrawerCard.drawer.expenseAccount }], onChange: function() {}, searchable: true }),
+          React.createElement(Input, { label: "Invoice date (optional)", value: _prDrawerCard.drawer.invoiceDateField || "", onChange: function() {}, leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+          _prDrawerCard.drawer.fromPeriod && React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 } },
+            React.createElement(Dropdown, { label: "From", value: "from", options: [{ value: "from", label: _prDrawerCard.drawer.fromPeriod }], onChange: function() {} }),
+            React.createElement(Dropdown, { label: "To", value: "to", options: [{ value: "to", label: _prDrawerCard.drawer.toPeriod }], onChange: function() {} })
+          ),
+          React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
+          React.createElement("span", { style: Object.assign({}, T.textMd, { fontWeight: T.fontWeightSemibold, color: T.colorTextPrimary }) }, "Allocations"),
+          React.createElement(RadioGroup, { value: "even", onChange: function() {}, options: [{ value: "even", label: "Even split" }, { value: "custom", label: "Custom" }], direction: "horizontal", gap: 24 }),
+          _prDrawerCard.drawer.drawerAllocations && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 16 } },
+            _prDrawerCard.drawer.drawerAllocations.map(function(alloc) {
+              return React.createElement(Input, { key: alloc.period, label: alloc.period, value: alloc.amount, onChange: function() {}, state: "readonly", leftSlotType: "currency", currencySymbol: "£" });
+            })
+          )
+        )
+      )}
+      {/* Invoice preview panel */}
+      {_prDrawerCard && _prDrawerCard.drawer && _prDrawerCard.drawer.invoice && React.createElement("div", {
+        style: { position: "fixed", top: 0, right: 520, bottom: 0, left: 0, zIndex: 321, background: T.colorSurfaceSecondary, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", transition: "opacity 0.25s ease", pointerEvents: "auto" }
+      },
+        React.createElement("div", { style: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 } },
+          React.createElement("div", { style: { width: "100%", maxWidth: 520, background: "#fff", borderRadius: 8, border: "1px solid " + T.colorBorderDark, padding: "40px 36px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" } },
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 } },
+              React.createElement("div", null,
+                React.createElement("div", { style: { fontSize: 18, fontWeight: 700, color: "#1A1A2E", letterSpacing: "-0.3px" } }, _prDrawerCard.drawer.contact.split(" –")[0] || _prDrawerCard.drawer.contact),
+                React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, marginTop: 4, lineHeight: "16px" } }, _prDrawerCard.drawer.contact)
+              ),
+              React.createElement("div", { style: { textAlign: "right" } },
+                React.createElement("div", { style: { fontSize: 22, fontWeight: 700, color: "#1A1A2E", letterSpacing: "-0.5px" } }, "INVOICE"),
+                React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, marginTop: 4 } }, "#" + _prDrawerCard.drawer.invoice.replace(".pdf", ""))
+              )
+            ),
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginBottom: 24, paddingBottom: 16, borderBottom: "1px solid " + T.colorBorderDark } },
+              React.createElement("div", null,
+                React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Bill to"),
+                React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary, lineHeight: "18px" } }, "Tidewater Solutions Ltd")
+              ),
+              React.createElement("div", { style: { textAlign: "right" } },
+                React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Invoice date"),
+                React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary, marginBottom: 12 } }, _prDrawerCard.drawer.invoiceDate),
+                React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Due date"),
+                React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary } }, _prDrawerCard.drawer.invoiceDate)
+              )
+            ),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 60px 80px 80px", borderBottom: "2px solid #1A1A2E", paddingBottom: 8 } },
+              React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px" } }, "Description"),
+              React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "center" } }, "Qty"),
+              React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "right" } }, "Unit price"),
+              React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "right" } }, "Amount")
+            ),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 60px 80px 80px", padding: "12px 0", borderBottom: "1px solid " + T.colorBorderDark } },
+              React.createElement("div", null,
+                React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary, fontWeight: 500 } }, _prDrawerCard.drawer.description),
+                React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, marginTop: 2 } }, _prDrawerCard.drawer.fromPeriod ? (_prDrawerCard.drawer.fromPeriod + " – " + _prDrawerCard.drawer.toPeriod) : "")
+              ),
+              React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "center" } }, "1"),
+              React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "right" } }, "£" + _prDrawerCard.drawer.amount),
+              React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "right", fontWeight: 500 } }, "£" + _prDrawerCard.drawer.amount)
+            ),
+            React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, paddingTop: 16 } },
+              React.createElement("div", { style: { display: "flex", gap: 32, width: 200 } },
+                React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary, flex: 1 } }, "Subtotal"),
+                React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "right" } }, "£" + _prDrawerCard.drawer.amount)
+              ),
+              React.createElement("div", { style: { display: "flex", gap: 32, width: 200, paddingTop: 8, borderTop: "2px solid #1A1A2E", marginTop: 4 } },
+                React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: "#1A1A2E", flex: 1 } }, "Total"),
+                React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: "#1A1A2E", textAlign: "right" } }, "£" + _prDrawerCard.drawer.amount)
+              )
+            ),
+            React.createElement("div", { style: { marginTop: 28, paddingTop: 16, borderTop: "1px solid " + T.colorBorderDark } },
+              React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Payment terms"),
+              React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, lineHeight: "16px" } }, "Net 30 days. Please reference invoice #" + _prDrawerCard.drawer.invoice.replace(".pdf", "") + " with payment.")
+            )
+          )
+        )
       )}
       <PrepaymentSchedulePage open={_prScheduleOpen} onClose={function() { _prSetScheduleOpen(false); }} activeScheduleType="prepayments" onScheduleTypeChange={function() {}} suggestionsCount={null} />
     </div>
@@ -2059,6 +2207,7 @@ function AccrualReviewFlow(_ref) {
   _s = useState(400); var _arChatWidth = _s[0], _arSetChatWidth = _s[1];
   _s = useState(false); var _arIsDragging = _s[0], _arSetIsDragging = _s[1];
   _s = useState(true); var _arIsAtBottom = _s[0], _arSetIsAtBottom = _s[1];
+  _s = useState(null); var _arDrawerCard = _s[0], _arSetDrawerCard = _s[1];
   _s = useState(""); var _arInputValue = _s[0], _arSetInputValue = _s[1];
   _s = useState(_arInitResume ? new Set(savedState.resolvedArray || []) : new Set()); var _arResolvedCards = _s[0], _arSetResolvedCards = _s[1];
   _s = useState(_arInitResume ? new Set(savedState.ignoredArray || []) : new Set()); var _arIgnoredCards = _s[0], _arSetIgnoredCards = _s[1];
@@ -2355,7 +2504,7 @@ function AccrualReviewFlow(_ref) {
                           verticalTable={true} tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]}
                           renderCardAction={_adjCardCommentAction(_arOcUI, adjComments, onAddAdjComment, "sug_ar_" + card.key)}
                           primaryLabel={card.primaryLabel} secondaryLabel={card.secondaryLabel}
-                          onPrimaryAction={function() { _arSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _arSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = primaryActionLabels[card.primaryLabel] || "Journal posted"; return o; }); }}
+                          onPrimaryAction={function() { _arSetDrawerCard(card); }}
                           onIgnore={function() { _arSetIgnoredCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); }}
                           onSecondaryAction={function() { _arSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _arSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = "Resolved"; return o; }); }}
                           onMore={function() {}} />
@@ -2387,6 +2536,41 @@ function AccrualReviewFlow(_ref) {
           </div>
         )}
       </div>
+      {_arDrawerCard && _arDrawerCard.drawer && React.createElement(Sidebar, { open: true, onClose: function() { _arSetDrawerCard(null); }, title: _arDrawerCard.drawer.contact, width: 520,
+          footer: React.createElement(React.Fragment, null,
+            React.createElement(SecondaryButton, { onClick: function() { _arSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Dismiss"),
+            React.createElement(PrimaryButton, { onClick: function() {
+              var idx = _arDrawerCard.idx;
+              _arSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [idx])); });
+              _arSetCardActions(function(prev) { var o = Object.assign({}, prev); o[idx] = "Journal posted"; return o; });
+              _arSetDrawerCard(null);
+            }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
+          ) },
+        React.createElement("div", { style: { padding: 24, display: "flex", flexDirection: "column", gap: 24 } },
+          React.createElement(Banner, { variant: "success", icon: React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" }, React.createElement("path", { d: "M10 1.5L11.5 7L17 8.5L11.5 10L10 15.5L8.5 10L3 8.5L8.5 7L10 1.5Z", fill: T.colorBrandPrimary, stroke: T.colorBrandPrimary, strokeWidth: 1.5, strokeLinejoin: "round", paintOrder: "stroke" })) }, _arDrawerCard.drawer.aiInsight),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            React.createElement("div", { style: Object.assign({ display: "flex", gap: 4, fontWeight: 500, color: T.colorTextPrimary }, T.textMd) },
+              React.createElement("span", null, "Adjustment type"),
+              React.createElement("span", { style: { color: "#DC5C40" } }, "*")
+            ),
+            React.createElement(Dropdown, { value: _arDrawerCard.drawer.adjType, options: [{ value: "accrual_expense", label: "Accrued Expense" }, { value: "accrual_reversal", label: "Accrual reversal" }], onChange: function() {} })
+          ),
+          React.createElement(Input, { label: "Description", mandatory: true, value: _arDrawerCard.drawer.description, onChange: function() {} }),
+          React.createElement(Input, { label: "Accrual Amount", mandatory: true, value: _arDrawerCard.drawer.amount, onChange: function() {}, leftSlotType: "currency", currencySymbol: "£" }),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            React.createElement("div", { style: Object.assign({ display: "flex", gap: 4, fontWeight: 500, color: T.colorTextPrimary }, T.textMd) },
+              React.createElement("span", null, "Expense account"),
+              React.createElement("span", { style: { color: "#DC5C40" } }, "*")
+            ),
+            React.createElement(Dropdown, { value: "account", options: [{ value: "account", label: _arDrawerCard.drawer.expenseAccount }], onChange: function() {}, searchable: true })
+          ),
+          React.createElement(Input, { label: "Accrual date", mandatory: true, value: _arDrawerCard.drawer.accrualDate || "", onChange: function() {}, leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+          React.createElement(Checkbox, { checked: true, onChange: function() {}, label: "Create journal entry for this accrual" }),
+          React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
+          React.createElement(Input, { label: "Reversal date", value: _arDrawerCard.drawer.reversalDate || "", onChange: function() {}, helpText: "The accrual will be fully reversed on the selected date", leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+          React.createElement(Banner, { variant: "info" }, "You can leave the reversal date empty and choose it later when ready.")
+        )
+      )}
       <AccrualSchedulePage open={_arScheduleOpen} onClose={function() { _arSetScheduleOpen(false); }} activeScheduleType="accruals" onScheduleTypeChange={function() {}} suggestionsCount={null} />
     </div>
   );
@@ -2432,6 +2616,7 @@ function DeferredRevenueReviewFlow(_ref) {
   _s = useState(400); var _drChatWidth = _s[0], _drSetChatWidth = _s[1];
   _s = useState(false); var _drIsDragging = _s[0], _drSetIsDragging = _s[1];
   _s = useState(true); var _drIsAtBottom = _s[0], _drSetIsAtBottom = _s[1];
+  _s = useState(null); var _drRDrawerCard = _s[0], _drRSetDrawerCard = _s[1];
   _s = useState(""); var _drInputValue = _s[0], _drSetInputValue = _s[1];
   _s = useState(_drInitResume ? new Set(savedState.resolvedArray || []) : new Set()); var _drResolvedCards = _s[0], _drSetResolvedCards = _s[1];
   _s = useState(_drInitResume ? new Set(savedState.ignoredArray || []) : new Set()); var _drIgnoredCards = _s[0], _drSetIgnoredCards = _s[1];
@@ -2593,7 +2778,7 @@ function DeferredRevenueReviewFlow(_ref) {
                     var statusLabel = isResolved ? (actionLabel || "Journal posted") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
                     var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
                     var primaryActionLabels = { "Review suggestion": "Journal posted" };
-                    return (<div key={card.idx} id={"result-" + card.key + "-0"} style={{ scrollMarginTop: 64 }}><RecommendationCard title={card.title} description={card.description} statusLabel={statusLabel} statusStyle={statusStyle} collapsed={isResolved || isIgnored} isIgnored={isIgnored} hideMore={true} tableRow={card.tableRow} tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]} renderCardAction={_adjCardCommentAction(_drOcUI, adjComments, onAddAdjComment, "sug_dr_" + card.key)} primaryLabel={card.primaryLabel} secondaryLabel={card.secondaryLabel} onPrimaryAction={function() { _drSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _drSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = primaryActionLabels[card.primaryLabel] || "Journal posted"; return o; }); }} onIgnore={function() { _drSetIgnoredCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); }} onSecondaryAction={function() { _drSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _drSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = "Resolved"; return o; }); }} onMore={function() {}} /></div>);
+                    return (<div key={card.idx} id={"result-" + card.key + "-0"} style={{ scrollMarginTop: 64 }}><RecommendationCard title={card.title} description={card.description} statusLabel={statusLabel} statusStyle={statusStyle} collapsed={isResolved || isIgnored} isIgnored={isIgnored} hideMore={true} tableRow={card.tableRow} tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]} renderCardAction={_adjCardCommentAction(_drOcUI, adjComments, onAddAdjComment, "sug_dr_" + card.key)} primaryLabel={card.primaryLabel} secondaryLabel={card.secondaryLabel} onPrimaryAction={function() { _drRSetDrawerCard(card); }} onIgnore={function() { _drSetIgnoredCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); }} onSecondaryAction={function() { _drSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _drSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = "Resolved"; return o; }); }} onMore={function() {}} /></div>);
                   })}
                 </div>
               </div>
@@ -2618,6 +2803,100 @@ function DeferredRevenueReviewFlow(_ref) {
           </div>
         )}
       </div>
+      {_drRDrawerCard && _drRDrawerCard.drawer && React.createElement(Sidebar, { open: true, onClose: function() { _drRSetDrawerCard(null); }, title: _drRDrawerCard.drawer.contact, width: 520,
+          footer: React.createElement(React.Fragment, null,
+            React.createElement(SecondaryButton, { onClick: function() { _drRSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Dismiss"),
+            React.createElement(PrimaryButton, { onClick: function() {
+              var idx = _drRDrawerCard.idx;
+              _drSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [idx])); });
+              _drSetCardActions(function(prev) { var o = Object.assign({}, prev); o[idx] = "Journal posted"; return o; });
+              _drRSetDrawerCard(null);
+            }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
+          ) },
+        React.createElement("div", { style: { padding: 24, display: "flex", flexDirection: "column", gap: 24 } },
+          React.createElement(Banner, { variant: "success", icon: React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" }, React.createElement("path", { d: "M10 1.5L11.5 7L17 8.5L11.5 10L10 15.5L8.5 10L3 8.5L8.5 7L10 1.5Z", fill: T.colorBrandPrimary, stroke: T.colorBrandPrimary, strokeWidth: 1.5, strokeLinejoin: "round", paintOrder: "stroke" })) }, _drRDrawerCard.drawer.aiInsight),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            React.createElement("div", { style: Object.assign({ display: "flex", gap: 4, fontWeight: 500, color: T.colorTextPrimary }, T.textMd) },
+              React.createElement("span", null, "Adjustment type"),
+              React.createElement("span", { style: { color: "#DC5C40" } }, "*")
+            ),
+            React.createElement(Dropdown, { value: _drRDrawerCard.drawer.adjType, options: [{ value: "defer_revenue", label: "Defer revenue" }, { value: "release_revenue", label: "Release deferred revenue" }], onChange: function() {} })
+          ),
+          React.createElement(Input, { label: "Description", mandatory: true, value: _drRDrawerCard.drawer.description, onChange: function() {} }),
+          React.createElement(Input, { label: "Deferral Amount", mandatory: true, value: _drRDrawerCard.drawer.amount, onChange: function() {}, leftSlotType: "currency", currencySymbol: "£" }),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            React.createElement("div", { style: Object.assign({ display: "flex", gap: 4, fontWeight: 500, color: T.colorTextPrimary }, T.textMd) },
+              React.createElement("span", null, "Revenue account"),
+              React.createElement("span", { style: { color: "#DC5C40" } }, "*")
+            ),
+            React.createElement(Dropdown, { value: "account", options: [{ value: "account", label: _drRDrawerCard.drawer.revenueAccount }], onChange: function() {}, searchable: true })
+          ),
+          React.createElement(Input, { label: "Deferral date", mandatory: true, value: _drRDrawerCard.drawer.deferralDate || "", onChange: function() {}, leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+          React.createElement(Checkbox, { checked: true, onChange: function() {}, label: "Create journal entry for this deferral" }),
+          React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
+          React.createElement(Input, { label: "Recognition date", value: _drRDrawerCard.drawer.recognitionDate || "", onChange: function() {}, helpText: "Revenue will be recognised starting from this date", leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+          React.createElement(Banner, { variant: "info" }, "You can leave the recognition date empty and choose it later when ready.")
+        )
+      )}
+      {_drRDrawerCard && _drRDrawerCard.drawer && React.createElement("div", {
+        style: { position: "fixed", top: 0, right: 520, bottom: 0, left: 0, zIndex: 321, background: T.colorSurfaceSecondary, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", pointerEvents: "auto" }
+      },
+        React.createElement("div", { style: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 } },
+          React.createElement("div", { style: { width: "100%", maxWidth: 520, background: "#fff", borderRadius: 8, border: "1px solid " + T.colorBorderDark, padding: "40px 36px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" } },
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 } },
+              React.createElement("div", null,
+                React.createElement("div", { style: { fontSize: 18, fontWeight: 700, color: "#1A1A2E", letterSpacing: "-0.3px" } }, _drRDrawerCard.drawer.contact.split(" –")[0] || _drRDrawerCard.drawer.contact),
+                React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, marginTop: 4, lineHeight: "16px" } }, _drRDrawerCard.drawer.contact)
+              ),
+              React.createElement("div", { style: { textAlign: "right" } },
+                React.createElement("div", { style: { fontSize: 22, fontWeight: 700, color: "#1A1A2E", letterSpacing: "-0.5px" } }, "INVOICE"),
+                React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, marginTop: 4 } }, "#ADV-" + (2026000 + _drRDrawerCard.idx))
+              )
+            ),
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginBottom: 24, paddingBottom: 16, borderBottom: "1px solid " + T.colorBorderDark } },
+              React.createElement("div", null,
+                React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Bill to"),
+                React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary, lineHeight: "18px" } }, "Tidewater Solutions Ltd")
+              ),
+              React.createElement("div", { style: { textAlign: "right" } },
+                React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Invoice date"),
+                React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary, marginBottom: 12 } }, _drRDrawerCard.drawer.deferralDate || ""),
+                React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Service period"),
+                React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary } }, _drRDrawerCard.drawer.period || "")
+              )
+            ),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 60px 80px 80px", borderBottom: "2px solid #1A1A2E", paddingBottom: 8 } },
+              React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px" } }, "Description"),
+              React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "center" } }, "Qty"),
+              React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "right" } }, "Unit price"),
+              React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "right" } }, "Amount")
+            ),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 60px 80px 80px", padding: "12px 0", borderBottom: "1px solid " + T.colorBorderDark } },
+              React.createElement("div", null,
+                React.createElement("div", { style: { fontSize: 12, color: T.colorTextPrimary, fontWeight: 500 } }, _drRDrawerCard.drawer.description),
+                React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, marginTop: 2 } }, _drRDrawerCard.drawer.period || "")
+              ),
+              React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "center" } }, "1"),
+              React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "right" } }, "£" + _drRDrawerCard.drawer.amount),
+              React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "right", fontWeight: 500 } }, "£" + _drRDrawerCard.drawer.amount)
+            ),
+            React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, paddingTop: 16 } },
+              React.createElement("div", { style: { display: "flex", gap: 32, width: 200 } },
+                React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary, flex: 1 } }, "Subtotal"),
+                React.createElement("span", { style: { fontSize: 12, color: T.colorTextPrimary, textAlign: "right" } }, "£" + _drRDrawerCard.drawer.amount)
+              ),
+              React.createElement("div", { style: { display: "flex", gap: 32, width: 200, paddingTop: 8, borderTop: "2px solid #1A1A2E", marginTop: 4 } },
+                React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: "#1A1A2E", flex: 1 } }, "Total"),
+                React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: "#1A1A2E", textAlign: "right" } }, "£" + _drRDrawerCard.drawer.amount)
+              )
+            ),
+            React.createElement("div", { style: { marginTop: 28, paddingTop: 16, borderTop: "1px solid " + T.colorBorderDark } },
+              React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 } }, "Payment terms"),
+              React.createElement("div", { style: { fontSize: 11, color: T.colorTextSecondary, lineHeight: "16px" } }, "Advance payment received. Revenue to be recognised over the service period.")
+            )
+          )
+        )
+      )}
       <DeferredRevenueSchedulePage open={_drScheduleOpen} onClose={function() { _drSetScheduleOpen(false); }} activeScheduleType="deferred_revenue" onScheduleTypeChange={function() {}} suggestionsCount={null} />
     </div>
   );
@@ -2663,6 +2942,7 @@ function AccruedIncomeReviewFlow(_ref) {
   _s = useState(400); var _aiChatWidth = _s[0], _aiSetChatWidth = _s[1];
   _s = useState(false); var _aiIsDragging = _s[0], _aiSetIsDragging = _s[1];
   _s = useState(true); var _aiIsAtBottom = _s[0], _aiSetIsAtBottom = _s[1];
+  _s = useState(null); var _aiRDrawerCard = _s[0], _aiRSetDrawerCard = _s[1];
   _s = useState(""); var _aiInputValue = _s[0], _aiSetInputValue = _s[1];
   _s = useState(_aiInitResume ? new Set(savedState.resolvedArray || []) : new Set()); var _aiResolvedCards = _s[0], _aiSetResolvedCards = _s[1];
   _s = useState(_aiInitResume ? new Set(savedState.ignoredArray || []) : new Set()); var _aiIgnoredCards = _s[0], _aiSetIgnoredCards = _s[1];
@@ -2824,7 +3104,7 @@ function AccruedIncomeReviewFlow(_ref) {
                     var statusLabel = isResolved ? (actionLabel || "Journal posted") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
                     var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
                     var primaryActionLabels = { "Review suggestion": "Journal posted" };
-                    return (<div key={card.idx} id={"result-" + card.key + "-0"} style={{ scrollMarginTop: 64 }}><RecommendationCard title={card.title} description={card.description} statusLabel={statusLabel} statusStyle={statusStyle} collapsed={isResolved || isIgnored} isIgnored={isIgnored} hideMore={true} tableRow={card.tableRow} tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]} renderCardAction={_adjCardCommentAction(_aiOcUI, adjComments, onAddAdjComment, "sug_ai_" + card.key)} primaryLabel={card.primaryLabel} secondaryLabel={card.secondaryLabel} onPrimaryAction={function() { _aiSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _aiSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = primaryActionLabels[card.primaryLabel] || "Journal posted"; return o; }); }} onIgnore={function() { _aiSetIgnoredCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); }} onSecondaryAction={function() { _aiSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _aiSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = "Resolved"; return o; }); }} onMore={function() {}} /></div>);
+                    return (<div key={card.idx} id={"result-" + card.key + "-0"} style={{ scrollMarginTop: 64 }}><RecommendationCard title={card.title} description={card.description} statusLabel={statusLabel} statusStyle={statusStyle} collapsed={isResolved || isIgnored} isIgnored={isIgnored} hideMore={true} tableRow={card.tableRow} tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]} renderCardAction={_adjCardCommentAction(_aiOcUI, adjComments, onAddAdjComment, "sug_ai_" + card.key)} primaryLabel={card.primaryLabel} secondaryLabel={card.secondaryLabel} onPrimaryAction={function() { _aiRSetDrawerCard(card); }} onIgnore={function() { _aiSetIgnoredCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); }} onSecondaryAction={function() { _aiSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _aiSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = "Resolved"; return o; }); }} onMore={function() {}} /></div>);
                   })}
                 </div>
               </div>
@@ -2849,6 +3129,41 @@ function AccruedIncomeReviewFlow(_ref) {
           </div>
         )}
       </div>
+      {_aiRDrawerCard && _aiRDrawerCard.drawer && React.createElement(Sidebar, { open: true, onClose: function() { _aiRSetDrawerCard(null); }, title: _aiRDrawerCard.drawer.contact, width: 520,
+          footer: React.createElement(React.Fragment, null,
+            React.createElement(SecondaryButton, { onClick: function() { _aiRSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Dismiss"),
+            React.createElement(PrimaryButton, { onClick: function() {
+              var idx = _aiRDrawerCard.idx;
+              _aiSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [idx])); });
+              _aiSetCardActions(function(prev) { var o = Object.assign({}, prev); o[idx] = "Journal posted"; return o; });
+              _aiRSetDrawerCard(null);
+            }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
+          ) },
+        React.createElement("div", { style: { padding: 24, display: "flex", flexDirection: "column", gap: 24 } },
+          React.createElement(Banner, { variant: "success", icon: React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" }, React.createElement("path", { d: "M10 1.5L11.5 7L17 8.5L11.5 10L10 15.5L8.5 10L3 8.5L8.5 7L10 1.5Z", fill: T.colorBrandPrimary, stroke: T.colorBrandPrimary, strokeWidth: 1.5, strokeLinejoin: "round", paintOrder: "stroke" })) }, _aiRDrawerCard.drawer.aiInsight),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            React.createElement("div", { style: Object.assign({ display: "flex", gap: 4, fontWeight: 500, color: T.colorTextPrimary }, T.textMd) },
+              React.createElement("span", null, "Adjustment type"),
+              React.createElement("span", { style: { color: "#DC5C40" } }, "*")
+            ),
+            React.createElement(Dropdown, { value: _aiRDrawerCard.drawer.adjType, options: [{ value: "accrue_income", label: "Accrue income" }, { value: "write_off", label: "Write off accrued income" }], onChange: function() {} })
+          ),
+          React.createElement(Input, { label: "Description", mandatory: true, value: _aiRDrawerCard.drawer.description, onChange: function() {} }),
+          React.createElement(Input, { label: "Accrual Amount", mandatory: true, value: _aiRDrawerCard.drawer.amount, onChange: function() {}, leftSlotType: "currency", currencySymbol: "£" }),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            React.createElement("div", { style: Object.assign({ display: "flex", gap: 4, fontWeight: 500, color: T.colorTextPrimary }, T.textMd) },
+              React.createElement("span", null, "Income account"),
+              React.createElement("span", { style: { color: "#DC5C40" } }, "*")
+            ),
+            React.createElement(Dropdown, { value: "account", options: [{ value: "account", label: _aiRDrawerCard.drawer.incomeAccount }], onChange: function() {}, searchable: true })
+          ),
+          React.createElement(Input, { label: "Accrual date", mandatory: true, value: _aiRDrawerCard.drawer.accrualDate || "", onChange: function() {}, leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+          React.createElement(Checkbox, { checked: true, onChange: function() {}, label: "Create journal entry for this accrual" }),
+          React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
+          React.createElement(Input, { label: "Reversal date", value: _aiRDrawerCard.drawer.reversalDate || "", onChange: function() {}, helpText: "The accrual will be fully reversed on the selected date", leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+          React.createElement(Banner, { variant: "info" }, "You can leave the reversal date empty and choose it later when ready.")
+        )
+      )}
       <AccruedIncomeSchedulePage open={_aiScheduleOpen} onClose={function() { _aiSetScheduleOpen(false); }} activeScheduleType="accrued_income" onScheduleTypeChange={function() {}} suggestionsCount={null} />
     </div>
   );
