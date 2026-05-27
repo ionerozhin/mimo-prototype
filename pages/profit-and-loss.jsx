@@ -854,7 +854,7 @@ function ProfitAndLossPage(props) {
       // ── Page header ──────────────────────────────────────────────────────
       React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between" } },
         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12 } },
-          React.createElement("h1", { style: { fontSize: 32, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "40px", letterSpacing: "-1px", margin: 0 } }, "Profit and Loss"),
+          React.createElement("h1", { style: { fontSize: 36, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "44px", letterSpacing: "-1px", margin: 0 } }, "Profit and Loss"),
           React.createElement(StatusBadge, { variant: "success" }, "Started by Mark Smith")
         ),
         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },

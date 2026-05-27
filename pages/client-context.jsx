@@ -727,7 +727,7 @@ function ClientContextPage({ ctx }) {
           {/* Header */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 48, paddingBottom: 20 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <h1 style={{ fontSize: 32, fontWeight: 500, color: T.colorTextPrimary, margin: 0, fontFamily: T.fontFamily, lineHeight: "40px" }}>
+              <h1 style={{ fontSize: 36, fontWeight: 500, color: T.colorTextPrimary, margin: 0, fontFamily: T.fontFamily, lineHeight: "44px", letterSpacing: "-1px" }}>
                 Seabrook Foods Ltd.
               </h1>
               <span style={{

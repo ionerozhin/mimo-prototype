@@ -6485,7 +6485,7 @@ function BalanceSheetReviewPage({ rowComments, onAddComment, onRunBSReconciliati
         {/* Page title row with badge + actions */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <h1 style={{ fontSize: 32, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "40px", letterSpacing: "-1px" }}>{activeTab}</h1>
+            <h1 style={{ fontSize: 36, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "44px", letterSpacing: "-1px" }}>{activeTab}</h1>
             {activeTab === "Balance sheet" && (
               <span key={bsReviewState} style={{
                 display: "inline-flex", alignItems: "center", padding: "4px 10px",

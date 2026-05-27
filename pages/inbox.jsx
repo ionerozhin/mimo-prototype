@@ -10,7 +10,7 @@ registerPage("Inbox", {
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <TopBar />
         <div style={{ padding: "32px 48px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, background: T.colorSurfacePrimary }}>
-          <h1 style={{ fontSize: 32, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "40px", letterSpacing: "-1px" }}>Inbox</h1>
+          <h1 style={{ fontSize: 36, fontWeight: 500, color: "#2A2A2A", letterSpacing: "-0.5px", margin: 0 }}>Inbox</h1>
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: "0 48px 48px", display: "flex", flexDirection: "column" }}>
           <div style={{

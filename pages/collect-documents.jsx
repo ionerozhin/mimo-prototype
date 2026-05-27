@@ -149,7 +149,7 @@ function CollectDocumentsPage({ ctx }) {
 
         {/* Page header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 48 }}>
-          <h1 style={{ fontSize: 32, fontWeight: 500, color: T.colorTextPrimary, margin: 0, lineHeight: 1.2 }}>Collect documents</h1>
+          <h1 style={{ fontSize: 36, fontWeight: 500, color: "#2A2A2A", letterSpacing: "-0.5px", margin: 0 }}>Collect documents</h1>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <PrimaryButton onClick={function() {}}>
               <PlusIcon /> Create batch

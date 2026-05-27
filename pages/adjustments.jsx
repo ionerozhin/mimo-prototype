@@ -3146,7 +3146,7 @@ registerPage("Adjustments", {
         <TopBar />
         <div style={{ flex: 1, overflowY: "auto", scrollbarGutter: "stable", padding: "0 48px 48px", display: "flex", flexDirection: "column", gap: 24, background: T.colorSurfacePrimary }}>
           <div style={{ padding: "32px 0 8px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <h1 style={{ fontSize: 32, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "40px", letterSpacing: "-1px" }}>Adjustments</h1>
+            <h1 style={{ fontSize: 36, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "44px", letterSpacing: "-1px" }}>Adjustments</h1>
             <div style={{ display: "flex", gap: 8 }}>
               <SecondaryButton onClick={function() { setImportDrawerOpen(true); }} style={{ height: 44, boxSizing: "border-box", padding: "10px 16px" }}>
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ marginRight: 6, flexShrink: 0 }}>

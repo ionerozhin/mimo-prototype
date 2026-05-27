@@ -7,17 +7,17 @@ function TopBar({
   onSyncClick,
 }) {
   return (
-    <div style={{ height: 56, background: T.colorSurfacePrimary, borderBottom: `1px solid ${T.colorBorderDark}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px", flexShrink: 0 }}>
+    <div style={{ height: 60, background: T.colorSurfacePrimary, borderBottom: `1px solid ${T.colorBorderDark}`, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px 0 16px", flexShrink: 0 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ fontSize: 14, color: T.colorTextSecondary }}>{contextLabel}</span>
-        <button onClick={onPeriodClick} style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 10px", border: `1px solid ${T.colorBorderDark}`, borderRadius: 6, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary }}
+        <span style={{ fontSize: 14, fontWeight: 500, color: "#7b7b7b" }}>{contextLabel}</span>
+        <button onClick={onPeriodClick} style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 10px", height: 32, border: `1px solid ${T.colorBorderDark}`, borderRadius: 6, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary }}
           onMouseEnter={e => e.currentTarget.style.borderColor = T.colorBorderHover} onMouseLeave={e => e.currentTarget.style.borderColor = T.colorBorderDark}>
           {period} <Chevron up={false} color={T.colorTextPrimary} size={13} />
         </button>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ fontSize: 12, color: T.colorTextSecondary }}>{syncStatus}</span>
-        <button onClick={onSyncClick} style={{ padding: "0 12px", height: 36, border: `1px solid ${T.colorBorderDark}`, borderRadius: 6, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary }}
+        <span style={{ fontSize: 14, color: T.colorTextSecondary }}>{syncStatus}</span>
+        <button onClick={onSyncClick} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 12px", height: 36, border: `1px solid ${T.colorBorderDark}`, borderRadius: 6, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, transition: "background 0.15s" }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = T.colorBorderHover; e.currentTarget.style.background = T.colorSurfaceSecondary; }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = T.colorBorderDark; e.currentTarget.style.background = T.colorSurfacePrimary; }}>
           {syncLabel}
