@@ -3,10 +3,44 @@
 // MainMenu + TopBar + active page. Pages register themselves — this file
 // rarely needs editing.
 
+var NAV_TO_SLUG = {
+  "Adjustments": "adjustments",
+  "Profit and Loss": "profit-and-loss",
+  "Balance sheet": "balance-sheet",
+  "Client context": "settings",
+};
+var SLUG_TO_NAV = {};
+Object.keys(NAV_TO_SLUG).forEach(function(k) { SLUG_TO_NAV[NAV_TO_SLUG[k]] = k; });
+
+function getNavFromHash() {
+  var hash = window.location.hash.replace("#/", "").replace("#", "");
+  return SLUG_TO_NAV[hash] || null;
+}
+
 function App() {
-  const [activeNav, setActiveNav] = useState("Home");
+  const [activeNav, setActiveNav] = useState(getNavFromHash() || "Home");
   const [store, dispatch] = useReducer(storeReducer, INITIAL_STORE);
   const [fullScreen, setFullScreen] = useState(false);
+
+  // Sync hash with navigation
+  var navigateTo = function(label) {
+    setActiveNav(label);
+    var slug = NAV_TO_SLUG[label];
+    if (slug) {
+      window.history.pushState(null, "", "#/" + slug);
+    } else {
+      window.history.pushState(null, "", window.location.pathname);
+    }
+  };
+
+  useEffect(function() {
+    var onPopState = function() {
+      var nav = getNavFromHash();
+      setActiveNav(nav || "Home");
+    };
+    window.addEventListener("popstate", onPopState);
+    return function() { window.removeEventListener("popstate", onPopState); };
+  }, []);
 
   // Build the ctx object passed to every page
   const ctx = useMemo(function() {
@@ -56,7 +90,7 @@ function App() {
       },
       store: store,
       dispatch: dispatch,
-      navigate: function(label) { setActiveNav(label); },
+      navigate: function(label) { navigateTo(label); },
       activeNav: activeNav,
       setFullScreen: setFullScreen,
     };
@@ -87,7 +121,7 @@ function App() {
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: T.colorSurfacePrimary }}>
       {/* Left sidebar — hidden during full-screen flows and settings pages (which have their own sidebar) */}
-      {!fullScreen && activeNav !== "Client context" && <MainMenu activeNav={activeNav} onNavChange={setActiveNav} />}
+      {!fullScreen && activeNav !== "Client context" && <MainMenu activeNav={activeNav} onNavChange={navigateTo} />}
 
       {/* Pages — all mounted, shown/hidden via display */}
       {pages}
