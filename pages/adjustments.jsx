@@ -217,11 +217,27 @@ function _buildSugEntries(periodStr, totalAmount, entryKey) {
 
 // ── Prepayment Schedule ────────────────────────────────────────────────────
 function PrepaymentSchedulePage(_ref) {
-  var open = _ref.open, onClose = _ref.onClose, activeScheduleType = _ref.activeScheduleType, onScheduleTypeChange = _ref.onScheduleTypeChange, suggestionsCount = _ref.suggestionsCount, sugCards = _ref.sugCards, reviewState = _ref.reviewState, reviewTitle = _ref.reviewTitle, addLabel = _ref.addLabel, onRunReview = _ref.onRunReview;
+  var open = _ref.open, onClose = _ref.onClose, activeScheduleType = _ref.activeScheduleType, onScheduleTypeChange = _ref.onScheduleTypeChange, suggestionsCount = _ref.suggestionsCount, sugCards = _ref.sugCards, reviewState = _ref.reviewState, onReviewStateChange = _ref.onReviewStateChange, reviewTitle = _ref.reviewTitle, addLabel = _ref.addLabel, onRunReview = _ref.onRunReview;
   if (!open) return null;
 
   var _spSt = useState(false); var _sugPanelOpen = _spSt[0], _setSugPanelOpen = _spSt[1];
   var _psDrSt = useState(null); var _psDrawerCard = _psDrSt[0], _psSetDrawerCard = _psDrSt[1];
+
+  var _psUpdateReviewState = function(action, cardIdx) {
+    var rs = reviewState || { resolved: 0, total: sugCards ? sugCards.length : 0, hasResults: true, resolvedArray: [], ignoredArray: [], cardActions: {} };
+    var resolvedArr = (rs.resolvedArray || []).slice();
+    var ignoredArr = (rs.ignoredArray || []).slice();
+    var actions = Object.assign({}, rs.cardActions || {});
+    if (action === "add" && resolvedArr.indexOf(cardIdx) === -1) {
+      resolvedArr.push(cardIdx); actions[cardIdx] = "Added to schedule";
+    } else if (action === "resolve" && resolvedArr.indexOf(cardIdx) === -1) {
+      resolvedArr.push(cardIdx); actions[cardIdx] = "Resolved";
+    } else if (action === "ignore" && ignoredArr.indexOf(cardIdx) === -1) {
+      ignoredArr.push(cardIdx); actions[cardIdx] = "Ignored";
+    }
+    var newState = { resolved: resolvedArr.length + ignoredArr.length, total: rs.total, hasResults: true, resolvedArray: resolvedArr, ignoredArray: ignoredArr, cardActions: actions };
+    if (onReviewStateChange) onReviewStateChange(newState);
+  };
 
   var MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   var fmtMonth = function(m, y) { return MONTH_NAMES[m] + " " + String(y).slice(2); };
@@ -583,6 +599,7 @@ function PrepaymentSchedulePage(_ref) {
     return {
       id: "sug_" + i,
       isSuggestion: true,
+      cardIdx: card.idx,
       description: card.drawer ? card.drawer.description : card.title,
       period: period,
       status: "Suggestion",
@@ -595,7 +612,14 @@ function PrepaymentSchedulePage(_ref) {
     };
   }) : [];
 
-  var filteredData = suggestionRows.concat(searchValue
+  var _psVisibleSuggestions = suggestionRows.filter(function(row) {
+    var idx = row.cardIdx;
+    var rs = reviewState || {};
+    if (rs.ignoredArray && rs.ignoredArray.indexOf(idx) !== -1) return false;
+    return true;
+  });
+
+  var filteredData = _psVisibleSuggestions.concat(searchValue
     ? data.filter(function(item) { return item.description.toLowerCase().includes(searchValue.toLowerCase()) || item.expenseAccount.toLowerCase().includes(searchValue.toLowerCase()); })
     : data);
 
@@ -655,6 +679,7 @@ function PrepaymentSchedulePage(_ref) {
             {filteredData.map(function(item) {
               return (
                 <tr key={item.id} style={{ cursor: "pointer" }}
+                  onClick={function() { if (item.isSuggestion && item.cardIdx != null && sugCards) { var match = sugCards.filter(function(c) { return c.idx === item.cardIdx; })[0]; if (match) _psSetDrawerCard(match); } }}
                   onMouseEnter={function(e) { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll('[data-sticky]').forEach(function(td) { td.style.background = T.colorSurfaceSecondary; }); }}
                   onMouseLeave={function(e) { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll('[data-sticky]').forEach(function(td) { td.style.background = T.colorSurfacePrimary; }); }}
                 >
@@ -663,7 +688,7 @@ function PrepaymentSchedulePage(_ref) {
                       <span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <span style={{ ...T.textXs, color: T.colorTextSecondary }}>{item.period}</span>
-                        {item.isSuggestion ? React.createElement("span", { style: { display: "inline-flex", alignItems: "center", gap: 4, background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" } }, "Suggestion") : <ActiveBadge />}
+                        {item.isSuggestion ? (item.cardIdx != null && reviewState && reviewState.resolvedArray && reviewState.resolvedArray.indexOf(item.cardIdx) !== -1 ? React.createElement("span", { style: { display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" } }, "Active") : React.createElement("span", { style: { display: "inline-flex", alignItems: "center", gap: 4, background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" } }, "Suggestion")) : <ActiveBadge />}
                       </div>
                     </div>
                   </td>
@@ -755,7 +780,7 @@ function PrepaymentSchedulePage(_ref) {
               var isResolved = rs.resolvedArray && rs.resolvedArray.indexOf(card.idx) !== -1;
               var isIgnored = rs.ignoredArray && rs.ignoredArray.indexOf(card.idx) !== -1;
               var actionLabel = rs.cardActions ? rs.cardActions[card.idx] : undefined;
-              var statusLabel = isResolved ? (actionLabel || "Journal posted") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
+              var statusLabel = isResolved ? (actionLabel || "Added to schedule") : isIgnored ? (actionLabel || "Ignored") : "Unresolved";
               var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
               return React.createElement(RecommendationCard, {
                 key: card.key || ci,
@@ -772,7 +797,8 @@ function PrepaymentSchedulePage(_ref) {
                 statusLabel: statusLabel,
                 statusStyle: statusStyle,
                 onPrimaryAction: function() { _psSetDrawerCard(card); },
-                onIgnore: function() {},
+                onIgnore: function() { _psUpdateReviewState("ignore", card.idx); },
+                onSecondaryAction: function() { _psUpdateReviewState("resolve", card.idx); },
               });
             }) : (
               <div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, height: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", textAlign: "center" }}>
@@ -786,8 +812,8 @@ function PrepaymentSchedulePage(_ref) {
       })()}
       {_psDrawerCard && _psDrawerCard.drawer && React.createElement(Sidebar, { open: true, onClose: function() { _psSetDrawerCard(null); }, title: _psDrawerCard.drawer.contact, width: 520,
           footer: React.createElement(React.Fragment, null,
-            React.createElement(SecondaryButton, { onClick: function() { _psSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Dismiss"),
-            React.createElement(PrimaryButton, { onClick: function() { _psSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
+            React.createElement(SecondaryButton, { onClick: function() { _psUpdateReviewState("ignore", _psDrawerCard.idx); _psSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Dismiss"),
+            React.createElement(PrimaryButton, { onClick: function() { _psUpdateReviewState("add", _psDrawerCard.idx); _psSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
           ) },
         React.createElement("div", { style: { padding: 24, display: "flex", flexDirection: "column", gap: 24 } },
           React.createElement(Banner, { variant: "success", icon: React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" }, React.createElement("path", { d: "M10 1.5L11.5 7L17 8.5L11.5 10L10 15.5L8.5 10L3 8.5L8.5 7L10 1.5Z", fill: T.colorBrandPrimary, stroke: T.colorBrandPrimary, strokeWidth: 1.5, strokeLinejoin: "round", paintOrder: "stroke" })) }, _psDrawerCard.drawer.aiInsight),
@@ -874,11 +900,26 @@ function PrepaymentSchedulePage(_ref) {
 
 
 // ── Accrual Schedule ───────────────────────────────────────────────────────
-function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview }) {
+function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview, onReviewStateChange }) {
   if (!open) return null;
 
   const [_sugPanelOpen, _setSugPanelOpen] = useState(false);
   const [_asDrawerCard, _asSetDrawerCard] = useState(null);
+  var _asUpdateReviewState = function(action, cardIdx) {
+    var rs = reviewState || { resolved: 0, total: sugCards ? sugCards.length : 0, hasResults: true, resolvedArray: [], ignoredArray: [], cardActions: {} };
+    var resolvedArr = (rs.resolvedArray || []).slice();
+    var ignoredArr = (rs.ignoredArray || []).slice();
+    var actions = Object.assign({}, rs.cardActions || {});
+    if (action === "add" && resolvedArr.indexOf(cardIdx) === -1) {
+      resolvedArr.push(cardIdx); actions[cardIdx] = "Added to schedule";
+    } else if (action === "resolve" && resolvedArr.indexOf(cardIdx) === -1) {
+      resolvedArr.push(cardIdx); actions[cardIdx] = "Resolved";
+    } else if (action === "ignore" && ignoredArr.indexOf(cardIdx) === -1) {
+      ignoredArr.push(cardIdx); actions[cardIdx] = "Ignored";
+    }
+    var newState = { resolved: resolvedArr.length + ignoredArr.length, total: rs.total, hasResults: true, resolvedArray: resolvedArr, ignoredArray: ignoredArr, cardActions: actions };
+    if (onReviewStateChange) onReviewStateChange(newState);
+  };
 
   const _asMonthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const _asFmtMonth = (m, y) => _asMonthNames[m] + " " + String(y).slice(2);
@@ -943,6 +984,7 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
     return {
       id: "sug_" + i,
       isSuggestion: true,
+      cardIdx: card.idx,
       description: card.drawer ? card.drawer.description : card.title,
       period: period,
       status: "Suggestion",
@@ -955,7 +997,13 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
     };
   }) : [];
 
-  const _asFilteredData = _asSuggestionRows.concat(_asSearchValue ? _asData.filter(item => item.description.toLowerCase().includes(_asSearchValue.toLowerCase()) || item.expenseAccount.toLowerCase().includes(_asSearchValue.toLowerCase())) : _asData);
+  const _asVisibleSuggestions = _asSuggestionRows.filter(function(row) {
+    var idx = row.cardIdx;
+    var rs = reviewState || {};
+    if (rs.ignoredArray && rs.ignoredArray.indexOf(idx) !== -1) return false;
+    return true;
+  });
+  const _asFilteredData = _asVisibleSuggestions.concat(_asSearchValue ? _asData.filter(item => item.description.toLowerCase().includes(_asSearchValue.toLowerCase()) || item.expenseAccount.toLowerCase().includes(_asSearchValue.toLowerCase())) : _asData);
 
   return (
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: T.colorSurfacePrimary, zIndex: 310, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: T.fontFamily }}>
@@ -992,8 +1040,8 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
             {_asVisibleMonths.map(vm => (<th key={vm.key} style={{ ..._asThStyle, width: _asColWidths.month, minWidth: _asColWidths.month, textAlign: "right" }}>{vm.label}</th>))}
           </tr></thead>
           <tbody>{_asFilteredData.map(item => (
-            <tr key={item.id} style={{ cursor: "pointer" }} onMouseEnter={e => { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfacePrimary; }); }}>
-              <td data-sticky="1" style={{ ..._asCellStyle, ..._asStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}>{item.isSuggestion ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Suggestion</span> : <_asActiveBadge />}</div></div></td>
+            <tr key={item.id} style={{ cursor: "pointer" }} onMouseEnter={e => { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfacePrimary; }); }} onClick={function() { if (item.isSuggestion && item.cardIdx != null && sugCards) { var match = sugCards.filter(function(c) { return c.idx === item.cardIdx; })[0]; if (match) _asSetDrawerCard(match); } }}>
+              <td data-sticky="1" style={{ ..._asCellStyle, ..._asStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}>{item.isSuggestion ? (item.cardIdx != null && reviewState && reviewState.resolvedArray && reviewState.resolvedArray.indexOf(item.cardIdx) !== -1 ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Active</span> : <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Suggestion</span>) : <_asActiveBadge />}</div></div></td>
               <td data-sticky="1" style={{ ..._asCellStyle, ..._asStickyCol1 }}><div style={{ display: "flex", flexDirection: "column", gap: 4 }}><span>{item.balanceForward != null ? _asFmtGBP(item.balanceForward) : "-"}</span>{item.toAllocate != null && <_asToAllocateBadge amount={item.toAllocate} />}</div></td>
               <td style={{ ..._asCellStyle, color: T.colorTextPrimary }}>{item.expenseAccount}</td>
               <td style={{ ..._asCellStyle, color: T.colorTextPrimary }}>{item.invoiceDate}</td>
@@ -1047,7 +1095,7 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
               var isResolved = rs.resolvedArray && rs.resolvedArray.indexOf(card.idx) !== -1;
               var isIgnored = rs.ignoredArray && rs.ignoredArray.indexOf(card.idx) !== -1;
               var actionLabel = rs.cardActions ? rs.cardActions[card.idx] : undefined;
-              var statusLabel = isResolved ? (actionLabel || "Journal posted") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
+              var statusLabel = isResolved ? (actionLabel || "Added to schedule") : isIgnored ? (actionLabel || "Ignored") : "Unresolved";
               var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
               return React.createElement(RecommendationCard, {
                 key: card.key || ci,
@@ -1064,7 +1112,8 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
                 statusLabel: statusLabel,
                 statusStyle: statusStyle,
                 onPrimaryAction: function() { _asSetDrawerCard(card); },
-                onIgnore: function() {},
+                onIgnore: function() { _asUpdateReviewState("ignore", card.idx); },
+                onSecondaryAction: function() { _asUpdateReviewState("resolve", card.idx); },
               });
             }) : (
               <div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, height: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", textAlign: "center" }}>
@@ -1078,8 +1127,8 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
       })()}
       {_asDrawerCard && _asDrawerCard.drawer && React.createElement(Sidebar, { open: true, onClose: function() { _asSetDrawerCard(null); }, title: _asDrawerCard.drawer.contact, width: 520,
           footer: React.createElement(React.Fragment, null,
-            React.createElement(SecondaryButton, { onClick: function() { _asSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Dismiss"),
-            React.createElement(PrimaryButton, { onClick: function() { _asSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
+            React.createElement(SecondaryButton, { onClick: function() { _asUpdateReviewState("ignore", _asDrawerCard.idx); _asSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Dismiss"),
+            React.createElement(PrimaryButton, { onClick: function() { _asUpdateReviewState("add", _asDrawerCard.idx); _asSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
           ) },
         React.createElement("div", { style: { padding: 24, display: "flex", flexDirection: "column", gap: 24 } },
           React.createElement(Banner, { variant: "success", icon: React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" }, React.createElement("path", { d: "M10 1.5L11.5 7L17 8.5L11.5 10L10 15.5L8.5 10L3 8.5L8.5 7L10 1.5Z", fill: T.colorBrandPrimary, stroke: T.colorBrandPrimary, strokeWidth: 1.5, strokeLinejoin: "round", paintOrder: "stroke" })) }, _asDrawerCard.drawer.aiInsight),
@@ -1113,11 +1162,27 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
 
 
 // ── Deferred Revenue Schedule ──────────────────────────────────────────────
-function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview }) {
+function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview, onReviewStateChange }) {
   if (!open) return null;
 
   const [_sugPanelOpen, _setSugPanelOpen] = useState(false);
   const [_drDrawerCard, _drSetDrawerCard] = useState(null);
+
+  var _drUpdateReviewState = function(action, cardIdx) {
+    var rs = reviewState || { resolved: 0, total: sugCards ? sugCards.length : 0, hasResults: true, resolvedArray: [], ignoredArray: [], cardActions: {} };
+    var resolvedArr = (rs.resolvedArray || []).slice();
+    var ignoredArr = (rs.ignoredArray || []).slice();
+    var actions = Object.assign({}, rs.cardActions || {});
+    if (action === "add" && resolvedArr.indexOf(cardIdx) === -1) {
+      resolvedArr.push(cardIdx); actions[cardIdx] = "Added to schedule";
+    } else if (action === "resolve" && resolvedArr.indexOf(cardIdx) === -1) {
+      resolvedArr.push(cardIdx); actions[cardIdx] = "Resolved";
+    } else if (action === "ignore" && ignoredArr.indexOf(cardIdx) === -1) {
+      ignoredArr.push(cardIdx); actions[cardIdx] = "Ignored";
+    }
+    var newState = { resolved: resolvedArr.length + ignoredArr.length, total: rs.total, hasResults: true, resolvedArray: resolvedArr, ignoredArray: ignoredArr, cardActions: actions };
+    if (onReviewStateChange) onReviewStateChange(newState);
+  };
 
   const _drMonthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const _drFmtMonth = (m, y) => _drMonthNames[m] + " " + String(y).slice(2);
@@ -1173,6 +1238,7 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
     return {
       id: "sug_" + i,
       isSuggestion: true,
+      cardIdx: card.idx,
       description: card.drawer ? card.drawer.description : card.title,
       period: period,
       status: "Suggestion",
@@ -1185,7 +1251,13 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
     };
   }) : [];
 
-  const _drFilteredData = _drSuggestionRows.concat(_drSearchValue ? _drData.filter(item => item.description.toLowerCase().includes(_drSearchValue.toLowerCase()) || item.revenueAccount.toLowerCase().includes(_drSearchValue.toLowerCase())) : _drData);
+  const _drVisibleSuggestions = _drSuggestionRows.filter(function(row) {
+    var idx = row.cardIdx;
+    var rs = reviewState || {};
+    if (rs.ignoredArray && rs.ignoredArray.indexOf(idx) !== -1) return false;
+    return true;
+  });
+  const _drFilteredData = _drVisibleSuggestions.concat(_drSearchValue ? _drData.filter(item => item.description.toLowerCase().includes(_drSearchValue.toLowerCase()) || item.revenueAccount.toLowerCase().includes(_drSearchValue.toLowerCase())) : _drData);
 
   return (
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: T.colorSurfacePrimary, zIndex: 310, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: T.fontFamily }}>
@@ -1222,8 +1294,8 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
             {_drVisibleMonths.map(vm => (<th key={vm.key} style={{ ..._drThStyle, width: _drColWidths.month, minWidth: _drColWidths.month, textAlign: "right" }}>{vm.label}</th>))}
           </tr></thead>
           <tbody>{_drFilteredData.map(item => (
-            <tr key={item.id} style={{ cursor: "pointer" }} onMouseEnter={e => { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfacePrimary; }); }}>
-              <td data-sticky="1" style={{ ..._drCellStyle, ..._drStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ ...T.textXs, color: T.colorTextSecondary }}>{item.period}</span>{item.isSuggestion ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Suggestion</span> : <_drActiveBadge />}</div></div></td>
+            <tr key={item.id} style={{ cursor: "pointer" }} onClick={() => { if (item.isSuggestion && item.cardIdx != null && sugCards) { var match = sugCards.filter(c => c.idx === item.cardIdx)[0]; if (match) _drSetDrawerCard(match); } }} onMouseEnter={e => { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfacePrimary; }); }}>
+              <td data-sticky="1" style={{ ..._drCellStyle, ..._drStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ ...T.textXs, color: T.colorTextSecondary }}>{item.period}</span>{item.isSuggestion ? (item.cardIdx != null && reviewState && reviewState.resolvedArray && reviewState.resolvedArray.indexOf(item.cardIdx) !== -1 ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Active</span> : <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Suggestion</span>) : <_drActiveBadge />}</div></div></td>
               <td data-sticky="1" style={{ ..._drCellStyle, ..._drStickyCol1 }}><div style={{ display: "flex", flexDirection: "column", gap: 4 }}><span>{item.balanceForward != null ? _drFmtGBP(item.balanceForward) : "-"}</span>{item.toAllocate != null && <_drToAllocateBadge amount={item.toAllocate} />}</div></td>
               <td style={{ ..._drCellStyle, color: T.colorTextPrimary }}>{item.revenueAccount}</td>
               <td style={{ ..._drCellStyle, color: T.colorTextPrimary }}>{item.invoiceDate}</td>
@@ -1277,7 +1349,7 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
               var isResolved = rs.resolvedArray && rs.resolvedArray.indexOf(card.idx) !== -1;
               var isIgnored = rs.ignoredArray && rs.ignoredArray.indexOf(card.idx) !== -1;
               var actionLabel = rs.cardActions ? rs.cardActions[card.idx] : undefined;
-              var statusLabel = isResolved ? (actionLabel || "Journal posted") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
+              var statusLabel = isResolved ? (actionLabel || "Added to schedule") : isIgnored ? (actionLabel || "Ignored") : "Unresolved";
               var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
               return React.createElement(RecommendationCard, {
                 key: card.key || ci,
@@ -1294,7 +1366,8 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
                 statusLabel: statusLabel,
                 statusStyle: statusStyle,
                 onPrimaryAction: function() { _drSetDrawerCard(card); },
-                onIgnore: function() {},
+                onIgnore: function() { _drUpdateReviewState("ignore", card.idx); },
+                onSecondaryAction: function() { _drUpdateReviewState("resolve", card.idx); },
               });
             }) : (
               <div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, height: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", textAlign: "center" }}>
@@ -1308,8 +1381,8 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
       })()}
       {_drDrawerCard && _drDrawerCard.drawer && React.createElement(Sidebar, { open: true, onClose: function() { _drSetDrawerCard(null); }, title: _drDrawerCard.drawer.contact, width: 520,
           footer: React.createElement(React.Fragment, null,
-            React.createElement(SecondaryButton, { onClick: function() { _drSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Dismiss"),
-            React.createElement(PrimaryButton, { onClick: function() { _drSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
+            React.createElement(SecondaryButton, { onClick: function() { _drUpdateReviewState("ignore", _drDrawerCard.idx); _drSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Dismiss"),
+            React.createElement(PrimaryButton, { onClick: function() { _drUpdateReviewState("add", _drDrawerCard.idx); _drSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
           ) },
         React.createElement("div", { style: { padding: 24, display: "flex", flexDirection: "column", gap: 24 } },
           React.createElement(Banner, { variant: "success", icon: React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" }, React.createElement("path", { d: "M10 1.5L11.5 7L17 8.5L11.5 10L10 15.5L8.5 10L3 8.5L8.5 7L10 1.5Z", fill: T.colorBrandPrimary, stroke: T.colorBrandPrimary, strokeWidth: 1.5, strokeLinejoin: "round", paintOrder: "stroke" })) }, _drDrawerCard.drawer.aiInsight),
@@ -1402,11 +1475,27 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
 
 
 // ── Accrued Income Schedule ────────────────────────────────────────────────
-function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview }) {
+function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview, onReviewStateChange }) {
   if (!open) return null;
 
   const [_sugPanelOpen, _setSugPanelOpen] = useState(false);
   const [_aiDrawerCard, _aiSetDrawerCard] = useState(null);
+
+  var _aiUpdateReviewState = function(action, cardIdx) {
+    var rs = reviewState || { resolved: 0, total: sugCards ? sugCards.length : 0, hasResults: true, resolvedArray: [], ignoredArray: [], cardActions: {} };
+    var resolvedArr = (rs.resolvedArray || []).slice();
+    var ignoredArr = (rs.ignoredArray || []).slice();
+    var actions = Object.assign({}, rs.cardActions || {});
+    if (action === "add" && resolvedArr.indexOf(cardIdx) === -1) {
+      resolvedArr.push(cardIdx); actions[cardIdx] = "Added to schedule";
+    } else if (action === "resolve" && resolvedArr.indexOf(cardIdx) === -1) {
+      resolvedArr.push(cardIdx); actions[cardIdx] = "Resolved";
+    } else if (action === "ignore" && ignoredArr.indexOf(cardIdx) === -1) {
+      ignoredArr.push(cardIdx); actions[cardIdx] = "Ignored";
+    }
+    var newState = { resolved: resolvedArr.length + ignoredArr.length, total: rs.total, hasResults: true, resolvedArray: resolvedArr, ignoredArray: ignoredArr, cardActions: actions };
+    if (onReviewStateChange) onReviewStateChange(newState);
+  };
 
   const _aiMonthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const _aiFmtMonth = (m, y) => _aiMonthNames[m] + " " + String(y).slice(2);
@@ -1462,6 +1551,7 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
     return {
       id: "sug_" + i,
       isSuggestion: true,
+      cardIdx: card.idx,
       description: card.drawer ? card.drawer.description : card.title,
       period: period,
       status: "Suggestion",
@@ -1474,7 +1564,13 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
     };
   }) : [];
 
-  const _aiFilteredData = _aiSuggestionRows.concat(_aiSearchValue ? _aiData.filter(item => item.description.toLowerCase().includes(_aiSearchValue.toLowerCase()) || item.incomeAccount.toLowerCase().includes(_aiSearchValue.toLowerCase())) : _aiData);
+  const _aiVisibleSuggestions = _aiSuggestionRows.filter(function(row) {
+    var idx = row.cardIdx;
+    var rs = reviewState || {};
+    if (rs.ignoredArray && rs.ignoredArray.indexOf(idx) !== -1) return false;
+    return true;
+  });
+  const _aiFilteredData = _aiVisibleSuggestions.concat(_aiSearchValue ? _aiData.filter(item => item.description.toLowerCase().includes(_aiSearchValue.toLowerCase()) || item.incomeAccount.toLowerCase().includes(_aiSearchValue.toLowerCase())) : _aiData);
 
   return (
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: T.colorSurfacePrimary, zIndex: 310, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: T.fontFamily }}>
@@ -1511,8 +1607,8 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
             {_aiVisibleMonths.map(vm => (<th key={vm.key} style={{ ..._aiThStyle, width: _aiColWidths.month, minWidth: _aiColWidths.month, textAlign: "right" }}>{vm.label}</th>))}
           </tr></thead>
           <tbody>{_aiFilteredData.map(item => (
-            <tr key={item.id} style={{ cursor: "pointer" }} onMouseEnter={e => { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfacePrimary; }); }}>
-              <td data-sticky="1" style={{ ..._aiCellStyle, ..._aiStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ ...T.textXs, color: T.colorTextSecondary }}>{item.period}</span>{item.isSuggestion ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Suggestion</span> : <_aiActiveBadge />}</div></div></td>
+            <tr key={item.id} style={{ cursor: "pointer" }} onClick={() => { if (item.isSuggestion && item.cardIdx != null && sugCards) { var match = sugCards.filter(c => c.idx === item.cardIdx)[0]; if (match) _aiSetDrawerCard(match); } }} onMouseEnter={e => { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfacePrimary; }); }}>
+              <td data-sticky="1" style={{ ..._aiCellStyle, ..._aiStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ ...T.textXs, color: T.colorTextSecondary }}>{item.period}</span>{item.isSuggestion ? (item.cardIdx != null && reviewState && reviewState.resolvedArray && reviewState.resolvedArray.indexOf(item.cardIdx) !== -1 ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Active</span> : <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Suggestion</span>) : <_aiActiveBadge />}</div></div></td>
               <td data-sticky="1" style={{ ..._aiCellStyle, ..._aiStickyCol1 }}><div style={{ display: "flex", flexDirection: "column", gap: 4 }}><span>{item.balanceForward != null ? _aiFmtGBP(item.balanceForward) : "-"}</span>{item.toAllocate != null && <_aiToAllocateBadge amount={item.toAllocate} />}</div></td>
               <td style={{ ..._aiCellStyle, color: T.colorTextPrimary }}>{item.incomeAccount}</td>
               <td style={{ ..._aiCellStyle, color: T.colorTextPrimary }}>{item.invoiceDate}</td>
@@ -1566,7 +1662,7 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
               var isResolved = rs.resolvedArray && rs.resolvedArray.indexOf(card.idx) !== -1;
               var isIgnored = rs.ignoredArray && rs.ignoredArray.indexOf(card.idx) !== -1;
               var actionLabel = rs.cardActions ? rs.cardActions[card.idx] : undefined;
-              var statusLabel = isResolved ? (actionLabel || "Journal posted") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
+              var statusLabel = isResolved ? (actionLabel || "Added to schedule") : isIgnored ? (actionLabel || "Ignored") : "Unresolved";
               var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
               return React.createElement(RecommendationCard, {
                 key: card.key || ci,
@@ -1583,7 +1679,8 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
                 statusLabel: statusLabel,
                 statusStyle: statusStyle,
                 onPrimaryAction: function() { _aiSetDrawerCard(card); },
-                onIgnore: function() {},
+                onIgnore: function() { _aiUpdateReviewState("ignore", card.idx); },
+                onSecondaryAction: function() { _aiUpdateReviewState("resolve", card.idx); },
               });
             }) : (
               <div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, height: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", textAlign: "center" }}>
@@ -1597,8 +1694,8 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
       })()}
       {_aiDrawerCard && _aiDrawerCard.drawer && React.createElement(Sidebar, { open: true, onClose: function() { _aiSetDrawerCard(null); }, title: _aiDrawerCard.drawer.contact, width: 520,
           footer: React.createElement(React.Fragment, null,
-            React.createElement(SecondaryButton, { onClick: function() { _aiSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Dismiss"),
-            React.createElement(PrimaryButton, { onClick: function() { _aiSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
+            React.createElement(SecondaryButton, { onClick: function() { _aiUpdateReviewState("ignore", _aiDrawerCard.idx); _aiSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Dismiss"),
+            React.createElement(PrimaryButton, { onClick: function() { _aiUpdateReviewState("add", _aiDrawerCard.idx); _aiSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
           ) },
         React.createElement("div", { style: { padding: 24, display: "flex", flexDirection: "column", gap: 24 } },
           React.createElement(Banner, { variant: "success", icon: React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" }, React.createElement("path", { d: "M10 1.5L11.5 7L17 8.5L11.5 10L10 15.5L8.5 10L3 8.5L8.5 7L10 1.5Z", fill: T.colorBrandPrimary, stroke: T.colorBrandPrimary, strokeWidth: 1.5, strokeLinejoin: "round", paintOrder: "stroke" })) }, _aiDrawerCard.drawer.aiInsight),
@@ -2029,9 +2126,9 @@ function PrepaymentReviewFlow(_ref) {
                     var isResolved = _prResolvedCards.has(card.idx);
                     var isIgnored  = _prIgnoredCards.has(card.idx);
                     var actionLabel = _prCardActions[card.idx];
-                    var statusLabel = isResolved ? (actionLabel || "Journal posted") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
+                    var statusLabel = isResolved ? (actionLabel || "Added to schedule") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
                     var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
-                    var primaryActionLabels = { "Review suggestion": "Journal posted" };
+                    var primaryActionLabels = { "Review suggestion": "Added to schedule" };
                     return (
                       <div key={card.idx} id={"result-" + card.key + "-0"} style={{ scrollMarginTop: 64 }}>
                         <RecommendationCard title={card.title} description={card.description} statusLabel={statusLabel} statusStyle={statusStyle}
@@ -2077,7 +2174,7 @@ function PrepaymentReviewFlow(_ref) {
             React.createElement(PrimaryButton, { onClick: function() {
               var idx = _prDrawerCard.idx;
               _prSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [idx])); });
-              _prSetCardActions(function(prev) { var o = Object.assign({}, prev); o[idx] = "Journal posted"; return o; });
+              _prSetCardActions(function(prev) { var o = Object.assign({}, prev); o[idx] = "Added to schedule"; return o; });
               _prSetDrawerCard(null);
             }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
           ) },
@@ -2494,9 +2591,9 @@ function AccrualReviewFlow(_ref) {
                 <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                   {_AR_CARDS.map(function(card) {
                     var isResolved = _arResolvedCards.has(card.idx), isIgnored = _arIgnoredCards.has(card.idx), actionLabel = _arCardActions[card.idx];
-                    var statusLabel = isResolved ? (actionLabel || "Journal posted") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
+                    var statusLabel = isResolved ? (actionLabel || "Added to schedule") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
                     var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
-                    var primaryActionLabels = { "Review suggestion": "Journal posted" };
+                    var primaryActionLabels = { "Review suggestion": "Added to schedule" };
                     return (
                       <div key={card.idx} id={"result-" + card.key + "-0"} style={{ scrollMarginTop: 64 }}>
                         <RecommendationCard title={card.title} description={card.description} statusLabel={statusLabel} statusStyle={statusStyle}
@@ -2542,7 +2639,7 @@ function AccrualReviewFlow(_ref) {
             React.createElement(PrimaryButton, { onClick: function() {
               var idx = _arDrawerCard.idx;
               _arSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [idx])); });
-              _arSetCardActions(function(prev) { var o = Object.assign({}, prev); o[idx] = "Journal posted"; return o; });
+              _arSetCardActions(function(prev) { var o = Object.assign({}, prev); o[idx] = "Added to schedule"; return o; });
               _arSetDrawerCard(null);
             }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
           ) },
@@ -2775,9 +2872,9 @@ function DeferredRevenueReviewFlow(_ref) {
                 <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                   {_DRR_CARDS.map(function(card) {
                     var isResolved = _drResolvedCards.has(card.idx), isIgnored = _drIgnoredCards.has(card.idx), actionLabel = _drCardActions[card.idx];
-                    var statusLabel = isResolved ? (actionLabel || "Journal posted") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
+                    var statusLabel = isResolved ? (actionLabel || "Added to schedule") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
                     var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
-                    var primaryActionLabels = { "Review suggestion": "Journal posted" };
+                    var primaryActionLabels = { "Review suggestion": "Added to schedule" };
                     return (<div key={card.idx} id={"result-" + card.key + "-0"} style={{ scrollMarginTop: 64 }}><RecommendationCard title={card.title} description={card.description} statusLabel={statusLabel} statusStyle={statusStyle} collapsed={isResolved || isIgnored} isIgnored={isIgnored} hideMore={true} tableRow={card.tableRow} tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]} renderCardAction={_adjCardCommentAction(_drOcUI, adjComments, onAddAdjComment, "sug_dr_" + card.key)} primaryLabel={card.primaryLabel} secondaryLabel={card.secondaryLabel} onPrimaryAction={function() { _drRSetDrawerCard(card); }} onIgnore={function() { _drSetIgnoredCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); }} onSecondaryAction={function() { _drSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _drSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = "Resolved"; return o; }); }} onMore={function() {}} /></div>);
                   })}
                 </div>
@@ -2809,7 +2906,7 @@ function DeferredRevenueReviewFlow(_ref) {
             React.createElement(PrimaryButton, { onClick: function() {
               var idx = _drRDrawerCard.idx;
               _drSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [idx])); });
-              _drSetCardActions(function(prev) { var o = Object.assign({}, prev); o[idx] = "Journal posted"; return o; });
+              _drSetCardActions(function(prev) { var o = Object.assign({}, prev); o[idx] = "Added to schedule"; return o; });
               _drRSetDrawerCard(null);
             }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
           ) },
@@ -3101,9 +3198,9 @@ function AccruedIncomeReviewFlow(_ref) {
                 <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                   {_AIR_CARDS.map(function(card) {
                     var isResolved = _aiResolvedCards.has(card.idx), isIgnored = _aiIgnoredCards.has(card.idx), actionLabel = _aiCardActions[card.idx];
-                    var statusLabel = isResolved ? (actionLabel || "Journal posted") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
+                    var statusLabel = isResolved ? (actionLabel || "Added to schedule") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
                     var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
-                    var primaryActionLabels = { "Review suggestion": "Journal posted" };
+                    var primaryActionLabels = { "Review suggestion": "Added to schedule" };
                     return (<div key={card.idx} id={"result-" + card.key + "-0"} style={{ scrollMarginTop: 64 }}><RecommendationCard title={card.title} description={card.description} statusLabel={statusLabel} statusStyle={statusStyle} collapsed={isResolved || isIgnored} isIgnored={isIgnored} hideMore={true} tableRow={card.tableRow} tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]} renderCardAction={_adjCardCommentAction(_aiOcUI, adjComments, onAddAdjComment, "sug_ai_" + card.key)} primaryLabel={card.primaryLabel} secondaryLabel={card.secondaryLabel} onPrimaryAction={function() { _aiRSetDrawerCard(card); }} onIgnore={function() { _aiSetIgnoredCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); }} onSecondaryAction={function() { _aiSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _aiSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = "Resolved"; return o; }); }} onMore={function() {}} /></div>);
                   })}
                 </div>
@@ -3135,7 +3232,7 @@ function AccruedIncomeReviewFlow(_ref) {
             React.createElement(PrimaryButton, { onClick: function() {
               var idx = _aiRDrawerCard.idx;
               _aiSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [idx])); });
-              _aiSetCardActions(function(prev) { var o = Object.assign({}, prev); o[idx] = "Journal posted"; return o; });
+              _aiSetCardActions(function(prev) { var o = Object.assign({}, prev); o[idx] = "Added to schedule"; return o; });
               _aiRSetDrawerCard(null);
             }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
           ) },
@@ -4429,10 +4526,10 @@ registerPage("Adjustments", {
           var _schSugCount = activeScheduleType ? _schSugMap[activeScheduleType] : null;
           return (
             <Fragment>
-              <PrepaymentSchedulePage open={activeScheduleType === "prepayments"} onClose={function() { setActiveScheduleType(null); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_PR_CARDS} reviewState={prepaymentReviewState} reviewTitle="Prepayments review" onRunReview={function() { setPrepaymentReviewOpen(true); }} />
-              <AccrualSchedulePage open={activeScheduleType === "accruals"} onClose={function() { setActiveScheduleType(null); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_AR_CARDS} reviewState={accrualReviewState} reviewTitle="Accruals review" onRunReview={function() { setAccrualReviewOpen(true); }} />
-              <DeferredRevenueSchedulePage open={activeScheduleType === "deferred_revenue"} onClose={function() { setActiveScheduleType(null); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_DRR_CARDS} reviewState={deferredRevenueReviewState} reviewTitle="Deferred revenue review" onRunReview={function() { setDeferredRevenueReviewOpen(true); }} />
-              <AccruedIncomeSchedulePage open={activeScheduleType === "accrued_income"} onClose={function() { setActiveScheduleType(null); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_AIR_CARDS} reviewState={accruedIncomeReviewState} reviewTitle="Accrued income review" onRunReview={function() { setAccruedIncomeReviewOpen(true); }} />
+              <PrepaymentSchedulePage open={activeScheduleType === "prepayments"} onClose={function() { setActiveScheduleType(null); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_PR_CARDS} reviewState={prepaymentReviewState} onReviewStateChange={setPrepaymentReviewState} reviewTitle="Prepayments review" onRunReview={function() { setPrepaymentReviewOpen(true); }} />
+              <AccrualSchedulePage open={activeScheduleType === "accruals"} onClose={function() { setActiveScheduleType(null); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_AR_CARDS} reviewState={accrualReviewState} onReviewStateChange={setAccrualReviewState} reviewTitle="Accruals review" onRunReview={function() { setAccrualReviewOpen(true); }} />
+              <DeferredRevenueSchedulePage open={activeScheduleType === "deferred_revenue"} onClose={function() { setActiveScheduleType(null); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_DRR_CARDS} reviewState={deferredRevenueReviewState} onReviewStateChange={setDeferredRevenueReviewState} reviewTitle="Deferred revenue review" onRunReview={function() { setDeferredRevenueReviewOpen(true); }} />
+              <AccruedIncomeSchedulePage open={activeScheduleType === "accrued_income"} onClose={function() { setActiveScheduleType(null); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_AIR_CARDS} reviewState={accruedIncomeReviewState} onReviewStateChange={setAccruedIncomeReviewState} reviewTitle="Accrued income review" onRunReview={function() { setAccruedIncomeReviewOpen(true); }} />
             </Fragment>
           );
         })()}
