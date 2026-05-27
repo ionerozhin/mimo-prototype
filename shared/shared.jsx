@@ -1240,11 +1240,12 @@ function RecommendationCard(_rcRef) {
         <div style={{ marginBottom: isResolved ? 0 : 14 }}>
           {verticalTable ? (
             <div style={{ border: "1px solid #E9E9EB", borderRadius: 8, overflow: "hidden", fontFamily: "'Inter', sans-serif" }}>
-              {Object.entries(tableRow).map(function(_entry, i, arr) {
-                var key = _entry[0]; var val = _entry[1];
+              {(tableColumns || Object.keys(tableRow).map(function(k) { return { key: k, label: k.charAt(0).toUpperCase() + k.slice(1) }; })).map(function(col, i, arr) {
+                var val = tableRow[col.key];
+                if (val === undefined || val === null || val === "") return null;
                 return (
-                <div key={key} style={{ display: "grid", gridTemplateColumns: "180px 1fr", borderBottom: i < arr.length - 1 ? "1px solid #E9E9EB" : "none", background: "#FFFFFF" }}>
-                  <div style={{ padding: "12px 16px", fontSize: 14, fontWeight: 400, color: "#000000", borderRight: "1px solid #E9E9EB" }}>{key}</div>
+                <div key={col.key} style={{ display: "grid", gridTemplateColumns: "180px 1fr", borderBottom: i < arr.length - 1 ? "1px solid #E9E9EB" : "none", background: "#FFFFFF" }}>
+                  <div style={{ padding: "12px 16px", fontSize: 14, fontWeight: 400, color: "#757980", borderRight: "1px solid #E9E9EB" }}>{col.label}</div>
                   <div style={{ padding: "12px 16px", fontSize: 14, color: "#080908" }}>
                     {val && typeof val === "object" && val.strikethrough
                       ? <span style={{ textDecoration: "line-through", color: "#000000" }}>{val.text}</span>
@@ -1321,7 +1322,7 @@ function RecommendationCard(_rcRef) {
                 onClick={onMore}
               ><RcMoreIcon /></button>
             )}
-            {!isIgnored && onIgnore && <><div style={{ flex: 1 }} />
+            {!isIgnored && onIgnore && <>
             <button style={{ height: 40, padding: "0 12px", border: "none", borderRadius: 8, background: "#FCEFEC", fontSize: 14, fontWeight: 500, color: "#C8543A", cursor: "pointer", whiteSpace: "nowrap" }}
               onMouseEnter={function(e) { e.currentTarget.style.background = "#F9E5E1"; }}
               onMouseLeave={function(e) { e.currentTarget.style.background = "#FCEFEC"; }}

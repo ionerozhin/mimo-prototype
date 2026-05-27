@@ -117,10 +117,111 @@ function _adjCardCommentAction(ocUI, comments, onAddComment, commentKey) {
 // Schedule pages (full-screen overlays)
 // ═══════════════════════════════════════════════════════════════════════════
 
+// ── Schedule type options ──────────────────────────────────────────────────
+var _SCHEDULE_TYPES = [
+  { value: "prepayments", label: "Prepayments" },
+  { value: "accruals", label: "Accruals" },
+  { value: "deferred_revenue", label: "Deferred revenue" },
+  { value: "accrued_income", label: "Accrued income" },
+];
+
+function _ScheduleTopBar(_ref) {
+  var activeType = _ref.activeType, onTypeChange = _ref.onTypeChange, onClose = _ref.onClose, suggestionsCount = _ref.suggestionsCount, onSuggestionsClick = _ref.onSuggestionsClick, sugPanelOpen = _ref.sugPanelOpen;
+
+  var _stIconBtn = { display: "flex", alignItems: "center", justifyContent: "center", width: 44, height: 44, border: "1px solid " + T.colorBorderMedium, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", flexShrink: 0, transition: "border-color 0.15s, background 0.15s" };
+  var _stIconHover = function(e) { e.currentTarget.style.borderColor = "#A5A5A5"; e.currentTarget.style.background = T.colorSurfaceSecondary; };
+  var _stIconLeave = function(e) { e.currentTarget.style.borderColor = T.colorBorderMedium; e.currentTarget.style.background = T.colorSurfacePrimary; };
+
+  var sugLabel = suggestionsCount != null
+    ? suggestionsCount + " suggestion" + (suggestionsCount !== 1 ? "s" : "")
+    : "No suggestions";
+
+  return (
+    <div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
+      <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-1px", flexShrink: 0 }}>Adjustments</span>
+      <Dropdown value={activeType} onChange={onTypeChange} options={_SCHEDULE_TYPES} size="lg" width={200} />
+      <div style={{ flex: 1 }} />
+
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        {/* Suggestions counter */}
+        <button onClick={onSuggestionsClick} style={{ display: "flex", alignItems: "center", gap: 8, height: 44, padding: "0 14px", border: "1px solid " + (sugPanelOpen ? T.colorTextPrimary : T.colorBorderMedium), borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap", flexShrink: 0, transition: "border-color 0.15s, background 0.15s" }}
+          onMouseEnter={function(e) { if (!sugPanelOpen) _stIconHover(e); }} onMouseLeave={function(e) { if (!sugPanelOpen) _stIconLeave(e); }}>
+          {sugLabel}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+            <path d="M15 21L15 3M16.2 21H7.8C6.12 21 5.28 21 4.64 20.673C4.07 20.385 3.61 19.927 3.33 19.362C3 18.72 3 17.88 3 16.2V7.8C3 6.12 3 5.28 3.33 4.638C3.61 4.074 4.07 3.615 4.64 3.327C5.28 3 6.12 3 7.8 3H16.2C17.88 3 18.72 3 19.362 3.327C19.927 3.615 20.385 4.074 20.673 4.638C21 5.28 21 6.12 21 7.8V16.2C21 17.88 21 18.72 20.673 19.362C20.385 19.927 19.927 20.385 19.362 20.673C18.72 21 17.88 21 16.2 21Z" stroke={T.colorTextPrimary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+
+        {/* Comment */}
+        <button style={_stIconBtn} onMouseEnter={_stIconHover} onMouseLeave={_stIconLeave}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M21 15C21 15.53 20.79 16.04 20.41 16.41C20.04 16.79 19.53 17 19 17H7L3 21V5C3 4.47 3.21 3.96 3.59 3.59C3.96 3.21 4.47 3 5 3H19C19.53 3 20.04 3.21 20.41 3.59C20.79 3.96 21 4.47 21 5V15Z" stroke={T.colorTextPrimary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+
+        {/* Download */}
+        <button style={_stIconBtn} onMouseEnter={_stIconHover} onMouseLeave={_stIconLeave}>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d={_MM_PATHS.download} stroke={T.colorTextPrimary} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      {/* Close */}
+      <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", padding: 0 }}>
+        <svg width="30" height="30" viewBox="0 0 30 30" fill="none"><rect width="30" height="30" rx="15" fill="#F5F5F5"/><path d="M20 10L10 20M10 10L20 20" stroke="#2A2A2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </button>
+    </div>
+  );
+}
+
+// ── Suggestion row helpers ────────────────────────────────────────────────
+var _SUG_MONTH_ABBRS = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+function _parseSugPeriodMonths(periodStr) {
+  if (!periodStr) return [];
+  var mFromMatch = periodStr.match(/(\d+)\s+months?\s+from\s+(\w+)\s+(\d+)/i);
+  if (mFromMatch) {
+    var count = parseInt(mFromMatch[1]); var startM = _SUG_MONTH_ABBRS[mFromMatch[2]]; var startY = parseInt(mFromMatch[3]);
+    if (startY < 100) startY += 2000;
+    var months = [];
+    for (var i = 0; i < count; i++) { var mm = (startM + i) % 12; var yy = startY + Math.floor((startM + i) / 12); months.push({ m: mm, y: yy }); }
+    return months;
+  }
+  var rangeMatch = periodStr.match(/(\w+)\s*[–\-]\s*(\w+)\s+(\d{4})/);
+  if (rangeMatch) {
+    var sm = _SUG_MONTH_ABBRS[rangeMatch[1]]; var em = _SUG_MONTH_ABBRS[rangeMatch[2]]; var yr = parseInt(rangeMatch[3]);
+    if (sm !== undefined && em !== undefined) { var months = []; for (var i = sm; i <= em; i++) { months.push({ m: i, y: yr }); } return months; }
+  }
+  var singleMatch = periodStr.match(/(\w+)\s+(\d{4})/);
+  if (singleMatch) { var m = _SUG_MONTH_ABBRS[singleMatch[1]]; var y = parseInt(singleMatch[2]); if (m !== undefined) return [{ m: m, y: y }]; }
+  return [];
+}
+function _parseSugAmount(amountStr) {
+  if (!amountStr) return 0;
+  var s = amountStr.replace(/[£,\s]/g, "").replace(/–/g, "-");
+  return parseFloat(s) || 0;
+}
+function _buildSugEntries(periodStr, totalAmount, entryKey) {
+  var months = _parseSugPeriodMonths(periodStr);
+  if (months.length === 0) return {};
+  var perMonth = Math.round(Math.abs(totalAmount) / months.length * 100) / 100;
+  var entries = {};
+  months.forEach(function(mp) {
+    var k = mp.y * 12 + mp.m;
+    var e = { status: "scheduled" };
+    e[entryKey] = perMonth;
+    entries[k] = e;
+  });
+  return entries;
+}
+
 // ── Prepayment Schedule ────────────────────────────────────────────────────
 function PrepaymentSchedulePage(_ref) {
-  var open = _ref.open, onClose = _ref.onClose;
+  var open = _ref.open, onClose = _ref.onClose, activeScheduleType = _ref.activeScheduleType, onScheduleTypeChange = _ref.onScheduleTypeChange, suggestionsCount = _ref.suggestionsCount, sugCards = _ref.sugCards, reviewState = _ref.reviewState, reviewTitle = _ref.reviewTitle, addLabel = _ref.addLabel, onRunReview = _ref.onRunReview;
   if (!open) return null;
+
+  var _spSt = useState(false); var _sugPanelOpen = _spSt[0], _setSugPanelOpen = _spSt[1];
+  var _psDrSt = useState(null); var _psDrawerCard = _psDrSt[0], _psSetDrawerCard = _psDrSt[1];
 
   var MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   var fmtMonth = function(m, y) { return MONTH_NAMES[m] + " " + String(y).slice(2); };
@@ -410,25 +511,7 @@ function PrepaymentSchedulePage(_ref) {
     fontFamily: T.fontFamily,
   };
 
-  var headerStyle = {
-    display: "flex", alignItems: "center", justifyContent: "space-between",
-    padding: "24px 32px 32px 32px", flexShrink: 0,
-  };
-
   var _psBorderClr = "#EFF1F4";
-
-  var toolbarStyle = {
-    display: "flex", alignItems: "center", gap: 10,
-    padding: "12px 16px", flexShrink: 0, flexWrap: "wrap",
-    borderBottom: "1px solid " + _psBorderClr,
-  };
-
-  var searchInputStyle = {
-    height: 36, padding: "0 12px", border: "1px solid " + T.colorBorderDark,
-    borderRadius: 6, fontSize: 14, fontFamily: T.fontFamily,
-    outline: "none", width: 220, color: T.colorTextPrimary,
-    background: T.colorSurfacePrimary,
-  };
 
   var thStyle = {
     ...T.textSm, fontWeight: 400, color: "#757980",
@@ -445,15 +528,15 @@ function PrepaymentSchedulePage(_ref) {
   };
 
   var footerCellStyle = {
-    ...cellStyle, fontWeight: 600, background: "#FBFBFB", height: 72, verticalAlign: "middle",
+    ...cellStyle, fontWeight: 600, height: 72, verticalAlign: "middle",
   };
 
-  var stickyCol0 = { position: "sticky", left: 0, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _psBorderClr };
-  var stickyCol1Left = 260;
+  var stickyCol0 = { position: "sticky", left: 0, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _psBorderClr, paddingLeft: 32 };
+  var stickyCol1Left = 300;
   var stickyCol1 = { position: "sticky", left: stickyCol1Left, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _psBorderClr, boxShadow: "4px 0 8px -2px rgba(0,0,0,0.1)" };
 
   var COL_WIDTHS = {
-    description: 260, balance: 200, account: 280,
+    description: 300, balance: 200, account: 280,
     invoiceDate: 130, invoiceAmount: 160, month: 140,
   };
 
@@ -482,7 +565,6 @@ function PrepaymentSchedulePage(_ref) {
 
   var ActiveBadge = function() {
     return React.createElement("span", { style: { display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" } },
-      React.createElement("span", { style: { width: 6, height: 6, borderRadius: 3, background: T.colorBrandPrimary, flexShrink: 0 } }),
       "Active"
     );
   };
@@ -495,47 +577,58 @@ function PrepaymentSchedulePage(_ref) {
   var _psSearchState = useState("");
   var searchValue = _psSearchState[0], setSearchValue = _psSearchState[1];
 
-  var filteredData = searchValue
+  var suggestionRows = (reviewState && reviewState.hasResults && sugCards) ? sugCards.map(function(card, i) {
+    var amt = card.drawer ? parseFloat(card.drawer.amount.replace(/,/g, "")) : (card.tableRow ? _parseSugAmount(card.tableRow.amount) : 0);
+    var period = card.tableRow ? card.tableRow.period : "";
+    return {
+      id: "sug_" + i,
+      isSuggestion: true,
+      description: card.drawer ? card.drawer.description : card.title,
+      period: period,
+      status: "Suggestion",
+      balanceForward: null,
+      toAllocate: null,
+      expenseAccount: card.drawer ? card.drawer.expenseAccount : (card.tableRow ? card.tableRow.account : ""),
+      invoiceDate: card.drawer ? card.drawer.invoiceDateField : "",
+      invoiceAmount: amt || null,
+      entries: _buildSugEntries(period, amt, "release"),
+    };
+  }) : [];
+
+  var filteredData = suggestionRows.concat(searchValue
     ? data.filter(function(item) { return item.description.toLowerCase().includes(searchValue.toLowerCase()) || item.expenseAccount.toLowerCase().includes(searchValue.toLowerCase()); })
-    : data;
+    : data);
 
   return (
     <div style={overlayStyle}>
-      <div style={headerStyle}>
-        <h1 style={{ margin: 0, fontSize: 32, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "40px" }}>
-          Prepayment schedule
-        </h1>
-        <SecondaryButton onClick={onClose} style={{ height: 40, padding: "8px 16px", fontSize: 14, gap: 8 }}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ marginRight: 2 }}>
-            <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          Close
-        </SecondaryButton>
-      </div>
+      <_ScheduleTopBar activeType={activeScheduleType} onTypeChange={onScheduleTypeChange} onClose={onClose} suggestionsCount={suggestionsCount} onSuggestionsClick={function() { _setSugPanelOpen(function(p) { return !p; }); }} sugPanelOpen={_sugPanelOpen} />
 
-      <div style={{ display: "flex", flexDirection: "column", margin: "0 32px 32px 32px", border: "1px solid " + _psBorderClr, borderRadius: 16, overflow: "hidden", flex: "1 1 auto", minHeight: 0 }}>
-        <div style={toolbarStyle}>
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchValue}
-            onChange={function(e) { setSearchValue(e.target.value); }}
-            style={searchInputStyle}
-            onFocus={function(e) { e.target.style.borderColor = T.colorBrandPrimary; e.target.style.borderWidth = "2px"; e.target.style.padding = "0 11px"; }}
-            onBlur={function(e) { e.target.style.borderColor = T.colorBorderDark; e.target.style.borderWidth = "1px"; e.target.style.padding = "0 12px"; }}
-          />
-          <div style={{ flex: 1 }} />
-          <Dropdown value="jan-dec-2026" options={[{ label: "1 Jan 2026 - 31 Dec 2026", value: "jan-dec-2026" }]} onChange={function(){}} size="sm" width={230} />
-          <Dropdown value="all" options={[
-            { label: "All expense accounts", value: "all" },
-            { label: "6000 – Rent", value: "6000" },
-            { label: "6030 – Insurance", value: "6030" },
-            { label: "6110 – Advertising & marketing", value: "6110" },
-            { label: "6200 – Professional fees", value: "6200" },
-            { label: "6220 – Subscriptions", value: "6220" },
-          ]} onChange={function(){}} size="sm" width={200} />
-          <SecondaryButton style={{ height: 36, padding: "0 12px", fontSize: 14, gap: 6 }}><PlusIcon /> Add prepayment</SecondaryButton>
-          <SecondaryButton style={{ height: 36, padding: "0 12px", fontSize: 14, gap: 6 }}><DownloadIcon /> Export</SecondaryButton>
+      <div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}>
+      <div style={{ display: "flex", flexDirection: "column", flex: "1 1 auto", minWidth: 0, overflow: "hidden", transition: "flex 0.3s ease" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 32px", flexShrink: 0, flexWrap: "wrap", borderBottom: "1px solid " + _psBorderClr }}>
+          {_sugPanelOpen ? (
+            <Fragment>
+              <input type="text" placeholder="Search..." value={searchValue} onChange={function(e) { setSearchValue(e.target.value); }} style={{ height: 36, padding: "0 12px", border: "1px solid " + T.colorBorderDark, borderRadius: 6, fontSize: 14, fontFamily: T.fontFamily, outline: "none", width: 200, color: T.colorTextPrimary, background: T.colorSurfacePrimary }} onFocus={function(e) { e.target.style.borderColor = T.colorBrandPrimary; e.target.style.borderWidth = "2px"; e.target.style.padding = "0 11px"; }} onBlur={function(e) { e.target.style.borderColor = T.colorBorderDark; e.target.style.borderWidth = "1px"; e.target.style.padding = "0 12px"; }} />
+              <div style={{ flex: 1 }} />
+              <SecondaryButton style={{ height: 36, padding: "0 14px", fontSize: 14 }}>Filters</SecondaryButton>
+              <button style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, border: "1px solid " + T.colorBorderMedium, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer" }} onMouseEnter={function(e) { e.currentTarget.style.borderColor = "#A5A5A5"; e.currentTarget.style.background = T.colorSurfaceSecondary; }} onMouseLeave={function(e) { e.currentTarget.style.borderColor = T.colorBorderMedium; e.currentTarget.style.background = T.colorSurfacePrimary; }}><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d={_MM_PATHS.plus} stroke={T.colorTextPrimary} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+            </Fragment>
+          ) : (
+            <Fragment>
+              <input type="text" placeholder="Search..." value={searchValue} onChange={function(e) { setSearchValue(e.target.value); }} style={{ height: 36, padding: "0 12px", border: "1px solid " + T.colorBorderDark, borderRadius: 6, fontSize: 14, fontFamily: T.fontFamily, outline: "none", width: 220, color: T.colorTextPrimary, background: T.colorSurfacePrimary }} onFocus={function(e) { e.target.style.borderColor = T.colorBrandPrimary; e.target.style.borderWidth = "2px"; e.target.style.padding = "0 11px"; }} onBlur={function(e) { e.target.style.borderColor = T.colorBorderDark; e.target.style.borderWidth = "1px"; e.target.style.padding = "0 12px"; }} />
+              <div style={{ flex: 1 }} />
+              <Dropdown value="jan-dec-2026" options={[{ label: "1 Jan 2026 - 31 Dec 2026", value: "jan-dec-2026" }]} onChange={function(){}} size="sm" width={230} />
+              <Dropdown value="all" options={[
+                { label: "All expense accounts", value: "all" },
+                { label: "6000 – Rent", value: "6000" },
+                { label: "6030 – Insurance", value: "6030" },
+                { label: "6110 – Advertising & marketing", value: "6110" },
+                { label: "6200 – Professional fees", value: "6200" },
+                { label: "6220 – Subscriptions", value: "6220" },
+              ]} onChange={function(){}} size="sm" width={200} />
+              <SecondaryButton style={{ height: 36, padding: "0 12px", fontSize: 14, gap: 6 }}><PlusIcon /> Add prepayment</SecondaryButton>
+            </Fragment>
+          )}
         </div>
 
         <div style={{ overflowX: "auto", overflowY: "auto", flex: "1 1 auto", minHeight: 0 }}>
@@ -570,7 +663,7 @@ function PrepaymentSchedulePage(_ref) {
                       <span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <span style={{ ...T.textXs, color: T.colorTextSecondary }}>{item.period}</span>
-                        <ActiveBadge />
+                        {item.isSuggestion ? React.createElement("span", { style: { display: "inline-flex", alignItems: "center", gap: 4, background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" } }, "Suggestion") : <ActiveBadge />}
                       </div>
                     </div>
                   </td>
@@ -590,20 +683,20 @@ function PrepaymentSchedulePage(_ref) {
           </tbody>
           <tfoot>
             <tr>
-              <td style={{ ...footerCellStyle, ...stickyCol0, background: "#FBFBFB" }} colSpan={1}>Total releases</td>
-              <td style={{ ...footerCellStyle, ...stickyCol1, background: "#FBFBFB" }} colSpan={1}></td>
+              <td style={{ ...footerCellStyle, ...stickyCol0 }} colSpan={1}>Total releases</td>
+              <td style={{ ...footerCellStyle, ...stickyCol1 }} colSpan={1}></td>
               <td style={{ ...footerCellStyle }} colSpan={3}></td>
               {visibleMonths.map(function(vm) { return <td key={vm.key} style={{ ...footerCellStyle, textAlign: "right" }}>{totalReleases[vm.key] ? fmtRelease(totalReleases[vm.key]) : "-"}</td>; })}
             </tr>
             <tr>
-              <td style={{ ...footerCellStyle, ...stickyCol0, background: "#FBFBFB" }} colSpan={1}>Total additions</td>
-              <td style={{ ...footerCellStyle, ...stickyCol1, background: "#FBFBFB" }} colSpan={1}></td>
+              <td style={{ ...footerCellStyle, ...stickyCol0 }} colSpan={1}>Total additions</td>
+              <td style={{ ...footerCellStyle, ...stickyCol1 }} colSpan={1}></td>
               <td style={{ ...footerCellStyle }} colSpan={3}></td>
               {visibleMonths.map(function(vm) { return <td key={vm.key} style={{ ...footerCellStyle, textAlign: "right" }}>{totalAdditions[vm.key] ? fmtAddition(totalAdditions[vm.key]) : "-"}</td>; })}
             </tr>
             <tr>
-              <td style={{ ...footerCellStyle, ...stickyCol0, background: "#FBFBFB" }} colSpan={1}>Closing balance</td>
-              <td style={{ ...footerCellStyle, ...stickyCol1, background: "#FBFBFB" }} colSpan={1}></td>
+              <td style={{ ...footerCellStyle, ...stickyCol0 }} colSpan={1}>Closing balance</td>
+              <td style={{ ...footerCellStyle, ...stickyCol1 }} colSpan={1}></td>
               <td style={{ ...footerCellStyle }} colSpan={3}></td>
               {visibleMonths.map(function(vm) {
                 return (
@@ -624,14 +717,111 @@ function PrepaymentSchedulePage(_ref) {
         </table>
         </div>
       </div>
+      {(function() {
+        var _hasResults = reviewState && reviewState.hasResults;
+        var _remaining = _hasResults ? reviewState.total - reviewState.resolved : 0;
+        var _sugText = _hasResults
+          ? _remaining + " suggestion" + (_remaining !== 1 ? "s" : "")
+          : "Not started";
+        var _sugColor = _hasResults
+          ? (_remaining > 0 ? T.colorInfoAlt : T.colorInfo)
+          : T.colorTextMuted;
+        return (
+        <div style={{ width: _sugPanelOpen ? 420 : 0, flexShrink: 0, background: T.colorSurfaceSecondary, borderLeft: _sugPanelOpen ? "1px solid " + T.colorBorderDark : "none", display: "flex", flexDirection: "column", overflow: "hidden", transition: "width 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
+          <div style={{ minWidth: 420, padding: "24px 24px 16px", flexShrink: 0 }}>
+            <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-0.5px" }}>Suggestions</span>
+          </div>
+          <div style={{ minWidth: 420, flex: "1 1 auto", overflowY: "auto", padding: "0 24px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <span style={{ fontSize: 15, fontWeight: 500, color: T.colorTextPrimary }}>{reviewTitle || "Review"}</span>
+                <span style={{ fontSize: 13, fontWeight: 400, color: _sugColor }}>
+                  {_sugText}
+                  {_hasResults && (
+                    <Fragment>
+                      <span style={{ display: "inline-block", width: 3, height: 3, borderRadius: "50%", background: T.colorTextSecondary, verticalAlign: "middle", margin: "0 6px" }} />
+                      <span style={{ color: T.colorTextSecondary }}>5 May, 12:23</span>
+                    </Fragment>
+                  )}
+                </span>
+              </div>
+              <SecondaryButton onClick={onRunReview} style={{ height: 36, padding: "6px 12px", fontSize: 13, gap: 6, whiteSpace: "nowrap", flexShrink: 0 }}>
+                Run
+                <PlayCircleIcon color="currentColor" size={16} />
+              </SecondaryButton>
+            </div>
+            {_hasResults ? sugCards.map(function(card, ci) {
+              var rs = reviewState || {};
+              var isResolved = rs.resolvedArray && rs.resolvedArray.indexOf(card.idx) !== -1;
+              var isIgnored = rs.ignoredArray && rs.ignoredArray.indexOf(card.idx) !== -1;
+              var actionLabel = rs.cardActions ? rs.cardActions[card.idx] : undefined;
+              var statusLabel = isResolved ? (actionLabel || "Journal posted") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
+              var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
+              return React.createElement(RecommendationCard, {
+                key: card.key || ci,
+                title: card.title,
+                description: card.description,
+                tableRow: card.tableRow,
+                verticalTable: true,
+                tableColumns: [{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }, { key: "invoice", label: "Invoice", width: "0.8fr" }],
+                primaryLabel: card.primaryLabel,
+                secondaryLabel: card.secondaryLabel,
+                collapsed: isResolved || isIgnored,
+                isIgnored: isIgnored,
+                hideMore: true,
+                statusLabel: statusLabel,
+                statusStyle: statusStyle,
+                onPrimaryAction: function() { _psSetDrawerCard(card); },
+                onIgnore: function() {},
+              });
+            }) : (
+              <div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, height: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", textAlign: "center" }}>
+                <span style={{ ...T.textMd, fontWeight: 500, color: T.colorTextPrimary }}>No suggestions yet</span>
+                <span style={{ ...T.textMd, fontWeight: 400, color: T.colorTextSecondary, marginTop: 8 }}>{"Run " + (reviewTitle ? reviewTitle.replace(" review", "").toLowerCase() : "") + " review to check for suggestions."}</span>
+              </div>
+            )}
+          </div>
+        </div>
+        );
+      })()}
+      {_psDrawerCard && _psDrawerCard.drawer && React.createElement(Sidebar, { open: true, onClose: function() { _psSetDrawerCard(null); }, title: _psDrawerCard.drawer.contact, width: 520,
+          footer: React.createElement(React.Fragment, null,
+            React.createElement(SecondaryButton, { onClick: function() { _psSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Dismiss"),
+            React.createElement(PrimaryButton, { onClick: function() { _psSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
+          ) },
+        React.createElement("div", { style: { padding: 24, display: "flex", flexDirection: "column", gap: 24 } },
+          React.createElement(Banner, { variant: "success", icon: React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" }, React.createElement("path", { d: "M10 1.5L11.5 7L17 8.5L11.5 10L10 15.5L8.5 10L3 8.5L8.5 7L10 1.5Z", fill: T.colorBrandPrimary, stroke: T.colorBrandPrimary, strokeWidth: 1.5, strokeLinejoin: "round", paintOrder: "stroke" })) }, _psDrawerCard.drawer.aiInsight),
+          React.createElement(Dropdown, { label: "Adjustment type", value: "prepayment_expense", options: [{ value: "prepayment_expense", label: "Prepayment expense" }, { value: "prepayment_income", label: "Prepayment income" }], onChange: function() {} }),
+          React.createElement(Input, { label: "Adjustment name", value: _psDrawerCard.drawer.description, onChange: function() {} }),
+          React.createElement(Input, { label: "Amount", value: _psDrawerCard.drawer.amount, onChange: function() {}, leftSlotType: "currency", currencySymbol: "£" }),
+          React.createElement(Dropdown, { label: "Expense account", value: "expense", options: [{ value: "expense", label: _psDrawerCard.drawer.expenseAccount }], onChange: function() {}, searchable: true }),
+          React.createElement(Input, { label: "Invoice date (optional)", value: _psDrawerCard.drawer.invoiceDateField || "", onChange: function() {}, leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+          _psDrawerCard.drawer.fromPeriod && React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 } },
+            React.createElement(Dropdown, { label: "From", value: "from", options: [{ value: "from", label: _psDrawerCard.drawer.fromPeriod }], onChange: function() {} }),
+            React.createElement(Dropdown, { label: "To", value: "to", options: [{ value: "to", label: _psDrawerCard.drawer.toPeriod }], onChange: function() {} })
+          ),
+          React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
+          React.createElement("span", { style: Object.assign({}, T.textMd, { fontWeight: T.fontWeightSemibold, color: T.colorTextPrimary }) }, "Allocations"),
+          React.createElement(RadioGroup, { value: "even", onChange: function() {}, options: [{ value: "even", label: "Even split" }, { value: "custom", label: "Custom" }], direction: "horizontal", gap: 24 }),
+          _psDrawerCard.drawer.drawerAllocations && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 16 } },
+            _psDrawerCard.drawer.drawerAllocations.map(function(alloc) {
+              return React.createElement(Input, { key: alloc.period, label: alloc.period, value: alloc.amount, onChange: function() {}, state: "readonly", leftSlotType: "currency", currencySymbol: "£" });
+            })
+          )
+        )
+      )}
+      </div>
     </div>
   );
 }
 
 
 // ── Accrual Schedule ───────────────────────────────────────────────────────
-function AccrualSchedulePage({ open, onClose }) {
+function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview }) {
   if (!open) return null;
+
+  const [_sugPanelOpen, _setSugPanelOpen] = useState(false);
+  const [_asDrawerCard, _asSetDrawerCard] = useState(null);
 
   const _asMonthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const _asFmtMonth = (m, y) => _asMonthNames[m] + " " + String(y).slice(2);
@@ -675,35 +865,63 @@ function AccrualSchedulePage({ open, onClose }) {
   const _asBorderClr = "#EFF1F4";
   const _asThStyle = { ...T.textSm, fontWeight: 400, color: "#757980", padding: "10px 12px", textAlign: "left", whiteSpace: "nowrap", borderBottom: "1px solid " + _asBorderClr, borderRight: "1px solid " + _asBorderClr, position: "sticky", top: 0, background: T.colorSurfacePrimary, zIndex: 2 };
   const _asCellStyle = { ...T.textSm, color: T.colorTextPrimary, padding: "10px 12px", borderBottom: "1px solid " + _asBorderClr, borderRight: "1px solid " + _asBorderClr, whiteSpace: "normal", verticalAlign: "middle" };
-  const _asFooterCellStyle = { ..._asCellStyle, fontWeight: 600, background: "#FBFBFB", height: 72, verticalAlign: "middle" };
-  const _asStickyCol0 = { position: "sticky", left: 0, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _asBorderClr };
-  const _asStickyCol1Left = 260;
+  const _asFooterCellStyle = { ..._asCellStyle, fontWeight: 600, height: 72, verticalAlign: "middle" };
+  const _asStickyCol0 = { position: "sticky", left: 0, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _asBorderClr, paddingLeft: 32 };
+  const _asStickyCol1Left = 300;
   const _asStickyCol1 = { position: "sticky", left: _asStickyCol1Left, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _asBorderClr, boxShadow: "4px 0 8px -2px rgba(0,0,0,0.1)" };
-  const _asColWidths = { description: 260, balance: 200, account: 280, invoiceDate: 130, invoiceAmount: 160, month: 140 };
+  const _asColWidths = { description: 300, balance: 200, account: 280, invoiceDate: 130, invoiceAmount: 160, month: 140 };
   const _asFixedColsWidth = _asColWidths.description + _asColWidths.balance + _asColWidths.account + _asColWidths.invoiceDate + _asColWidths.invoiceAmount;
 
   const _asRenderMonthCell = (entry, isFooter) => { if (!entry) return <span style={{ color: "#B0B3B8" }}>-</span>; const { addition, reversal, status } = entry; const isPublished = status === "published"; const isScheduled = status === "scheduled"; const bg = isPublished ? T.colorSuccessBg : "transparent"; const cellContent = []; if (reversal) { if (isScheduled) { cellContent.push(<div key="rev" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_asFmtReversal(reversal)}<_asClockIcon /></div>); } else { cellContent.push(<div key="rev" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_asFmtReversal(reversal)}</div>); } } if (addition) { if (isScheduled && !reversal) { cellContent.push(<div key="add" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_asFmtAddition(addition)}<_asClockIcon /></div>); } else { cellContent.push(<div key="add" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_asFmtAddition(addition)}</div>); } } if (cellContent.length === 0) return <span style={{ color: "#B0B3B8" }}>-</span>; return (<div style={{ background: bg, borderRadius: bg !== "transparent" ? 4 : 0, padding: bg !== "transparent" ? "2px 6px" : 0, display: "inline-flex", flexDirection: "column", gap: 2 }}>{cellContent}</div>); };
 
-  const _asActiveBadge = () => (<span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}><span style={{ width: 6, height: 6, borderRadius: 3, background: T.colorBrandPrimary, flexShrink: 0 }} />Active</span>);
+  const _asActiveBadge = () => (<span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Active</span>);
   const _asToAllocateBadge = ({ amount }) => (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px", whiteSpace: "nowrap" }}>{_asFmtGBP(amount)} to allocate</span>);
 
   const [_asSearchValue, _asSetSearchValue] = useState("");
-  const _asFilteredData = _asSearchValue ? _asData.filter(item => item.description.toLowerCase().includes(_asSearchValue.toLowerCase()) || item.expenseAccount.toLowerCase().includes(_asSearchValue.toLowerCase())) : _asData;
+
+  const _asSuggestionRows = (reviewState && reviewState.hasResults && sugCards) ? sugCards.map((card, i) => {
+    const amt = card.drawer ? parseFloat(card.drawer.amount.replace(/,/g, "")) : (card.tableRow ? _parseSugAmount(card.tableRow.amount) : 0);
+    const period = card.tableRow ? card.tableRow.period : "";
+    const isReversal = card.key === "stale" || card.key === "duplicate" || (card.title && card.title.toLowerCase().indexOf("reverse") !== -1);
+    return {
+      id: "sug_" + i,
+      isSuggestion: true,
+      description: card.drawer ? card.drawer.description : card.title,
+      period: period,
+      status: "Suggestion",
+      balanceForward: null,
+      toAllocate: null,
+      expenseAccount: card.drawer ? card.drawer.expenseAccount : (card.tableRow ? card.tableRow.account : ""),
+      invoiceDate: card.drawer ? card.drawer.invoiceDateField : "",
+      invoiceAmount: amt || null,
+      entries: _buildSugEntries(period, amt, isReversal ? "reversal" : "addition"),
+    };
+  }) : [];
+
+  const _asFilteredData = _asSuggestionRows.concat(_asSearchValue ? _asData.filter(item => item.description.toLowerCase().includes(_asSearchValue.toLowerCase()) || item.expenseAccount.toLowerCase().includes(_asSearchValue.toLowerCase())) : _asData);
 
   return (
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: T.colorSurfacePrimary, zIndex: 310, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: T.fontFamily }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "24px 32px 32px 32px", flexShrink: 0 }}>
-        <h1 style={{ margin: 0, fontSize: 32, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "40px" }}>Accrual schedule</h1>
-        <SecondaryButton onClick={onClose} style={{ height: 40, padding: "8px 16px", fontSize: 14, gap: 8 }}><svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ marginRight: 2 }}><path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>Close</SecondaryButton>
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", margin: "0 32px 32px 32px", border: "1px solid " + _asBorderClr, borderRadius: 16, overflow: "hidden", flex: "1 1 auto", minHeight: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", flexShrink: 0, flexWrap: "wrap", borderBottom: "1px solid " + _asBorderClr }}>
-          <input type="text" placeholder="Search..." value={_asSearchValue} onChange={e => _asSetSearchValue(e.target.value)} style={{ height: 36, padding: "0 12px", border: "1px solid " + T.colorBorderDark, borderRadius: 6, fontSize: 14, fontFamily: T.fontFamily, outline: "none", width: 220, color: T.colorTextPrimary, background: T.colorSurfacePrimary }} onFocus={e => { e.target.style.borderColor = T.colorBrandPrimary; e.target.style.borderWidth = "2px"; e.target.style.padding = "0 11px"; }} onBlur={e => { e.target.style.borderColor = T.colorBorderDark; e.target.style.borderWidth = "1px"; e.target.style.padding = "0 12px"; }} />
-          <div style={{ flex: 1 }} />
-          <Dropdown value="jan-dec-2026" options={[{ label: "1 Jan 2026 - 31 Dec 2026", value: "jan-dec-2026" }]} onChange={() => {}} size="sm" width={230} />
-          <Dropdown value="all" options={[{ label: "All expense accounts", value: "all" },{ label: "6010 – Rates", value: "6010" },{ label: "6020 – Light, heat & power", value: "6020" },{ label: "6040 – Repairs & maintenance", value: "6040" },{ label: "6200 – Professional fees", value: "6200" },{ label: "6210 – Bank charges", value: "6210" },{ label: "6230 – Telephone & internet", value: "6230" },{ label: "7000 – Wages & salaries", value: "7000" },{ label: "7003 – Pension costs", value: "7003" }]} onChange={() => {}} size="sm" width={200} />
-          <SecondaryButton style={{ height: 36, padding: "0 12px", fontSize: 14, gap: 6 }}><_asPlusIcon />Add accrual</SecondaryButton>
-          <SecondaryButton style={{ height: 36, padding: "0 12px", fontSize: 14, gap: 6 }}><_asDownloadIcon />Export</SecondaryButton>
+      <_ScheduleTopBar activeType={activeScheduleType} onTypeChange={onScheduleTypeChange} onClose={onClose} suggestionsCount={suggestionsCount} onSuggestionsClick={() => { _setSugPanelOpen(p => !p); }} sugPanelOpen={_sugPanelOpen} />
+      <div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}>
+      <div style={{ display: "flex", flexDirection: "column", flex: "1 1 auto", minWidth: 0, overflow: "hidden", transition: "flex 0.3s ease" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 32px", flexShrink: 0, flexWrap: "wrap", borderBottom: "1px solid " + _asBorderClr }}>
+          {_sugPanelOpen ? (
+            <Fragment>
+              <input type="text" placeholder="Search..." value={_asSearchValue} onChange={e => _asSetSearchValue(e.target.value)} style={{ height: 36, padding: "0 12px", border: "1px solid " + T.colorBorderDark, borderRadius: 6, fontSize: 14, fontFamily: T.fontFamily, outline: "none", width: 200, color: T.colorTextPrimary, background: T.colorSurfacePrimary }} onFocus={e => { e.target.style.borderColor = T.colorBrandPrimary; e.target.style.borderWidth = "2px"; e.target.style.padding = "0 11px"; }} onBlur={e => { e.target.style.borderColor = T.colorBorderDark; e.target.style.borderWidth = "1px"; e.target.style.padding = "0 12px"; }} />
+              <div style={{ flex: 1 }} />
+              <SecondaryButton style={{ height: 36, padding: "0 14px", fontSize: 14 }}>Filters</SecondaryButton>
+              <button style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, border: "1px solid " + T.colorBorderMedium, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer" }} onMouseEnter={e => { e.currentTarget.style.borderColor = "#A5A5A5"; e.currentTarget.style.background = T.colorSurfaceSecondary; }} onMouseLeave={e => { e.currentTarget.style.borderColor = T.colorBorderMedium; e.currentTarget.style.background = T.colorSurfacePrimary; }}><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d={_MM_PATHS.plus} stroke={T.colorTextPrimary} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+            </Fragment>
+          ) : (
+            <Fragment>
+              <input type="text" placeholder="Search..." value={_asSearchValue} onChange={e => _asSetSearchValue(e.target.value)} style={{ height: 36, padding: "0 12px", border: "1px solid " + T.colorBorderDark, borderRadius: 6, fontSize: 14, fontFamily: T.fontFamily, outline: "none", width: 220, color: T.colorTextPrimary, background: T.colorSurfacePrimary }} onFocus={e => { e.target.style.borderColor = T.colorBrandPrimary; e.target.style.borderWidth = "2px"; e.target.style.padding = "0 11px"; }} onBlur={e => { e.target.style.borderColor = T.colorBorderDark; e.target.style.borderWidth = "1px"; e.target.style.padding = "0 12px"; }} />
+              <div style={{ flex: 1 }} />
+              <Dropdown value="jan-dec-2026" options={[{ label: "1 Jan 2026 - 31 Dec 2026", value: "jan-dec-2026" }]} onChange={() => {}} size="sm" width={230} />
+              <Dropdown value="all" options={[{ label: "All expense accounts", value: "all" },{ label: "6010 – Rates", value: "6010" },{ label: "6020 – Light, heat & power", value: "6020" },{ label: "6040 – Repairs & maintenance", value: "6040" },{ label: "6200 – Professional fees", value: "6200" },{ label: "6210 – Bank charges", value: "6210" },{ label: "6230 – Telephone & internet", value: "6230" },{ label: "7000 – Wages & salaries", value: "7000" },{ label: "7003 – Pension costs", value: "7003" }]} onChange={() => {}} size="sm" width={200} />
+              <SecondaryButton style={{ height: 36, padding: "0 12px", fontSize: 14, gap: 6 }}><_asPlusIcon />Add accrual</SecondaryButton>
+            </Fragment>
+          )}
         </div>
         <div style={{ flex: "1 1 auto", minHeight: 0, overflowX: "auto", overflowY: "auto" }}>
         <table style={{ borderCollapse: "separate", borderSpacing: 0, minWidth: _asFixedColsWidth + _asVisibleMonths.length * _asColWidths.month, width: "100%", tableLayout: "fixed" }}>
@@ -718,7 +936,7 @@ function AccrualSchedulePage({ open, onClose }) {
           </tr></thead>
           <tbody>{_asFilteredData.map(item => (
             <tr key={item.id} style={{ cursor: "pointer" }} onMouseEnter={e => { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfacePrimary; }); }}>
-              <td data-sticky="1" style={{ ..._asCellStyle, ..._asStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}><_asActiveBadge /></div></div></td>
+              <td data-sticky="1" style={{ ..._asCellStyle, ..._asStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}>{item.isSuggestion ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Suggestion</span> : <_asActiveBadge />}</div></div></td>
               <td data-sticky="1" style={{ ..._asCellStyle, ..._asStickyCol1 }}><div style={{ display: "flex", flexDirection: "column", gap: 4 }}><span>{item.balanceForward != null ? _asFmtGBP(item.balanceForward) : "-"}</span>{item.toAllocate != null && <_asToAllocateBadge amount={item.toAllocate} />}</div></td>
               <td style={{ ..._asCellStyle, color: T.colorTextPrimary }}>{item.expenseAccount}</td>
               <td style={{ ..._asCellStyle, color: T.colorTextPrimary }}>{item.invoiceDate}</td>
@@ -727,12 +945,110 @@ function AccrualSchedulePage({ open, onClose }) {
             </tr>
           ))}</tbody>
           <tfoot>
-            <tr><td style={{ ..._asFooterCellStyle, ..._asStickyCol0, background: "#FBFBFB" }} colSpan={1}>Total reversals</td><td style={{ ..._asFooterCellStyle, ..._asStickyCol1, background: "#FBFBFB" }} colSpan={1}></td><td style={{ ..._asFooterCellStyle }} colSpan={3}></td>{_asVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._asFooterCellStyle, textAlign: "right" }}>{_asTotalReversals[vm.key] ? _asFmtReversal(_asTotalReversals[vm.key]) : "-"}</td>))}</tr>
-            <tr><td style={{ ..._asFooterCellStyle, ..._asStickyCol0, background: "#FBFBFB" }} colSpan={1}>Total additions</td><td style={{ ..._asFooterCellStyle, ..._asStickyCol1, background: "#FBFBFB" }} colSpan={1}></td><td style={{ ..._asFooterCellStyle }} colSpan={3}></td>{_asVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._asFooterCellStyle, textAlign: "right" }}>{_asTotalAdditions[vm.key] ? _asFmtAddition(_asTotalAdditions[vm.key]) : "-"}</td>))}</tr>
-            <tr><td style={{ ..._asFooterCellStyle, ..._asStickyCol0, background: "#FBFBFB" }} colSpan={1}>Closing balance</td><td style={{ ..._asFooterCellStyle, ..._asStickyCol1, background: "#FBFBFB" }} colSpan={1}></td><td style={{ ..._asFooterCellStyle }} colSpan={3}></td>{_asVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._asFooterCellStyle, textAlign: "right" }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{_asFmtGBP(_asClosingBalances[vm.key])}</span>{vm.key === _asMonthKey(2, 2026) && (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: "#757980", whiteSpace: "nowrap" }}>GL +£340.00</span>)}</div></td>))}</tr>
+            <tr><td style={{ ..._asFooterCellStyle, ..._asStickyCol0 }} colSpan={1}>Total reversals</td><td style={{ ..._asFooterCellStyle, ..._asStickyCol1 }} colSpan={1}></td><td style={{ ..._asFooterCellStyle }} colSpan={3}></td>{_asVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._asFooterCellStyle, textAlign: "right" }}>{_asTotalReversals[vm.key] ? _asFmtReversal(_asTotalReversals[vm.key]) : "-"}</td>))}</tr>
+            <tr><td style={{ ..._asFooterCellStyle, ..._asStickyCol0 }} colSpan={1}>Total additions</td><td style={{ ..._asFooterCellStyle, ..._asStickyCol1 }} colSpan={1}></td><td style={{ ..._asFooterCellStyle }} colSpan={3}></td>{_asVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._asFooterCellStyle, textAlign: "right" }}>{_asTotalAdditions[vm.key] ? _asFmtAddition(_asTotalAdditions[vm.key]) : "-"}</td>))}</tr>
+            <tr><td style={{ ..._asFooterCellStyle, ..._asStickyCol0 }} colSpan={1}>Closing balance</td><td style={{ ..._asFooterCellStyle, ..._asStickyCol1 }} colSpan={1}></td><td style={{ ..._asFooterCellStyle }} colSpan={3}></td>{_asVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._asFooterCellStyle, textAlign: "right" }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{_asFmtGBP(_asClosingBalances[vm.key])}</span>{vm.key === _asMonthKey(2, 2026) && (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: "#757980", whiteSpace: "nowrap" }}>GL +£340.00</span>)}</div></td>))}</tr>
           </tfoot>
         </table>
         </div>
+      </div>
+      {(function() {
+        var _hasResults = reviewState && reviewState.hasResults;
+        var _remaining = _hasResults ? reviewState.total - reviewState.resolved : 0;
+        var _sugText = _hasResults
+          ? _remaining + " suggestion" + (_remaining !== 1 ? "s" : "")
+          : "Not started";
+        var _sugColor = _hasResults
+          ? (_remaining > 0 ? T.colorInfoAlt : T.colorInfo)
+          : T.colorTextMuted;
+        return (
+        <div style={{ width: _sugPanelOpen ? 420 : 0, flexShrink: 0, background: T.colorSurfaceSecondary, borderLeft: _sugPanelOpen ? "1px solid " + T.colorBorderDark : "none", display: "flex", flexDirection: "column", overflow: "hidden", transition: "width 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
+          <div style={{ minWidth: 420, padding: "24px 24px 16px", flexShrink: 0 }}>
+            <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-0.5px" }}>Suggestions</span>
+          </div>
+          <div style={{ minWidth: 420, flex: "1 1 auto", overflowY: "auto", padding: "0 24px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <span style={{ fontSize: 15, fontWeight: 500, color: T.colorTextPrimary }}>{reviewTitle || "Review"}</span>
+                <span style={{ fontSize: 13, fontWeight: 400, color: _sugColor }}>
+                  {_sugText}
+                  {_hasResults && (
+                    <Fragment>
+                      <span style={{ display: "inline-block", width: 3, height: 3, borderRadius: "50%", background: T.colorTextSecondary, verticalAlign: "middle", margin: "0 6px" }} />
+                      <span style={{ color: T.colorTextSecondary }}>5 May, 12:23</span>
+                    </Fragment>
+                  )}
+                </span>
+              </div>
+              <SecondaryButton onClick={onRunReview} style={{ height: 36, padding: "6px 12px", fontSize: 13, gap: 6, whiteSpace: "nowrap", flexShrink: 0 }}>
+                Run
+                <PlayCircleIcon color="currentColor" size={16} />
+              </SecondaryButton>
+            </div>
+            {_hasResults ? sugCards.map(function(card, ci) {
+              var rs = reviewState || {};
+              var isResolved = rs.resolvedArray && rs.resolvedArray.indexOf(card.idx) !== -1;
+              var isIgnored = rs.ignoredArray && rs.ignoredArray.indexOf(card.idx) !== -1;
+              var actionLabel = rs.cardActions ? rs.cardActions[card.idx] : undefined;
+              var statusLabel = isResolved ? (actionLabel || "Journal posted") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
+              var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
+              return React.createElement(RecommendationCard, {
+                key: card.key || ci,
+                title: card.title,
+                description: card.description,
+                tableRow: card.tableRow,
+                verticalTable: true,
+                tableColumns: [{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }, { key: "invoice", label: "Invoice", width: "0.8fr" }],
+                primaryLabel: card.primaryLabel,
+                secondaryLabel: card.secondaryLabel,
+                collapsed: isResolved || isIgnored,
+                isIgnored: isIgnored,
+                hideMore: true,
+                statusLabel: statusLabel,
+                statusStyle: statusStyle,
+                onPrimaryAction: function() { _asSetDrawerCard(card); },
+                onIgnore: function() {},
+              });
+            }) : (
+              <div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, height: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", textAlign: "center" }}>
+                <span style={{ ...T.textMd, fontWeight: 500, color: T.colorTextPrimary }}>No suggestions yet</span>
+                <span style={{ ...T.textMd, fontWeight: 400, color: T.colorTextSecondary, marginTop: 8 }}>{"Run " + (reviewTitle ? reviewTitle.replace(" review", "").toLowerCase() : "") + " review to check for suggestions."}</span>
+              </div>
+            )}
+          </div>
+        </div>
+        );
+      })()}
+      {_asDrawerCard && _asDrawerCard.drawer && React.createElement(Sidebar, { open: true, onClose: function() { _asSetDrawerCard(null); }, title: _asDrawerCard.drawer.contact, width: 520,
+          footer: React.createElement(React.Fragment, null,
+            React.createElement(SecondaryButton, { onClick: function() { _asSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Dismiss"),
+            React.createElement(PrimaryButton, { onClick: function() { _asSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
+          ) },
+        React.createElement("div", { style: { padding: 24, display: "flex", flexDirection: "column", gap: 24 } },
+          React.createElement(Banner, { variant: "success", icon: React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" }, React.createElement("path", { d: "M10 1.5L11.5 7L17 8.5L11.5 10L10 15.5L8.5 10L3 8.5L8.5 7L10 1.5Z", fill: T.colorBrandPrimary, stroke: T.colorBrandPrimary, strokeWidth: 1.5, strokeLinejoin: "round", paintOrder: "stroke" })) }, _asDrawerCard.drawer.aiInsight),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            React.createElement("div", { style: Object.assign({ display: "flex", gap: 4, fontWeight: 500, color: T.colorTextPrimary }, T.textMd) },
+              React.createElement("span", null, "Adjustment type"),
+              React.createElement("span", { style: { color: "#DC5C40" } }, "*")
+            ),
+            React.createElement(Dropdown, { value: _asDrawerCard.drawer.adjType, options: [{ value: "accrual_expense", label: "Accrued Expense" }, { value: "accrual_reversal", label: "Accrual reversal" }], onChange: function() {} })
+          ),
+          React.createElement(Input, { label: "Description", mandatory: true, value: _asDrawerCard.drawer.description, onChange: function() {} }),
+          React.createElement(Input, { label: "Accrual Amount", mandatory: true, value: _asDrawerCard.drawer.amount, onChange: function() {}, leftSlotType: "currency", currencySymbol: "£" }),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            React.createElement("div", { style: Object.assign({ display: "flex", gap: 4, fontWeight: 500, color: T.colorTextPrimary }, T.textMd) },
+              React.createElement("span", null, "Expense account"),
+              React.createElement("span", { style: { color: "#DC5C40" } }, "*")
+            ),
+            React.createElement(Dropdown, { value: "account", options: [{ value: "account", label: _asDrawerCard.drawer.expenseAccount }], onChange: function() {}, searchable: true })
+          ),
+          React.createElement(Input, { label: "Accrual date", mandatory: true, value: _asDrawerCard.drawer.accrualDate || "", onChange: function() {}, leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+          React.createElement(Checkbox, { checked: true, onChange: function() {}, label: "Create journal entry for this accrual" }),
+          React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
+          React.createElement(Input, { label: "Reversal date", value: _asDrawerCard.drawer.reversalDate || "", onChange: function() {}, helpText: "The accrual will be fully reversed on the selected date", leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+          React.createElement(Banner, { variant: "info" }, "You can leave the reversal date empty and choose it later when ready.")
+        )
+      )}
       </div>
     </div>
   );
@@ -740,8 +1056,11 @@ function AccrualSchedulePage({ open, onClose }) {
 
 
 // ── Deferred Revenue Schedule ──────────────────────────────────────────────
-function DeferredRevenueSchedulePage({ open, onClose }) {
+function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview }) {
   if (!open) return null;
+
+  const [_sugPanelOpen, _setSugPanelOpen] = useState(false);
+  const [_drDrawerCard, _drSetDrawerCard] = useState(null);
 
   const _drMonthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const _drFmtMonth = (m, y) => _drMonthNames[m] + " " + String(y).slice(2);
@@ -776,35 +1095,63 @@ function DeferredRevenueSchedulePage({ open, onClose }) {
   const _drBorderClr = "#EFF1F4";
   const _drThStyle = { ...T.textSm, fontWeight: 400, color: "#757980", padding: "10px 12px", textAlign: "left", whiteSpace: "nowrap", borderBottom: "1px solid " + _drBorderClr, borderRight: "1px solid " + _drBorderClr, position: "sticky", top: 0, background: T.colorSurfacePrimary, zIndex: 2 };
   const _drCellStyle = { ...T.textSm, color: T.colorTextPrimary, padding: "10px 12px", borderBottom: "1px solid " + _drBorderClr, borderRight: "1px solid " + _drBorderClr, whiteSpace: "normal", verticalAlign: "middle" };
-  const _drFooterCellStyle = { ..._drCellStyle, fontWeight: 600, background: "#FBFBFB", height: 72, verticalAlign: "middle" };
-  const _drStickyCol0 = { position: "sticky", left: 0, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _drBorderClr };
-  const _drStickyCol1Left = 260;
+  const _drFooterCellStyle = { ..._drCellStyle, fontWeight: 600, height: 72, verticalAlign: "middle" };
+  const _drStickyCol0 = { position: "sticky", left: 0, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _drBorderClr, paddingLeft: 32 };
+  const _drStickyCol1Left = 300;
   const _drStickyCol1 = { position: "sticky", left: _drStickyCol1Left, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _drBorderClr, boxShadow: "4px 0 8px -2px rgba(0,0,0,0.1)" };
-  const _drColWidths = { description: 260, balance: 200, account: 280, invoiceDate: 130, invoiceAmount: 160, month: 140 };
+  const _drColWidths = { description: 300, balance: 200, account: 280, invoiceDate: 130, invoiceAmount: 160, month: 140 };
   const _drFixedColsWidth = _drColWidths.description + _drColWidths.balance + _drColWidths.account + _drColWidths.invoiceDate + _drColWidths.invoiceAmount;
 
   const _drRenderMonthCell = (entry, isFooter) => { if (!entry) return <span style={{ color: "#B0B3B8" }}>-</span>; const { addition, recognition, status } = entry; const isPublished = status === "published"; const isScheduled = status === "scheduled"; const bg = isPublished ? T.colorSuccessBg : "transparent"; const cellContent = []; if (addition) { cellContent.push(<div key="add" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_drFmtAddition(addition)}</div>); } if (recognition) { if (isScheduled) { cellContent.push(<div key="rec" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_drFmtRecognition(recognition)}<_drClockIcon /></div>); } else { cellContent.push(<div key="rec" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_drFmtRecognition(recognition)}</div>); } } if (cellContent.length === 0) return <span style={{ color: "#B0B3B8" }}>-</span>; return (<div style={{ background: bg, borderRadius: bg !== "transparent" ? 4 : 0, padding: bg !== "transparent" ? "2px 6px" : 0, display: "inline-flex", flexDirection: "column", gap: 2 }}>{cellContent}</div>); };
 
-  const _drActiveBadge = () => (<span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}><span style={{ width: 6, height: 6, borderRadius: 3, background: T.colorBrandPrimary, flexShrink: 0 }} />Active</span>);
+  const _drActiveBadge = () => (<span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Active</span>);
   const _drToAllocateBadge = ({ amount }) => (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px", whiteSpace: "nowrap" }}>{_drFmtGBP(amount)} to allocate</span>);
 
   const [_drSearchValue, _drSetSearchValue] = useState("");
-  const _drFilteredData = _drSearchValue ? _drData.filter(item => item.description.toLowerCase().includes(_drSearchValue.toLowerCase()) || item.revenueAccount.toLowerCase().includes(_drSearchValue.toLowerCase())) : _drData;
+
+  const _drSuggestionRows = (reviewState && reviewState.hasResults && sugCards) ? sugCards.map((card, i) => {
+    const amt = card.drawer ? parseFloat(card.drawer.amount.replace(/,/g, "")) : (card.tableRow ? _parseSugAmount(card.tableRow.amount) : 0);
+    const period = card.tableRow ? card.tableRow.period : "";
+    const isRecognition = card.key === "stale" || card.key === "pattern" || (card.title && (card.title.toLowerCase().indexOf("release") !== -1 || card.title.toLowerCase().indexOf("missed") !== -1));
+    return {
+      id: "sug_" + i,
+      isSuggestion: true,
+      description: card.drawer ? card.drawer.description : card.title,
+      period: period,
+      status: "Suggestion",
+      balanceForward: null,
+      toAllocate: null,
+      revenueAccount: card.drawer ? card.drawer.expenseAccount : (card.tableRow ? card.tableRow.account : ""),
+      invoiceDate: card.drawer ? card.drawer.invoiceDateField : "",
+      invoiceAmount: amt || null,
+      entries: _buildSugEntries(period, amt, isRecognition ? "recognition" : "addition"),
+    };
+  }) : [];
+
+  const _drFilteredData = _drSuggestionRows.concat(_drSearchValue ? _drData.filter(item => item.description.toLowerCase().includes(_drSearchValue.toLowerCase()) || item.revenueAccount.toLowerCase().includes(_drSearchValue.toLowerCase())) : _drData);
 
   return (
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: T.colorSurfacePrimary, zIndex: 310, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: T.fontFamily }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "24px 32px 32px 32px", flexShrink: 0 }}>
-        <h1 style={{ margin: 0, fontSize: 32, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "40px" }}>Deferred revenue schedule</h1>
-        <SecondaryButton onClick={onClose} style={{ height: 40, padding: "8px 16px", fontSize: 14, gap: 8 }}><svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ marginRight: 2 }}><path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>Close</SecondaryButton>
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", margin: "0 32px 32px 32px", border: "1px solid " + _drBorderClr, borderRadius: 16, overflow: "hidden", flex: "1 1 auto", minHeight: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", flexShrink: 0, flexWrap: "wrap", borderBottom: "1px solid " + _drBorderClr }}>
-          <input type="text" placeholder="Search..." value={_drSearchValue} onChange={e => _drSetSearchValue(e.target.value)} style={{ height: 36, padding: "0 12px", border: "1px solid " + T.colorBorderDark, borderRadius: 6, fontSize: 14, fontFamily: T.fontFamily, outline: "none", width: 220, color: T.colorTextPrimary, background: T.colorSurfacePrimary }} onFocus={e => { e.target.style.borderColor = T.colorBrandPrimary; e.target.style.borderWidth = "2px"; e.target.style.padding = "0 11px"; }} onBlur={e => { e.target.style.borderColor = T.colorBorderDark; e.target.style.borderWidth = "1px"; e.target.style.padding = "0 12px"; }} />
-          <div style={{ flex: 1 }} />
-          <Dropdown value="jan-dec-2026" options={[{ label: "1 Jan 2026 - 31 Dec 2026", value: "jan-dec-2026" }]} onChange={() => {}} size="sm" width={230} />
-          <Dropdown value="all" options={[{ label: "All revenue accounts", value: "all" },{ label: "4000 – Sales", value: "4000" },{ label: "4200 – Rental income", value: "4200" }]} onChange={() => {}} size="sm" width={200} />
-          <SecondaryButton style={{ height: 36, padding: "0 12px", fontSize: 14, gap: 6 }}><_drPlusIcon />Add deferred revenue</SecondaryButton>
-          <SecondaryButton style={{ height: 36, padding: "0 12px", fontSize: 14, gap: 6 }}><_drDownloadIcon />Export</SecondaryButton>
+      <_ScheduleTopBar activeType={activeScheduleType} onTypeChange={onScheduleTypeChange} onClose={onClose} suggestionsCount={suggestionsCount} onSuggestionsClick={() => { _setSugPanelOpen(p => !p); }} sugPanelOpen={_sugPanelOpen} />
+      <div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}>
+      <div style={{ display: "flex", flexDirection: "column", flex: "1 1 auto", minWidth: 0, overflow: "hidden", transition: "flex 0.3s ease" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 32px", flexShrink: 0, flexWrap: "wrap", borderBottom: "1px solid " + _drBorderClr }}>
+          {_sugPanelOpen ? (
+            <Fragment>
+              <input type="text" placeholder="Search..." value={_drSearchValue} onChange={e => _drSetSearchValue(e.target.value)} style={{ height: 36, padding: "0 12px", border: "1px solid " + T.colorBorderDark, borderRadius: 6, fontSize: 14, fontFamily: T.fontFamily, outline: "none", width: 200, color: T.colorTextPrimary, background: T.colorSurfacePrimary }} onFocus={e => { e.target.style.borderColor = T.colorBrandPrimary; e.target.style.borderWidth = "2px"; e.target.style.padding = "0 11px"; }} onBlur={e => { e.target.style.borderColor = T.colorBorderDark; e.target.style.borderWidth = "1px"; e.target.style.padding = "0 12px"; }} />
+              <div style={{ flex: 1 }} />
+              <SecondaryButton style={{ height: 36, padding: "0 14px", fontSize: 14 }}>Filters</SecondaryButton>
+              <button style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, border: "1px solid " + T.colorBorderMedium, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer" }} onMouseEnter={e => { e.currentTarget.style.borderColor = "#A5A5A5"; e.currentTarget.style.background = T.colorSurfaceSecondary; }} onMouseLeave={e => { e.currentTarget.style.borderColor = T.colorBorderMedium; e.currentTarget.style.background = T.colorSurfacePrimary; }}><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d={_MM_PATHS.plus} stroke={T.colorTextPrimary} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+            </Fragment>
+          ) : (
+            <Fragment>
+              <input type="text" placeholder="Search..." value={_drSearchValue} onChange={e => _drSetSearchValue(e.target.value)} style={{ height: 36, padding: "0 12px", border: "1px solid " + T.colorBorderDark, borderRadius: 6, fontSize: 14, fontFamily: T.fontFamily, outline: "none", width: 220, color: T.colorTextPrimary, background: T.colorSurfacePrimary }} onFocus={e => { e.target.style.borderColor = T.colorBrandPrimary; e.target.style.borderWidth = "2px"; e.target.style.padding = "0 11px"; }} onBlur={e => { e.target.style.borderColor = T.colorBorderDark; e.target.style.borderWidth = "1px"; e.target.style.padding = "0 12px"; }} />
+              <div style={{ flex: 1 }} />
+              <Dropdown value="jan-dec-2026" options={[{ label: "1 Jan 2026 - 31 Dec 2026", value: "jan-dec-2026" }]} onChange={() => {}} size="sm" width={230} />
+              <Dropdown value="all" options={[{ label: "All revenue accounts", value: "all" },{ label: "4000 – Sales", value: "4000" },{ label: "4200 – Rental income", value: "4200" }]} onChange={() => {}} size="sm" width={200} />
+              <SecondaryButton style={{ height: 36, padding: "0 12px", fontSize: 14, gap: 6 }}><_drPlusIcon />Add deferred revenue</SecondaryButton>
+            </Fragment>
+          )}
         </div>
         <div style={{ overflowX: "auto", overflowY: "auto", flex: "1 1 auto", minHeight: 0 }}>
         <table style={{ borderCollapse: "separate", borderSpacing: 0, minWidth: _drFixedColsWidth + _drVisibleMonths.length * _drColWidths.month, width: "100%", tableLayout: "fixed" }}>
@@ -819,7 +1166,7 @@ function DeferredRevenueSchedulePage({ open, onClose }) {
           </tr></thead>
           <tbody>{_drFilteredData.map(item => (
             <tr key={item.id} style={{ cursor: "pointer" }} onMouseEnter={e => { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfacePrimary; }); }}>
-              <td data-sticky="1" style={{ ..._drCellStyle, ..._drStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ ...T.textXs, color: T.colorTextSecondary }}>{item.period}</span><_drActiveBadge /></div></div></td>
+              <td data-sticky="1" style={{ ..._drCellStyle, ..._drStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ ...T.textXs, color: T.colorTextSecondary }}>{item.period}</span>{item.isSuggestion ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Suggestion</span> : <_drActiveBadge />}</div></div></td>
               <td data-sticky="1" style={{ ..._drCellStyle, ..._drStickyCol1 }}><div style={{ display: "flex", flexDirection: "column", gap: 4 }}><span>{item.balanceForward != null ? _drFmtGBP(item.balanceForward) : "-"}</span>{item.toAllocate != null && <_drToAllocateBadge amount={item.toAllocate} />}</div></td>
               <td style={{ ..._drCellStyle, color: T.colorTextPrimary }}>{item.revenueAccount}</td>
               <td style={{ ..._drCellStyle, color: T.colorTextPrimary }}>{item.invoiceDate}</td>
@@ -828,12 +1175,110 @@ function DeferredRevenueSchedulePage({ open, onClose }) {
             </tr>
           ))}</tbody>
           <tfoot>
-            <tr><td style={{ ..._drFooterCellStyle, ..._drStickyCol0, background: "#FBFBFB" }} colSpan={1}>Total recognitions</td><td style={{ ..._drFooterCellStyle, ..._drStickyCol1, background: "#FBFBFB" }} colSpan={1}></td><td style={{ ..._drFooterCellStyle }} colSpan={3}></td>{_drVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._drFooterCellStyle, textAlign: "right" }}>{_drTotalRecognitions[vm.key] ? _drFmtRecognition(_drTotalRecognitions[vm.key]) : "-"}</td>))}</tr>
-            <tr><td style={{ ..._drFooterCellStyle, ..._drStickyCol0, background: "#FBFBFB" }} colSpan={1}>Total additions</td><td style={{ ..._drFooterCellStyle, ..._drStickyCol1, background: "#FBFBFB" }} colSpan={1}></td><td style={{ ..._drFooterCellStyle }} colSpan={3}></td>{_drVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._drFooterCellStyle, textAlign: "right" }}>{_drTotalAdditions[vm.key] ? _drFmtAddition(_drTotalAdditions[vm.key]) : "-"}</td>))}</tr>
-            <tr><td style={{ ..._drFooterCellStyle, ..._drStickyCol0, background: "#FBFBFB" }} colSpan={1}>Closing balance</td><td style={{ ..._drFooterCellStyle, ..._drStickyCol1, background: "#FBFBFB" }} colSpan={1}></td><td style={{ ..._drFooterCellStyle }} colSpan={3}></td>{_drVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._drFooterCellStyle, textAlign: "right" }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{_drFmtGBP(_drClosingBalances[vm.key])}</span>{vm.key === _drMonthKey(2, 2026) && (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: "#757980", whiteSpace: "nowrap" }}>GL +£340.00</span>)}</div></td>))}</tr>
+            <tr><td style={{ ..._drFooterCellStyle, ..._drStickyCol0 }} colSpan={1}>Total recognitions</td><td style={{ ..._drFooterCellStyle, ..._drStickyCol1 }} colSpan={1}></td><td style={{ ..._drFooterCellStyle }} colSpan={3}></td>{_drVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._drFooterCellStyle, textAlign: "right" }}>{_drTotalRecognitions[vm.key] ? _drFmtRecognition(_drTotalRecognitions[vm.key]) : "-"}</td>))}</tr>
+            <tr><td style={{ ..._drFooterCellStyle, ..._drStickyCol0 }} colSpan={1}>Total additions</td><td style={{ ..._drFooterCellStyle, ..._drStickyCol1 }} colSpan={1}></td><td style={{ ..._drFooterCellStyle }} colSpan={3}></td>{_drVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._drFooterCellStyle, textAlign: "right" }}>{_drTotalAdditions[vm.key] ? _drFmtAddition(_drTotalAdditions[vm.key]) : "-"}</td>))}</tr>
+            <tr><td style={{ ..._drFooterCellStyle, ..._drStickyCol0 }} colSpan={1}>Closing balance</td><td style={{ ..._drFooterCellStyle, ..._drStickyCol1 }} colSpan={1}></td><td style={{ ..._drFooterCellStyle }} colSpan={3}></td>{_drVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._drFooterCellStyle, textAlign: "right" }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{_drFmtGBP(_drClosingBalances[vm.key])}</span>{vm.key === _drMonthKey(2, 2026) && (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: "#757980", whiteSpace: "nowrap" }}>GL +£340.00</span>)}</div></td>))}</tr>
           </tfoot>
         </table>
         </div>
+      </div>
+      {(function() {
+        var _hasResults = reviewState && reviewState.hasResults;
+        var _remaining = _hasResults ? reviewState.total - reviewState.resolved : 0;
+        var _sugText = _hasResults
+          ? _remaining + " suggestion" + (_remaining !== 1 ? "s" : "")
+          : "Not started";
+        var _sugColor = _hasResults
+          ? (_remaining > 0 ? T.colorInfoAlt : T.colorInfo)
+          : T.colorTextMuted;
+        return (
+        <div style={{ width: _sugPanelOpen ? 420 : 0, flexShrink: 0, background: T.colorSurfaceSecondary, borderLeft: _sugPanelOpen ? "1px solid " + T.colorBorderDark : "none", display: "flex", flexDirection: "column", overflow: "hidden", transition: "width 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
+          <div style={{ minWidth: 420, padding: "24px 24px 16px", flexShrink: 0 }}>
+            <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-0.5px" }}>Suggestions</span>
+          </div>
+          <div style={{ minWidth: 420, flex: "1 1 auto", overflowY: "auto", padding: "0 24px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <span style={{ fontSize: 15, fontWeight: 500, color: T.colorTextPrimary }}>{reviewTitle || "Review"}</span>
+                <span style={{ fontSize: 13, fontWeight: 400, color: _sugColor }}>
+                  {_sugText}
+                  {_hasResults && (
+                    <Fragment>
+                      <span style={{ display: "inline-block", width: 3, height: 3, borderRadius: "50%", background: T.colorTextSecondary, verticalAlign: "middle", margin: "0 6px" }} />
+                      <span style={{ color: T.colorTextSecondary }}>5 May, 12:23</span>
+                    </Fragment>
+                  )}
+                </span>
+              </div>
+              <SecondaryButton onClick={onRunReview} style={{ height: 36, padding: "6px 12px", fontSize: 13, gap: 6, whiteSpace: "nowrap", flexShrink: 0 }}>
+                Run
+                <PlayCircleIcon color="currentColor" size={16} />
+              </SecondaryButton>
+            </div>
+            {_hasResults ? sugCards.map(function(card, ci) {
+              var rs = reviewState || {};
+              var isResolved = rs.resolvedArray && rs.resolvedArray.indexOf(card.idx) !== -1;
+              var isIgnored = rs.ignoredArray && rs.ignoredArray.indexOf(card.idx) !== -1;
+              var actionLabel = rs.cardActions ? rs.cardActions[card.idx] : undefined;
+              var statusLabel = isResolved ? (actionLabel || "Journal posted") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
+              var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
+              return React.createElement(RecommendationCard, {
+                key: card.key || ci,
+                title: card.title,
+                description: card.description,
+                tableRow: card.tableRow,
+                verticalTable: true,
+                tableColumns: [{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }, { key: "invoice", label: "Invoice", width: "0.8fr" }],
+                primaryLabel: card.primaryLabel,
+                secondaryLabel: card.secondaryLabel,
+                collapsed: isResolved || isIgnored,
+                isIgnored: isIgnored,
+                hideMore: true,
+                statusLabel: statusLabel,
+                statusStyle: statusStyle,
+                onPrimaryAction: function() { _drSetDrawerCard(card); },
+                onIgnore: function() {},
+              });
+            }) : (
+              <div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, height: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", textAlign: "center" }}>
+                <span style={{ ...T.textMd, fontWeight: 500, color: T.colorTextPrimary }}>No suggestions yet</span>
+                <span style={{ ...T.textMd, fontWeight: 400, color: T.colorTextSecondary, marginTop: 8 }}>{"Run " + (reviewTitle ? reviewTitle.replace(" review", "").toLowerCase() : "") + " review to check for suggestions."}</span>
+              </div>
+            )}
+          </div>
+        </div>
+        );
+      })()}
+      {_drDrawerCard && _drDrawerCard.drawer && React.createElement(Sidebar, { open: true, onClose: function() { _drSetDrawerCard(null); }, title: _drDrawerCard.drawer.contact, width: 520,
+          footer: React.createElement(React.Fragment, null,
+            React.createElement(SecondaryButton, { onClick: function() { _drSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Dismiss"),
+            React.createElement(PrimaryButton, { onClick: function() { _drSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
+          ) },
+        React.createElement("div", { style: { padding: 24, display: "flex", flexDirection: "column", gap: 24 } },
+          React.createElement(Banner, { variant: "success", icon: React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" }, React.createElement("path", { d: "M10 1.5L11.5 7L17 8.5L11.5 10L10 15.5L8.5 10L3 8.5L8.5 7L10 1.5Z", fill: T.colorBrandPrimary, stroke: T.colorBrandPrimary, strokeWidth: 1.5, strokeLinejoin: "round", paintOrder: "stroke" })) }, _drDrawerCard.drawer.aiInsight),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            React.createElement("div", { style: Object.assign({ display: "flex", gap: 4, fontWeight: 500, color: T.colorTextPrimary }, T.textMd) },
+              React.createElement("span", null, "Adjustment type"),
+              React.createElement("span", { style: { color: "#DC5C40" } }, "*")
+            ),
+            React.createElement(Dropdown, { value: _drDrawerCard.drawer.adjType, options: [{ value: "defer_revenue", label: "Defer revenue" }, { value: "release_revenue", label: "Release deferred revenue" }], onChange: function() {} })
+          ),
+          React.createElement(Input, { label: "Description", mandatory: true, value: _drDrawerCard.drawer.description, onChange: function() {} }),
+          React.createElement(Input, { label: "Amount", mandatory: true, value: _drDrawerCard.drawer.amount, onChange: function() {}, leftSlotType: "currency", currencySymbol: "£" }),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            React.createElement("div", { style: Object.assign({ display: "flex", gap: 4, fontWeight: 500, color: T.colorTextPrimary }, T.textMd) },
+              React.createElement("span", null, "Revenue account"),
+              React.createElement("span", { style: { color: "#DC5C40" } }, "*")
+            ),
+            React.createElement(Dropdown, { value: "account", options: [{ value: "account", label: _drDrawerCard.drawer.revenueAccount }], onChange: function() {}, searchable: true })
+          ),
+          React.createElement(Input, { label: "Deferral date", mandatory: true, value: _drDrawerCard.drawer.deferralDate || "", onChange: function() {}, leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+          React.createElement(Checkbox, { checked: true, onChange: function() {}, label: "Create journal entry for this deferral" }),
+          React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
+          React.createElement(Input, { label: "Recognition date", value: _drDrawerCard.drawer.recognitionDate || "", onChange: function() {}, helpText: "Revenue will be recognised starting from this date", leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+          React.createElement(Banner, { variant: "info" }, "You can leave the recognition date empty and choose it later when ready.")
+        )
+      )}
       </div>
     </div>
   );
@@ -841,8 +1286,11 @@ function DeferredRevenueSchedulePage({ open, onClose }) {
 
 
 // ── Accrued Income Schedule ────────────────────────────────────────────────
-function AccruedIncomeSchedulePage({ open, onClose }) {
+function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview }) {
   if (!open) return null;
+
+  const [_sugPanelOpen, _setSugPanelOpen] = useState(false);
+  const [_aiDrawerCard, _aiSetDrawerCard] = useState(null);
 
   const _aiMonthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const _aiFmtMonth = (m, y) => _aiMonthNames[m] + " " + String(y).slice(2);
@@ -877,35 +1325,63 @@ function AccruedIncomeSchedulePage({ open, onClose }) {
   const _aiBorderClr = "#EFF1F4";
   const _aiThStyle = { ...T.textSm, fontWeight: 400, color: "#757980", padding: "10px 12px", textAlign: "left", whiteSpace: "nowrap", borderBottom: "1px solid " + _aiBorderClr, borderRight: "1px solid " + _aiBorderClr, position: "sticky", top: 0, background: T.colorSurfacePrimary, zIndex: 2 };
   const _aiCellStyle = { ...T.textSm, color: T.colorTextPrimary, padding: "10px 12px", borderBottom: "1px solid " + _aiBorderClr, borderRight: "1px solid " + _aiBorderClr, whiteSpace: "normal", verticalAlign: "middle" };
-  const _aiFooterCellStyle = { ..._aiCellStyle, fontWeight: 600, background: "#FBFBFB", height: 72, verticalAlign: "middle" };
-  const _aiStickyCol0 = { position: "sticky", left: 0, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _aiBorderClr };
-  const _aiStickyCol1Left = 260;
+  const _aiFooterCellStyle = { ..._aiCellStyle, fontWeight: 600, height: 72, verticalAlign: "middle" };
+  const _aiStickyCol0 = { position: "sticky", left: 0, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _aiBorderClr, paddingLeft: 32 };
+  const _aiStickyCol1Left = 300;
   const _aiStickyCol1 = { position: "sticky", left: _aiStickyCol1Left, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _aiBorderClr, boxShadow: "4px 0 8px -2px rgba(0,0,0,0.1)" };
-  const _aiColWidths = { description: 260, balance: 200, account: 280, invoiceDate: 130, invoiceAmount: 160, month: 140 };
+  const _aiColWidths = { description: 300, balance: 200, account: 280, invoiceDate: 130, invoiceAmount: 160, month: 140 };
   const _aiFixedColsWidth = _aiColWidths.description + _aiColWidths.balance + _aiColWidths.account + _aiColWidths.invoiceDate + _aiColWidths.invoiceAmount;
 
   const _aiRenderMonthCell = (entry, isFooter) => { if (!entry) return <span style={{ color: "#B0B3B8" }}>-</span>; const { addition, reversal, status } = entry; const isPublished = status === "published"; const isScheduled = status === "scheduled"; const bg = isPublished ? T.colorSuccessBg : "transparent"; const cellContent = []; if (reversal) { if (isScheduled) { cellContent.push(<div key="rev" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_aiFmtReversal(reversal)}<_aiClockIcon /></div>); } else { cellContent.push(<div key="rev" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_aiFmtReversal(reversal)}</div>); } } if (addition) { if (isScheduled && !reversal) { cellContent.push(<div key="add" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_aiFmtAddition(addition)}<_aiClockIcon /></div>); } else { cellContent.push(<div key="add" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_aiFmtAddition(addition)}</div>); } } if (cellContent.length === 0) return <span style={{ color: "#B0B3B8" }}>-</span>; return (<div style={{ background: bg, borderRadius: bg !== "transparent" ? 4 : 0, padding: bg !== "transparent" ? "2px 6px" : 0, display: "inline-flex", flexDirection: "column", gap: 2 }}>{cellContent}</div>); };
 
-  const _aiActiveBadge = () => (<span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}><span style={{ width: 6, height: 6, borderRadius: 3, background: T.colorBrandPrimary, flexShrink: 0 }} />Active</span>);
+  const _aiActiveBadge = () => (<span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Active</span>);
   const _aiToAllocateBadge = ({ amount }) => (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px", whiteSpace: "nowrap" }}>{_aiFmtGBP(amount)} to allocate</span>);
 
   const [_aiSearchValue, _aiSetSearchValue] = useState("");
-  const _aiFilteredData = _aiSearchValue ? _aiData.filter(item => item.description.toLowerCase().includes(_aiSearchValue.toLowerCase()) || item.incomeAccount.toLowerCase().includes(_aiSearchValue.toLowerCase())) : _aiData;
+
+  const _aiSuggestionRows = (reviewState && reviewState.hasResults && sugCards) ? sugCards.map((card, i) => {
+    const amt = card.drawer ? parseFloat(card.drawer.amount.replace(/,/g, "")) : (card.tableRow ? _parseSugAmount(card.tableRow.amount) : 0);
+    const period = card.tableRow ? card.tableRow.period : "";
+    const isReversal = card.key === "stale" || (card.title && (card.title.toLowerCase().indexOf("write off") !== -1 || card.title.toLowerCase().indexOf("reverse") !== -1));
+    return {
+      id: "sug_" + i,
+      isSuggestion: true,
+      description: card.drawer ? card.drawer.description : card.title,
+      period: period,
+      status: "Suggestion",
+      balanceForward: null,
+      toAllocate: null,
+      incomeAccount: card.drawer ? card.drawer.expenseAccount : (card.tableRow ? card.tableRow.account : ""),
+      invoiceDate: card.drawer ? card.drawer.invoiceDateField : "",
+      invoiceAmount: amt || null,
+      entries: _buildSugEntries(period, amt, isReversal ? "reversal" : "addition"),
+    };
+  }) : [];
+
+  const _aiFilteredData = _aiSuggestionRows.concat(_aiSearchValue ? _aiData.filter(item => item.description.toLowerCase().includes(_aiSearchValue.toLowerCase()) || item.incomeAccount.toLowerCase().includes(_aiSearchValue.toLowerCase())) : _aiData);
 
   return (
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: T.colorSurfacePrimary, zIndex: 310, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: T.fontFamily }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "24px 32px 32px 32px", flexShrink: 0 }}>
-        <h1 style={{ margin: 0, fontSize: 32, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "40px" }}>Accrued income schedule</h1>
-        <SecondaryButton onClick={onClose} style={{ height: 40, padding: "8px 16px", fontSize: 14, gap: 8 }}><svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ marginRight: 2 }}><path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>Close</SecondaryButton>
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", margin: "0 32px 32px 32px", border: "1px solid " + _aiBorderClr, borderRadius: 16, overflow: "hidden", flex: "1 1 auto", minHeight: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", flexShrink: 0, flexWrap: "wrap", borderBottom: "1px solid " + _aiBorderClr }}>
-          <input type="text" placeholder="Search..." value={_aiSearchValue} onChange={e => _aiSetSearchValue(e.target.value)} style={{ height: 36, padding: "0 12px", border: "1px solid " + T.colorBorderDark, borderRadius: 6, fontSize: 14, fontFamily: T.fontFamily, outline: "none", width: 220, color: T.colorTextPrimary, background: T.colorSurfacePrimary }} onFocus={e => { e.target.style.borderColor = T.colorBrandPrimary; e.target.style.borderWidth = "2px"; e.target.style.padding = "0 11px"; }} onBlur={e => { e.target.style.borderColor = T.colorBorderDark; e.target.style.borderWidth = "1px"; e.target.style.padding = "0 12px"; }} />
-          <div style={{ flex: 1 }} />
-          <Dropdown value="jan-dec-2026" options={[{ label: "1 Jan 2026 - 31 Dec 2026", value: "jan-dec-2026" }]} onChange={() => {}} size="sm" width={230} />
-          <Dropdown value="all" options={[{ label: "All income accounts", value: "all" },{ label: "4000 – Sales", value: "4000" },{ label: "4100 – Other income", value: "4100" },{ label: "4200 – Rental income", value: "4200" }]} onChange={() => {}} size="sm" width={220} />
-          <SecondaryButton style={{ height: 36, padding: "0 12px", fontSize: 14, gap: 6 }}><_aiPlusIcon />Add accrued income</SecondaryButton>
-          <SecondaryButton style={{ height: 36, padding: "0 12px", fontSize: 14, gap: 6 }}><_aiDownloadIcon />Export</SecondaryButton>
+      <_ScheduleTopBar activeType={activeScheduleType} onTypeChange={onScheduleTypeChange} onClose={onClose} suggestionsCount={suggestionsCount} onSuggestionsClick={() => { _setSugPanelOpen(p => !p); }} sugPanelOpen={_sugPanelOpen} />
+      <div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}>
+      <div style={{ display: "flex", flexDirection: "column", flex: "1 1 auto", minWidth: 0, overflow: "hidden", transition: "flex 0.3s ease" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 32px", flexShrink: 0, flexWrap: "wrap", borderBottom: "1px solid " + _aiBorderClr }}>
+          {_sugPanelOpen ? (
+            <Fragment>
+              <input type="text" placeholder="Search..." value={_aiSearchValue} onChange={e => _aiSetSearchValue(e.target.value)} style={{ height: 36, padding: "0 12px", border: "1px solid " + T.colorBorderDark, borderRadius: 6, fontSize: 14, fontFamily: T.fontFamily, outline: "none", width: 200, color: T.colorTextPrimary, background: T.colorSurfacePrimary }} onFocus={e => { e.target.style.borderColor = T.colorBrandPrimary; e.target.style.borderWidth = "2px"; e.target.style.padding = "0 11px"; }} onBlur={e => { e.target.style.borderColor = T.colorBorderDark; e.target.style.borderWidth = "1px"; e.target.style.padding = "0 12px"; }} />
+              <div style={{ flex: 1 }} />
+              <SecondaryButton style={{ height: 36, padding: "0 14px", fontSize: 14 }}>Filters</SecondaryButton>
+              <button style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, border: "1px solid " + T.colorBorderMedium, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer" }} onMouseEnter={e => { e.currentTarget.style.borderColor = "#A5A5A5"; e.currentTarget.style.background = T.colorSurfaceSecondary; }} onMouseLeave={e => { e.currentTarget.style.borderColor = T.colorBorderMedium; e.currentTarget.style.background = T.colorSurfacePrimary; }}><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d={_MM_PATHS.plus} stroke={T.colorTextPrimary} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+            </Fragment>
+          ) : (
+            <Fragment>
+              <input type="text" placeholder="Search..." value={_aiSearchValue} onChange={e => _aiSetSearchValue(e.target.value)} style={{ height: 36, padding: "0 12px", border: "1px solid " + T.colorBorderDark, borderRadius: 6, fontSize: 14, fontFamily: T.fontFamily, outline: "none", width: 220, color: T.colorTextPrimary, background: T.colorSurfacePrimary }} onFocus={e => { e.target.style.borderColor = T.colorBrandPrimary; e.target.style.borderWidth = "2px"; e.target.style.padding = "0 11px"; }} onBlur={e => { e.target.style.borderColor = T.colorBorderDark; e.target.style.borderWidth = "1px"; e.target.style.padding = "0 12px"; }} />
+              <div style={{ flex: 1 }} />
+              <Dropdown value="jan-dec-2026" options={[{ label: "1 Jan 2026 - 31 Dec 2026", value: "jan-dec-2026" }]} onChange={() => {}} size="sm" width={230} />
+              <Dropdown value="all" options={[{ label: "All income accounts", value: "all" },{ label: "4000 – Sales", value: "4000" },{ label: "4100 – Other income", value: "4100" },{ label: "4200 – Rental income", value: "4200" }]} onChange={() => {}} size="sm" width={220} />
+              <SecondaryButton style={{ height: 36, padding: "0 12px", fontSize: 14, gap: 6 }}><_aiPlusIcon />Add accrued income</SecondaryButton>
+            </Fragment>
+          )}
         </div>
         <div style={{ overflowX: "auto", overflowY: "auto", flex: "1 1 auto", minHeight: 0 }}>
         <table style={{ borderCollapse: "separate", borderSpacing: 0, minWidth: _aiFixedColsWidth + _aiVisibleMonths.length * _aiColWidths.month, width: "100%", tableLayout: "fixed" }}>
@@ -920,7 +1396,7 @@ function AccruedIncomeSchedulePage({ open, onClose }) {
           </tr></thead>
           <tbody>{_aiFilteredData.map(item => (
             <tr key={item.id} style={{ cursor: "pointer" }} onMouseEnter={e => { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfacePrimary; }); }}>
-              <td data-sticky="1" style={{ ..._aiCellStyle, ..._aiStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ ...T.textXs, color: T.colorTextSecondary }}>{item.period}</span><_aiActiveBadge /></div></div></td>
+              <td data-sticky="1" style={{ ..._aiCellStyle, ..._aiStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ ...T.textXs, color: T.colorTextSecondary }}>{item.period}</span>{item.isSuggestion ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Suggestion</span> : <_aiActiveBadge />}</div></div></td>
               <td data-sticky="1" style={{ ..._aiCellStyle, ..._aiStickyCol1 }}><div style={{ display: "flex", flexDirection: "column", gap: 4 }}><span>{item.balanceForward != null ? _aiFmtGBP(item.balanceForward) : "-"}</span>{item.toAllocate != null && <_aiToAllocateBadge amount={item.toAllocate} />}</div></td>
               <td style={{ ..._aiCellStyle, color: T.colorTextPrimary }}>{item.incomeAccount}</td>
               <td style={{ ..._aiCellStyle, color: T.colorTextPrimary }}>{item.invoiceDate}</td>
@@ -929,12 +1405,110 @@ function AccruedIncomeSchedulePage({ open, onClose }) {
             </tr>
           ))}</tbody>
           <tfoot>
-            <tr><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol0, background: "#FBFBFB" }} colSpan={1}>Total reversals</td><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol1, background: "#FBFBFB" }} colSpan={1}></td><td style={{ ..._aiFooterCellStyle }} colSpan={3}></td>{_aiVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._aiFooterCellStyle, textAlign: "right" }}>{_aiTotalReversals[vm.key] ? _aiFmtReversal(_aiTotalReversals[vm.key]) : "-"}</td>))}</tr>
-            <tr><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol0, background: "#FBFBFB" }} colSpan={1}>Total additions</td><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol1, background: "#FBFBFB" }} colSpan={1}></td><td style={{ ..._aiFooterCellStyle }} colSpan={3}></td>{_aiVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._aiFooterCellStyle, textAlign: "right" }}>{_aiTotalAdditions[vm.key] ? _aiFmtAddition(_aiTotalAdditions[vm.key]) : "-"}</td>))}</tr>
-            <tr><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol0, background: "#FBFBFB" }} colSpan={1}>Closing balance</td><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol1, background: "#FBFBFB" }} colSpan={1}></td><td style={{ ..._aiFooterCellStyle }} colSpan={3}></td>{_aiVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._aiFooterCellStyle, textAlign: "right" }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{_aiFmtGBP(_aiClosingBalances[vm.key])}</span>{vm.key === _aiMonthKey(2, 2026) && (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: "#757980", whiteSpace: "nowrap" }}>GL +£340.00</span>)}</div></td>))}</tr>
+            <tr><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol0 }} colSpan={1}>Total reversals</td><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol1 }} colSpan={1}></td><td style={{ ..._aiFooterCellStyle }} colSpan={3}></td>{_aiVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._aiFooterCellStyle, textAlign: "right" }}>{_aiTotalReversals[vm.key] ? _aiFmtReversal(_aiTotalReversals[vm.key]) : "-"}</td>))}</tr>
+            <tr><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol0 }} colSpan={1}>Total additions</td><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol1 }} colSpan={1}></td><td style={{ ..._aiFooterCellStyle }} colSpan={3}></td>{_aiVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._aiFooterCellStyle, textAlign: "right" }}>{_aiTotalAdditions[vm.key] ? _aiFmtAddition(_aiTotalAdditions[vm.key]) : "-"}</td>))}</tr>
+            <tr><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol0 }} colSpan={1}>Closing balance</td><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol1 }} colSpan={1}></td><td style={{ ..._aiFooterCellStyle }} colSpan={3}></td>{_aiVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._aiFooterCellStyle, textAlign: "right" }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{_aiFmtGBP(_aiClosingBalances[vm.key])}</span>{vm.key === _aiMonthKey(2, 2026) && (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: "#757980", whiteSpace: "nowrap" }}>GL +£340.00</span>)}</div></td>))}</tr>
           </tfoot>
         </table>
         </div>
+      </div>
+      {(function() {
+        var _hasResults = reviewState && reviewState.hasResults;
+        var _remaining = _hasResults ? reviewState.total - reviewState.resolved : 0;
+        var _sugText = _hasResults
+          ? _remaining + " suggestion" + (_remaining !== 1 ? "s" : "")
+          : "Not started";
+        var _sugColor = _hasResults
+          ? (_remaining > 0 ? T.colorInfoAlt : T.colorInfo)
+          : T.colorTextMuted;
+        return (
+        <div style={{ width: _sugPanelOpen ? 420 : 0, flexShrink: 0, background: T.colorSurfaceSecondary, borderLeft: _sugPanelOpen ? "1px solid " + T.colorBorderDark : "none", display: "flex", flexDirection: "column", overflow: "hidden", transition: "width 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
+          <div style={{ minWidth: 420, padding: "24px 24px 16px", flexShrink: 0 }}>
+            <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-0.5px" }}>Suggestions</span>
+          </div>
+          <div style={{ minWidth: 420, flex: "1 1 auto", overflowY: "auto", padding: "0 24px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <span style={{ fontSize: 15, fontWeight: 500, color: T.colorTextPrimary }}>{reviewTitle || "Review"}</span>
+                <span style={{ fontSize: 13, fontWeight: 400, color: _sugColor }}>
+                  {_sugText}
+                  {_hasResults && (
+                    <Fragment>
+                      <span style={{ display: "inline-block", width: 3, height: 3, borderRadius: "50%", background: T.colorTextSecondary, verticalAlign: "middle", margin: "0 6px" }} />
+                      <span style={{ color: T.colorTextSecondary }}>5 May, 12:23</span>
+                    </Fragment>
+                  )}
+                </span>
+              </div>
+              <SecondaryButton onClick={onRunReview} style={{ height: 36, padding: "6px 12px", fontSize: 13, gap: 6, whiteSpace: "nowrap", flexShrink: 0 }}>
+                Run
+                <PlayCircleIcon color="currentColor" size={16} />
+              </SecondaryButton>
+            </div>
+            {_hasResults ? sugCards.map(function(card, ci) {
+              var rs = reviewState || {};
+              var isResolved = rs.resolvedArray && rs.resolvedArray.indexOf(card.idx) !== -1;
+              var isIgnored = rs.ignoredArray && rs.ignoredArray.indexOf(card.idx) !== -1;
+              var actionLabel = rs.cardActions ? rs.cardActions[card.idx] : undefined;
+              var statusLabel = isResolved ? (actionLabel || "Journal posted") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
+              var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
+              return React.createElement(RecommendationCard, {
+                key: card.key || ci,
+                title: card.title,
+                description: card.description,
+                tableRow: card.tableRow,
+                verticalTable: true,
+                tableColumns: [{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }, { key: "invoice", label: "Invoice", width: "0.8fr" }],
+                primaryLabel: card.primaryLabel,
+                secondaryLabel: card.secondaryLabel,
+                collapsed: isResolved || isIgnored,
+                isIgnored: isIgnored,
+                hideMore: true,
+                statusLabel: statusLabel,
+                statusStyle: statusStyle,
+                onPrimaryAction: function() { _aiSetDrawerCard(card); },
+                onIgnore: function() {},
+              });
+            }) : (
+              <div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, height: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", textAlign: "center" }}>
+                <span style={{ ...T.textMd, fontWeight: 500, color: T.colorTextPrimary }}>No suggestions yet</span>
+                <span style={{ ...T.textMd, fontWeight: 400, color: T.colorTextSecondary, marginTop: 8 }}>{"Run " + (reviewTitle ? reviewTitle.replace(" review", "").toLowerCase() : "") + " review to check for suggestions."}</span>
+              </div>
+            )}
+          </div>
+        </div>
+        );
+      })()}
+      {_aiDrawerCard && _aiDrawerCard.drawer && React.createElement(Sidebar, { open: true, onClose: function() { _aiSetDrawerCard(null); }, title: _aiDrawerCard.drawer.contact, width: 520,
+          footer: React.createElement(React.Fragment, null,
+            React.createElement(SecondaryButton, { onClick: function() { _aiSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Dismiss"),
+            React.createElement(PrimaryButton, { onClick: function() { _aiSetDrawerCard(null); }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
+          ) },
+        React.createElement("div", { style: { padding: 24, display: "flex", flexDirection: "column", gap: 24 } },
+          React.createElement(Banner, { variant: "success", icon: React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" }, React.createElement("path", { d: "M10 1.5L11.5 7L17 8.5L11.5 10L10 15.5L8.5 10L3 8.5L8.5 7L10 1.5Z", fill: T.colorBrandPrimary, stroke: T.colorBrandPrimary, strokeWidth: 1.5, strokeLinejoin: "round", paintOrder: "stroke" })) }, _aiDrawerCard.drawer.aiInsight),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            React.createElement("div", { style: Object.assign({ display: "flex", gap: 4, fontWeight: 500, color: T.colorTextPrimary }, T.textMd) },
+              React.createElement("span", null, "Adjustment type"),
+              React.createElement("span", { style: { color: "#DC5C40" } }, "*")
+            ),
+            React.createElement(Dropdown, { value: _aiDrawerCard.drawer.adjType, options: [{ value: "accrue_income", label: "Accrue income" }, { value: "write_off", label: "Write off accrued income" }], onChange: function() {} })
+          ),
+          React.createElement(Input, { label: "Description", mandatory: true, value: _aiDrawerCard.drawer.description, onChange: function() {} }),
+          React.createElement(Input, { label: "Accrual Amount", mandatory: true, value: _aiDrawerCard.drawer.amount, onChange: function() {}, leftSlotType: "currency", currencySymbol: "£" }),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            React.createElement("div", { style: Object.assign({ display: "flex", gap: 4, fontWeight: 500, color: T.colorTextPrimary }, T.textMd) },
+              React.createElement("span", null, "Income account"),
+              React.createElement("span", { style: { color: "#DC5C40" } }, "*")
+            ),
+            React.createElement(Dropdown, { value: "account", options: [{ value: "account", label: _aiDrawerCard.drawer.incomeAccount }], onChange: function() {}, searchable: true })
+          ),
+          React.createElement(Input, { label: "Accrual date", mandatory: true, value: _aiDrawerCard.drawer.accrualDate || "", onChange: function() {}, leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+          React.createElement(Checkbox, { checked: true, onChange: function() {}, label: "Create journal entry for this accrual" }),
+          React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
+          React.createElement(Input, { label: "Reversal date", value: _aiDrawerCard.drawer.reversalDate || "", onChange: function() {}, helpText: "The accrual will be fully reversed on the selected date", leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+          React.createElement(Banner, { variant: "info" }, "You can leave the reversal date empty and choose it later when ready.")
+        )
+      )}
       </div>
     </div>
   );
@@ -956,11 +1530,11 @@ var _PR_STEPS = [
 ];
 
 var _PR_CARDS = [
-  { idx: 0, key: "insurance", title: "Add Aviva PI renewal to prepayment schedule", contact: "Aviva – professional indemnity insurance", description: "Last year a £14,400.00 professional indemnity premium from Aviva was prepaid over 12 months (£1,200.00/month). The renewal invoice dated 1 November 2025 has been posted to 6030 – Insurance but no prepayment schedule has been set up for the current policy year. The full amount is sitting in the expense account rather than being spread.", tableRow: { account: "1103 – Prepayments", amount: "£12,000.00", period: "12 months from Nov 25", invoice: "INV-AV-2025-1101" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Aviva", invoice: "INV-AV-2025-1101.pdf", invoiceDate: "November 2025", aiInsight: "The invoice specifies a service period from 01/11/2025 to 31/10/2026, which extends beyond the invoice date, indicating a prepayment for future services.", adjType: "prepayment_expense", description: "PI renewal – Aviva", amount: "12,000.00", expenseAccount: "6030 – Insurance", invoiceDateField: "01/11/2025" } },
-  { idx: 1, key: "saas", title: "Prepay HubSpot annual licence over 12 months", contact: "HubSpot – annual CRM licence", description: "Invoice #HS-28401 for £7,200.00 dated 15 March 2026 covers a 12-month licence from April 2026 to March 2027. The invoice has been posted in full to 6220 – Subscriptions. This should be prepaid and released at £600.00 per month.", tableRow: { account: "1103 – Prepayments", amount: "£7,200.00", period: "12 months from Apr 26", invoice: "HS-28401" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "HubSpot", invoice: "HS-28401.pdf", invoiceDate: "March 2026", aiInsight: "The invoice covers a 12-month licence from April 2026 to March 2027. The full amount has been posted to subscriptions but should be spread over the licence period.", adjType: "prepayment_expense", description: "Annual CRM licence – HubSpot", amount: "7,200.00", expenseAccount: "6220 – Subscriptions", invoiceDateField: "15/03/2026" } },
-  { idx: 2, key: "stale", title: "Write off £145.20 stale balance for ISS Facility Services", contact: "ISS Facility Services – cleaning contract", description: "The prepayment for ISS Facility Services (cleaning) expired in March 2026 but has a remaining balance of £145.20 on the schedule. The final release was posted in March and no further releases are expected. The residual balance should be written off to 6040 – Repairs & maintenance.", tableRow: { account: "6040 – Repairs & maintenance", amount: "£145.20", period: "Apr 2026", invoice: "ISS-2025-0901" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "ISS Facility Services", invoice: "ISS-2025-0901.pdf", invoiceDate: "September 2025", aiInsight: "The prepayment schedule expired in March 2026 but carries a residual balance of £145.20. No further releases are expected — this should be written off.", adjType: "prepayment_expense", description: "Cleaning contract – ISS", amount: "145.20", expenseAccount: "6040 – Repairs & maintenance", invoiceDateField: "01/09/2025" } },
-  { idx: 3, key: "pattern", title: "Post missed April release for Regus hot desk", contact: "Regus – hot desk licence", description: "The Regus hot desk prepayment has been releasing £195.00 per month since March 2026. However, the April release has not been posted. The schedule shows the entry as scheduled but it was not included in the April close. This may have been missed during the period-end process.", tableRow: { account: "6000 – Rent", amount: "£195.00", period: "Apr 2026", invoice: "REG-HD-2603" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Regus", invoice: "REG-HD-2603.pdf", invoiceDate: "March 2026", aiInsight: "The prepayment has been releasing £195.00/month since March 2026, but the April release was not posted during period close.", adjType: "prepayment_expense", description: "Hot desk licence – Regus", amount: "195.00", expenseAccount: "6000 – Rent", invoiceDateField: "01/03/2026" } },
-  { idx: 4, key: "duplicate", title: "Reverse duplicate Microsoft 365 prepayment", contact: "Microsoft 365 Business Premium", description: "Two prepayment schedules exist for Microsoft 365 Business Premium: one created in December 2025 (invoice £4,800.00) and another added in January 2026 (invoice £4,800.00) referencing the same subscription. Both are actively releasing £400.00/month to 6220 – Subscriptions, which doubles the monthly expense. A reversing journal should be posted to remove the duplicate schedule and correct the prepayment balance.", tableRow: { account: "6220 – Subscriptions", amount: "–£4,800.00", period: "Apr 2026", invoice: "MS365-2601" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Microsoft", invoice: "MS365-2601.pdf", invoiceDate: "January 2026", aiInsight: "Two identical prepayment schedules exist for the same subscription, both actively releasing £400.00/month — this doubles the monthly expense.", adjType: "prepayment_expense", description: "365 Business Premium – Microsoft", amount: "4,800.00", expenseAccount: "6220 – Subscriptions", invoiceDateField: "15/01/2026" } },
+  { idx: 0, key: "insurance", title: "Add Aviva PI renewal to prepayment schedule", contact: "Aviva – professional indemnity insurance", description: "Last year a £14,400.00 professional indemnity premium from Aviva was prepaid over 12 months (£1,200.00/month). The renewal invoice dated 1 November 2025 has been posted to 6030 – Insurance but no prepayment schedule has been set up for the current policy year. The full amount is sitting in the expense account rather than being spread.", tableRow: { account: "1103 – Prepayments", amount: "£12,000.00", period: "12 months from Nov 25", invoice: "INV-AV-2025-1101" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Aviva", invoice: "INV-AV-2025-1101.pdf", invoiceDate: "November 2025", aiInsight: "The invoice specifies a service period from 01/11/2025 to 31/10/2026, which extends beyond the invoice date, indicating a prepayment for future services.", adjType: "prepayment_expense", description: "PI renewal – Aviva", amount: "12,000.00", expenseAccount: "6030 – Insurance", invoiceDateField: "01/11/2025", fromPeriod: "November 2025", toPeriod: "October 2026", drawerAllocations: [{ period: "November 2025", amount: "1,000.00" }, { period: "December 2025", amount: "1,000.00" }, { period: "January 2026", amount: "1,000.00" }, { period: "February 2026", amount: "1,000.00" }, { period: "March 2026", amount: "1,000.00" }, { period: "April 2026", amount: "1,000.00" }, { period: "May 2026", amount: "1,000.00" }, { period: "June 2026", amount: "1,000.00" }, { period: "July 2026", amount: "1,000.00" }, { period: "August 2026", amount: "1,000.00" }, { period: "September 2026", amount: "1,000.00" }, { period: "October 2026", amount: "1,000.00" }] } },
+  { idx: 1, key: "saas", title: "Prepay HubSpot annual licence over 12 months", contact: "HubSpot – annual CRM licence", description: "Invoice #HS-28401 for £7,200.00 dated 15 March 2026 covers a 12-month licence from April 2026 to March 2027. The invoice has been posted in full to 6220 – Subscriptions. This should be prepaid and released at £600.00 per month.", tableRow: { account: "1103 – Prepayments", amount: "£7,200.00", period: "12 months from Apr 26", invoice: "HS-28401" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "HubSpot", invoice: "HS-28401.pdf", invoiceDate: "March 2026", aiInsight: "The invoice covers a 12-month licence from April 2026 to March 2027. The full amount has been posted to subscriptions but should be spread over the licence period.", adjType: "prepayment_expense", description: "Annual CRM licence – HubSpot", amount: "7,200.00", expenseAccount: "6220 – Subscriptions", invoiceDateField: "15/03/2026", fromPeriod: "April 2026", toPeriod: "March 2027", drawerAllocations: [{ period: "April 2026", amount: "600.00" }, { period: "May 2026", amount: "600.00" }, { period: "June 2026", amount: "600.00" }, { period: "July 2026", amount: "600.00" }, { period: "August 2026", amount: "600.00" }, { period: "September 2026", amount: "600.00" }, { period: "October 2026", amount: "600.00" }, { period: "November 2026", amount: "600.00" }, { period: "December 2026", amount: "600.00" }, { period: "January 2027", amount: "600.00" }, { period: "February 2027", amount: "600.00" }, { period: "March 2027", amount: "600.00" }] } },
+  { idx: 2, key: "stale", title: "Write off £145.20 stale balance for ISS Facility Services", contact: "ISS Facility Services – cleaning contract", description: "The prepayment for ISS Facility Services (cleaning) expired in March 2026 but has a remaining balance of £145.20 on the schedule. The final release was posted in March and no further releases are expected. The residual balance should be written off to 6040 – Repairs & maintenance.", tableRow: { account: "6040 – Repairs & maintenance", amount: "£145.20", period: "Apr 2026", invoice: "ISS-2025-0901" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "ISS Facility Services", invoice: "ISS-2025-0901.pdf", invoiceDate: "September 2025", aiInsight: "The prepayment schedule expired in March 2026 but carries a residual balance of £145.20. No further releases are expected — this should be written off.", adjType: "prepayment_expense", description: "Cleaning contract – ISS", amount: "145.20", expenseAccount: "6040 – Repairs & maintenance", invoiceDateField: "01/09/2025", fromPeriod: "April 2026", toPeriod: "April 2026", drawerAllocations: [{ period: "April 2026", amount: "145.20" }] } },
+  { idx: 3, key: "pattern", title: "Post missed April release for Regus hot desk", contact: "Regus – hot desk licence", description: "The Regus hot desk prepayment has been releasing £195.00 per month since March 2026. However, the April release has not been posted. The schedule shows the entry as scheduled but it was not included in the April close. This may have been missed during the period-end process.", tableRow: { account: "6000 – Rent", amount: "£195.00", period: "Apr 2026", invoice: "REG-HD-2603" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Regus", invoice: "REG-HD-2603.pdf", invoiceDate: "March 2026", aiInsight: "The prepayment has been releasing £195.00/month since March 2026, but the April release was not posted during period close.", adjType: "prepayment_expense", description: "Hot desk licence – Regus", amount: "195.00", expenseAccount: "6000 – Rent", invoiceDateField: "01/03/2026", fromPeriod: "April 2026", toPeriod: "April 2026", drawerAllocations: [{ period: "April 2026", amount: "195.00" }] } },
+  { idx: 4, key: "duplicate", title: "Reverse duplicate Microsoft 365 prepayment", contact: "Microsoft 365 Business Premium", description: "Two prepayment schedules exist for Microsoft 365 Business Premium: one created in December 2025 (invoice £4,800.00) and another added in January 2026 (invoice £4,800.00) referencing the same subscription. Both are actively releasing £400.00/month to 6220 – Subscriptions, which doubles the monthly expense. A reversing journal should be posted to remove the duplicate schedule and correct the prepayment balance.", tableRow: { account: "6220 – Subscriptions", amount: "–£4,800.00", period: "Apr 2026", invoice: "MS365-2601" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Microsoft", invoice: "MS365-2601.pdf", invoiceDate: "January 2026", aiInsight: "Two identical prepayment schedules exist for the same subscription, both actively releasing £400.00/month — this doubles the monthly expense.", adjType: "prepayment_expense", description: "365 Business Premium – Microsoft", amount: "4,800.00", expenseAccount: "6220 – Subscriptions", invoiceDateField: "15/01/2026", fromPeriod: "April 2026", toPeriod: "April 2026", drawerAllocations: [{ period: "April 2026", amount: "4,800.00" }] } },
 ];
 
 var _PR_NAV_CATS = [
@@ -985,7 +1559,7 @@ function PrepaymentReviewFlow(_ref) {
   _s = useState(_prInitResume); var _prStepsCollapsed = _s[0], _prSetStepsCollapsed = _s[1];
   _s = useState(_prInitResume); var _prResultsVisible = _s[0], _prSetResultsVisible = _s[1];
   _s = useState(_prInitResume); var _prCanvasReady = _s[0], _prSetCanvasReady = _s[1];
-  _s = useState(_prInitResume); var _prBoxesOpen = _s[0], _prSetBoxesOpen = _s[1];
+  _s = useState(false); var _prBoxesOpen = _s[0], _prSetBoxesOpen = _s[1];
   _s = useState(400); var _prChatWidth = _s[0], _prSetChatWidth = _s[1];
   _s = useState(false); var _prIsDragging = _s[0], _prSetIsDragging = _s[1];
   _s = useState(true); var _prIsAtBottom = _s[0], _prSetIsAtBottom = _s[1];
@@ -1105,7 +1679,7 @@ function PrepaymentReviewFlow(_ref) {
   };
 
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
+    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
       <style>{`@keyframes _prFadeIn{from{opacity:0}to{opacity:1}} @keyframes _prStepReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes _prStepPop{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}} @keyframes _prTextShimmer{0%{background-position:200% center}100%{background-position:-200% center}}`}</style>
 
       {/* Top bar */}
@@ -1346,7 +1920,7 @@ function PrepaymentReviewFlow(_ref) {
                       <div key={card.idx} id={"result-" + card.key + "-0"} style={{ scrollMarginTop: 64 }}>
                         <RecommendationCard title={card.title} description={card.description} statusLabel={statusLabel} statusStyle={statusStyle}
                           collapsed={isResolved || isIgnored} isIgnored={isIgnored} hideMore={true} tableRow={card.tableRow}
-                          tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }, { key: "invoice", label: "Invoice", width: "0.8fr" }]}
+                          verticalTable={true} tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }, { key: "invoice", label: "Invoice", width: "0.8fr" }]}
                           primaryLabel={card.primaryLabel} secondaryLabel={card.secondaryLabel}
                           renderCardAction={_adjCardCommentAction(_prOcUI, adjComments, onAddAdjComment, "sug_pr_" + card.key)}
                           onPrimaryAction={function() { _prSetDrawerCard(card); }}
@@ -1440,7 +2014,7 @@ function PrepaymentReviewFlow(_ref) {
           </div>
         </Sidebar>
       )}
-      <PrepaymentSchedulePage open={_prScheduleOpen} onClose={function() { _prSetScheduleOpen(false); }} />
+      <PrepaymentSchedulePage open={_prScheduleOpen} onClose={function() { _prSetScheduleOpen(false); }} activeScheduleType="prepayments" onScheduleTypeChange={function() {}} suggestionsCount={null} />
     </div>
   );
 }
@@ -1456,10 +2030,10 @@ var _AR_STEPS = [
 ];
 
 var _AR_CARDS = [
-  { idx: 0, key: "rent", title: "Accrue April rent for WeWork", contact: "WeWork – serviced office", description: "WeWork invoices are received in arrears and typically posted in the first week of the following month. The April invoice for £3,200.00 has not yet been received or posted. A matching accrual was raised in each of the prior 11 months. Without an accrual, April rent expense will be understated.", tableRow: { account: "6000 – Rent", amount: "£3,200.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this" },
-  { idx: 1, key: "audit", title: "Accrue Q1 audit fee from Grant Thornton", contact: "Grant Thornton – annual audit", description: "The annual audit fee of £18,000.00 is invoiced on completion but relates to the full financial year. No accrual has been posted for the three months to April 2026, leaving £4,500.00 of audit cost unrecognised. Prior-year records show the fee was accrued monthly at £1,500.00.", tableRow: { account: "6200 – Professional fees", amount: "£4,500.00", period: "Feb – Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this" },
-  { idx: 2, key: "stale", title: "Reverse stale accrual for Vodafone", contact: "Vodafone – mobile contract", description: "An accrual of £780.00 for Vodafone mobile charges was raised in January 2026 but was never reversed. The actual invoice for £764.50 was posted in February directly to 6230 – Telephone & internet. The original accrual is still sitting on the balance sheet and should be reversed.", tableRow: { account: "2109 – Accruals", amount: "£780.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this" },
-  { idx: 3, key: "duplicate", title: "Reverse duplicate electricity accrual", contact: "British Gas – electricity supply", description: "Two accrual entries exist for British Gas electricity in April 2026: one for £1,450.00 posted on 1 April and another for £1,450.00 posted on 3 April. Both reference the same estimated usage period. This doubles the electricity accrual for the month. A reversing journal should be posted to remove the duplicate entry and correct the accruals balance.", tableRow: { account: "6020 – Light, heat & power", amount: "–£1,450.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this" },
+  { idx: 0, key: "rent", title: "Accrue April rent for WeWork", contact: "WeWork – serviced office", description: "WeWork invoices are received in arrears and typically posted in the first week of the following month. The April invoice for £3,200.00 has not yet been received or posted. A matching accrual was raised in each of the prior 11 months. Without an accrual, April rent expense will be understated.", tableRow: { account: "6000 – Rent", amount: "£3,200.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "WeWork", aiInsight: "WeWork invoices are received in arrears. The April invoice has not been received or posted, but a matching accrual was raised in each of the prior 11 months.", adjType: "accrual_expense", description: "April rent – WeWork", amount: "3,200.00", expenseAccount: "6000 – Rent", period: "Apr 2026", accrualDate: "30/04/2026", reversalDate: "31/05/2026" } },
+  { idx: 1, key: "audit", title: "Accrue Q1 audit fee from Grant Thornton", contact: "Grant Thornton – annual audit", description: "The annual audit fee of £18,000.00 is invoiced on completion but relates to the full financial year. No accrual has been posted for the three months to April 2026, leaving £4,500.00 of audit cost unrecognised. Prior-year records show the fee was accrued monthly at £1,500.00.", tableRow: { account: "6200 – Professional fees", amount: "£4,500.00", period: "Feb – Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Grant Thornton", aiInsight: "The annual audit fee of £18,000.00 is invoiced on completion but relates to the full financial year. No accrual has been posted for three months.", adjType: "accrual_expense", description: "Q1 audit fee – Grant Thornton", amount: "4,500.00", expenseAccount: "6200 – Professional fees", period: "Feb – Apr 2026", accrualDate: "28/02/2026", reversalDate: "31/05/2026" } },
+  { idx: 2, key: "stale", title: "Reverse stale accrual for Vodafone", contact: "Vodafone – mobile contract", description: "An accrual of £780.00 for Vodafone mobile charges was raised in January 2026 but was never reversed. The actual invoice for £764.50 was posted in February directly to 6230 – Telephone & internet. The original accrual is still sitting on the balance sheet and should be reversed.", tableRow: { account: "2109 – Accruals", amount: "£780.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Vodafone", aiInsight: "The accrual was raised in January but never reversed after the actual invoice was posted in February. The original accrual is stale.", adjType: "accrual_reversal", description: "Mobile charges – Vodafone", amount: "780.00", expenseAccount: "2109 – Accruals", period: "Apr 2026", accrualDate: "30/04/2026", reversalDate: "31/05/2026" } },
+  { idx: 3, key: "duplicate", title: "Reverse duplicate electricity accrual", contact: "British Gas – electricity supply", description: "Two accrual entries exist for British Gas electricity in April 2026: one for £1,450.00 posted on 1 April and another for £1,450.00 posted on 3 April. Both reference the same estimated usage period. This doubles the electricity accrual for the month. A reversing journal should be posted to remove the duplicate entry and correct the accruals balance.", tableRow: { account: "6020 – Light, heat & power", amount: "–£1,450.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "British Gas", aiInsight: "Two identical accrual entries exist for the same estimated usage period. This doubles the electricity accrual for April.", adjType: "accrual_reversal", description: "Electricity accrual – British Gas", amount: "1,450.00", expenseAccount: "6020 – Light, heat & power", period: "Apr 2026", accrualDate: "30/04/2026", reversalDate: "31/05/2026" } },
 ];
 
 var _AR_NAV_CATS = [
@@ -1481,7 +2055,7 @@ function AccrualReviewFlow(_ref) {
   _s = useState(_arInitResume); var _arStepsCollapsed = _s[0], _arSetStepsCollapsed = _s[1];
   _s = useState(_arInitResume); var _arResultsVisible = _s[0], _arSetResultsVisible = _s[1];
   _s = useState(_arInitResume); var _arCanvasReady = _s[0], _arSetCanvasReady = _s[1];
-  _s = useState(_arInitResume); var _arBoxesOpen = _s[0], _arSetBoxesOpen = _s[1];
+  _s = useState(false); var _arBoxesOpen = _s[0], _arSetBoxesOpen = _s[1];
   _s = useState(400); var _arChatWidth = _s[0], _arSetChatWidth = _s[1];
   _s = useState(false); var _arIsDragging = _s[0], _arSetIsDragging = _s[1];
   _s = useState(true); var _arIsAtBottom = _s[0], _arSetIsAtBottom = _s[1];
@@ -1566,7 +2140,7 @@ function AccrualReviewFlow(_ref) {
   };
 
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
+    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
       <style>{`@keyframes _arFadeIn{from{opacity:0}to{opacity:1}} @keyframes _arStepReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes _arStepPop{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}} @keyframes _arTextShimmer{0%{background-position:200% center}100%{background-position:-200% center}}`}</style>
       <div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
         <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-1px", flexShrink: 0 }}>Accruals review</span>
@@ -1778,7 +2352,7 @@ function AccrualReviewFlow(_ref) {
                       <div key={card.idx} id={"result-" + card.key + "-0"} style={{ scrollMarginTop: 64 }}>
                         <RecommendationCard title={card.title} description={card.description} statusLabel={statusLabel} statusStyle={statusStyle}
                           collapsed={isResolved || isIgnored} isIgnored={isIgnored} hideMore={true} tableRow={card.tableRow}
-                          tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]}
+                          verticalTable={true} tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]}
                           renderCardAction={_adjCardCommentAction(_arOcUI, adjComments, onAddAdjComment, "sug_ar_" + card.key)}
                           primaryLabel={card.primaryLabel} secondaryLabel={card.secondaryLabel}
                           onPrimaryAction={function() { _arSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _arSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = primaryActionLabels[card.primaryLabel] || "Journal posted"; return o; }); }}
@@ -1813,7 +2387,7 @@ function AccrualReviewFlow(_ref) {
           </div>
         )}
       </div>
-      <AccrualSchedulePage open={_arScheduleOpen} onClose={function() { _arSetScheduleOpen(false); }} />
+      <AccrualSchedulePage open={_arScheduleOpen} onClose={function() { _arSetScheduleOpen(false); }} activeScheduleType="accruals" onScheduleTypeChange={function() {}} suggestionsCount={null} />
     </div>
   );
 }
@@ -1829,10 +2403,10 @@ var _DRR_STEPS = [
 ];
 
 var _DRR_CARDS = [
-  { idx: 0, key: "advance", title: "Defer advance payment from Lidl for Christmas range", contact: "Lidl UK – Christmas promotional range", description: "Lidl paid £18,000.00 on 28 March 2026 for a Christmas snack range to be delivered across August to November 2026. The full amount has been posted to 4000 – Sales in March. No product has been delivered yet, so the entire balance should be deferred and released as deliveries are made.", tableRow: { account: "4000 – Sales", amount: "£18,000.00", period: "Aug – Nov 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this" },
-  { idx: 1, key: "partial", title: "Defer balance of Costco co-packing contract", contact: "Costco – co-packing arrangement", description: "A 6-month co-packing contract with Costco for £14,400.00 was invoiced on 1 March 2026. Two months of production have been completed (March and April), with £4,800.00 recognised. The remaining £9,600.00 relates to May to August and should be deferred.", tableRow: { account: "4000 – Sales", amount: "£9,600.00", period: "May – Aug 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this" },
-  { idx: 2, key: "stale", title: "Release stale deferred balance for Ocado promotion", contact: "Ocado – online promotion", description: "The deferred income schedule for the Ocado online promotion shows a remaining balance of £280.00. The promotion ran from October to February and all stock was delivered by 15 February 2026. A residual balance remains due to a rounding difference on the final release. This should be released to revenue.", tableRow: { account: "2110 – Deferred income", amount: "£280.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this" },
-  { idx: 3, key: "pattern", title: "Post missed April release for Waitrose seasonal line", contact: "Waitrose – seasonal product line", description: "The Waitrose seasonal line deferred income schedule has been releasing £1,600.00 per month since January 2026. The April release has not been posted. The schedule shows the entry as due but it was not included in the April close. This appears to have been missed during the period-end process.", tableRow: { account: "2110 – Deferred income", amount: "£1,600.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this" },
+  { idx: 0, key: "advance", title: "Defer advance payment from Lidl for Christmas range", contact: "Lidl UK – Christmas promotional range", description: "Lidl paid £18,000.00 on 28 March 2026 for a Christmas snack range to be delivered across August to November 2026. The full amount has been posted to 4000 – Sales in March. No product has been delivered yet, so the entire balance should be deferred and released as deliveries are made.", tableRow: { account: "4000 – Sales", amount: "£18,000.00", period: "Aug – Nov 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Lidl UK", aiInsight: "The full advance payment has been posted to sales in March but no product has been delivered yet. Deliveries run August to November.", adjType: "defer_revenue", description: "Christmas range – Lidl", amount: "18,000.00", revenueAccount: "4000 – Sales", period: "Aug – Nov 2026", deferralDate: "28/03/2026", recognitionDate: "01/08/2026" } },
+  { idx: 1, key: "partial", title: "Defer balance of Costco co-packing contract", contact: "Costco – co-packing arrangement", description: "A 6-month co-packing contract with Costco for £14,400.00 was invoiced on 1 March 2026. Two months of production have been completed (March and April), with £4,800.00 recognised. The remaining £9,600.00 relates to May to August and should be deferred.", tableRow: { account: "4000 – Sales", amount: "£9,600.00", period: "May – Aug 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Costco", aiInsight: "Only two of six months of co-packing have been completed. The remaining £9,600.00 relates to May to August and should be deferred.", adjType: "defer_revenue", description: "Co-packing contract – Costco", amount: "9,600.00", revenueAccount: "4000 – Sales", period: "May – Aug 2026", deferralDate: "01/03/2026", recognitionDate: "01/05/2026" } },
+  { idx: 2, key: "stale", title: "Release stale deferred balance for Ocado promotion", contact: "Ocado – online promotion", description: "The deferred income schedule for the Ocado online promotion shows a remaining balance of £280.00. The promotion ran from October to February and all stock was delivered by 15 February 2026. A residual balance remains due to a rounding difference on the final release. This should be released to revenue.", tableRow: { account: "2110 – Deferred income", amount: "£280.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Ocado", aiInsight: "The promotion ended in February and all stock was delivered. A residual £280.00 balance remains due to rounding on the final release.", adjType: "release_revenue", description: "Online promotion – Ocado", amount: "280.00", revenueAccount: "2110 – Deferred income", period: "Apr 2026", deferralDate: "30/04/2026", recognitionDate: "30/04/2026" } },
+  { idx: 3, key: "pattern", title: "Post missed April release for Waitrose seasonal line", contact: "Waitrose – seasonal product line", description: "The Waitrose seasonal line deferred income schedule has been releasing £1,600.00 per month since January 2026. The April release has not been posted. The schedule shows the entry as due but it was not included in the April close. This appears to have been missed during the period-end process.", tableRow: { account: "2110 – Deferred income", amount: "£1,600.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Waitrose", aiInsight: "The April release of £1,600.00 was scheduled on the deferral schedule but was not included in the April close.", adjType: "release_revenue", description: "Seasonal line – Waitrose", amount: "1,600.00", revenueAccount: "2110 – Deferred income", period: "Apr 2026", deferralDate: "30/04/2026", recognitionDate: "30/04/2026" } },
 ];
 
 var _DRR_NAV_CATS = [
@@ -1854,7 +2428,7 @@ function DeferredRevenueReviewFlow(_ref) {
   _s = useState(_drInitResume); var _drStepsCollapsed = _s[0], _drSetStepsCollapsed = _s[1];
   _s = useState(_drInitResume); var _drResultsVisible = _s[0], _drSetResultsVisible = _s[1];
   _s = useState(_drInitResume); var _drCanvasReady = _s[0], _drSetCanvasReady = _s[1];
-  _s = useState(_drInitResume); var _drBoxesOpen = _s[0], _drSetBoxesOpen = _s[1];
+  _s = useState(false); var _drBoxesOpen = _s[0], _drSetBoxesOpen = _s[1];
   _s = useState(400); var _drChatWidth = _s[0], _drSetChatWidth = _s[1];
   _s = useState(false); var _drIsDragging = _s[0], _drSetIsDragging = _s[1];
   _s = useState(true); var _drIsAtBottom = _s[0], _drSetIsAtBottom = _s[1];
@@ -1912,7 +2486,7 @@ function DeferredRevenueReviewFlow(_ref) {
   var _drHandleRestart = function() { _drSetStepStatuses([]); _drSetStepSubtexts([]); _drSetVisibleSteps(0); _drSetStepsPopulated(false); _drSetStepsCollapsed(false); _drSetResultsVisible(false); _drSetCanvasReady(false); _drSetBoxesOpen(false); _drSetResolvedCards(new Set()); _drSetIgnoredCards(new Set()); _drSetCardActions({}); _drSetAnalysisOpen(false); _drSetIsResume(false); _drSetRestartKey(function(k) { return k + 1; }); if (onStateChange) onStateChange(null); };
 
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
+    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
       <style>{`@keyframes _drFadeIn{from{opacity:0}to{opacity:1}} @keyframes _drStepReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes _drStepPop{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}} @keyframes _drTextShimmer{0%{background-position:200% center}100%{background-position:-200% center}}`}</style>
       <div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
         <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-1px", flexShrink: 0 }}>Deferred revenue review</span>
@@ -2044,7 +2618,7 @@ function DeferredRevenueReviewFlow(_ref) {
           </div>
         )}
       </div>
-      <DeferredRevenueSchedulePage open={_drScheduleOpen} onClose={function() { _drSetScheduleOpen(false); }} />
+      <DeferredRevenueSchedulePage open={_drScheduleOpen} onClose={function() { _drSetScheduleOpen(false); }} activeScheduleType="deferred_revenue" onScheduleTypeChange={function() {}} suggestionsCount={null} />
     </div>
   );
 }
@@ -2060,10 +2634,10 @@ var _AIR_STEPS = [
 ];
 
 var _AIR_CARDS = [
-  { idx: 0, key: "unbilled", title: "Accrue unbilled April deliveries to Booker", contact: "Booker Wholesale – monthly deliveries", description: "Booker Wholesale received £1,800.00 of product deliveries during April 2026 based on delivery notes and dispatch records. The sales invoice has not yet been raised as the customer is on a monthly billing cycle with invoices issued in the first week of the following month. Prior months show the accrual has been posted consistently at month-end.", tableRow: { account: "1104 – Accrued income", amount: "£1,800.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this" },
-  { idx: 1, key: "rent", title: "Accrue April sublease rent from warehouse tenant", contact: "Warehouse unit B tenant – sublease", description: "The warehouse unit B sublease generates £650.00 per month in rental income. The tenant pays quarterly in arrears and the next invoice is due in July 2026 covering April to June. The April rent has been earned but not yet billed. An accrual should be posted to match the income to the period.", tableRow: { account: "1104 – Accrued income", amount: "£650.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this" },
-  { idx: 2, key: "stale", title: "Write off £340.00 stale receivable for Morrisons", contact: "Morrisons – disputed delivery", description: "Accrued income of £340.00 was recognised in November 2025 for a partial delivery to Morrisons. The customer subsequently rejected the goods due to a packaging defect and the delivery was not invoiced. The accrual has been sitting on the balance sheet for six months with no movement. It should be written off against sales.", tableRow: { account: "4000 – Sales", amount: "£340.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this" },
-  { idx: 3, key: "pattern", title: "Post missed April accrual for Innovate UK grant", contact: "Innovate UK – food innovation grant", description: "The Innovate UK food innovation grant accrues £750.00 of income each month based on the project milestones schedule. The accrual has been posted consistently since January 2026, but the April entry is missing. The schedule shows it as due but it was not included in the April close.", tableRow: { account: "1104 – Accrued income", amount: "£750.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this" },
+  { idx: 0, key: "unbilled", title: "Accrue unbilled April deliveries to Booker", contact: "Booker Wholesale – monthly deliveries", description: "Booker Wholesale received £1,800.00 of product deliveries during April 2026 based on delivery notes and dispatch records. The sales invoice has not yet been raised as the customer is on a monthly billing cycle with invoices issued in the first week of the following month. Prior months show the accrual has been posted consistently at month-end.", tableRow: { account: "1104 – Accrued income", amount: "£1,800.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Booker Wholesale", aiInsight: "Product deliveries were made in April based on delivery notes, but the sales invoice has not yet been raised.", adjType: "accrue_income", description: "April deliveries – Booker", amount: "1,800.00", incomeAccount: "1104 – Accrued income", period: "Apr 2026", accrualDate: "30/04/2026", reversalDate: "31/05/2026" } },
+  { idx: 1, key: "rent", title: "Accrue April sublease rent from warehouse tenant", contact: "Warehouse unit B tenant – sublease", description: "The warehouse unit B sublease generates £650.00 per month in rental income. The tenant pays quarterly in arrears and the next invoice is due in July 2026 covering April to June. The April rent has been earned but not yet billed. An accrual should be posted to match the income to the period.", tableRow: { account: "1104 – Accrued income", amount: "£650.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Warehouse unit B tenant", aiInsight: "April sublease rent has been earned but the tenant pays quarterly in arrears. Next invoice due July.", adjType: "accrue_income", description: "Sublease rent – Warehouse B", amount: "650.00", incomeAccount: "1104 – Accrued income", period: "Apr 2026", accrualDate: "30/04/2026", reversalDate: "31/07/2026" } },
+  { idx: 2, key: "stale", title: "Write off £340.00 stale receivable for Morrisons", contact: "Morrisons – disputed delivery", description: "Accrued income of £340.00 was recognised in November 2025 for a partial delivery to Morrisons. The customer subsequently rejected the goods due to a packaging defect and the delivery was not invoiced. The accrual has been sitting on the balance sheet for six months with no movement. It should be written off against sales.", tableRow: { account: "4000 – Sales", amount: "£340.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Morrisons", aiInsight: "The goods were rejected due to a packaging defect and the delivery was never invoiced. The six-month-old accrual is stale.", adjType: "write_off", description: "Disputed delivery – Morrisons", amount: "340.00", incomeAccount: "4000 – Sales", period: "Apr 2026", accrualDate: "30/04/2026", reversalDate: "31/05/2026" } },
+  { idx: 3, key: "pattern", title: "Post missed April accrual for Innovate UK grant", contact: "Innovate UK – food innovation grant", description: "The Innovate UK food innovation grant accrues £750.00 of income each month based on the project milestones schedule. The accrual has been posted consistently since January 2026, but the April entry is missing. The schedule shows it as due but it was not included in the April close.", tableRow: { account: "1104 – Accrued income", amount: "£750.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Innovate UK", aiInsight: "The April accrual was due per the grant milestones schedule but was not posted during the April period close.", adjType: "accrue_income", description: "Innovation grant – Innovate UK", amount: "750.00", incomeAccount: "1104 – Accrued income", period: "Apr 2026", accrualDate: "30/04/2026", reversalDate: "31/05/2026" } },
 ];
 
 var _AIR_NAV_CATS = [
@@ -2085,7 +2659,7 @@ function AccruedIncomeReviewFlow(_ref) {
   _s = useState(_aiInitResume); var _aiStepsCollapsed = _s[0], _aiSetStepsCollapsed = _s[1];
   _s = useState(_aiInitResume); var _aiResultsVisible = _s[0], _aiSetResultsVisible = _s[1];
   _s = useState(_aiInitResume); var _aiCanvasReady = _s[0], _aiSetCanvasReady = _s[1];
-  _s = useState(_aiInitResume); var _aiBoxesOpen = _s[0], _aiSetBoxesOpen = _s[1];
+  _s = useState(false); var _aiBoxesOpen = _s[0], _aiSetBoxesOpen = _s[1];
   _s = useState(400); var _aiChatWidth = _s[0], _aiSetChatWidth = _s[1];
   _s = useState(false); var _aiIsDragging = _s[0], _aiSetIsDragging = _s[1];
   _s = useState(true); var _aiIsAtBottom = _s[0], _aiSetIsAtBottom = _s[1];
@@ -2143,7 +2717,7 @@ function AccruedIncomeReviewFlow(_ref) {
   var _aiHandleRestart = function() { _aiSetStepStatuses([]); _aiSetStepSubtexts([]); _aiSetVisibleSteps(0); _aiSetStepsPopulated(false); _aiSetStepsCollapsed(false); _aiSetResultsVisible(false); _aiSetCanvasReady(false); _aiSetBoxesOpen(false); _aiSetResolvedCards(new Set()); _aiSetIgnoredCards(new Set()); _aiSetCardActions({}); _aiSetAnalysisOpen(false); _aiSetIsResume(false); _aiSetRestartKey(function(k) { return k + 1; }); if (onStateChange) onStateChange(null); };
 
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
+    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
       <style>{`@keyframes _aiFadeIn{from{opacity:0}to{opacity:1}} @keyframes _aiStepReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes _aiStepPop{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}} @keyframes _aiTextShimmer{0%{background-position:200% center}100%{background-position:-200% center}}`}</style>
       <div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
         <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-1px", flexShrink: 0 }}>Accrued income review</span>
@@ -2275,7 +2849,7 @@ function AccruedIncomeReviewFlow(_ref) {
           </div>
         )}
       </div>
-      <AccruedIncomeSchedulePage open={_aiScheduleOpen} onClose={function() { _aiSetScheduleOpen(false); }} />
+      <AccruedIncomeSchedulePage open={_aiScheduleOpen} onClose={function() { _aiSetScheduleOpen(false); }} activeScheduleType="accrued_income" onScheduleTypeChange={function() {}} suggestionsCount={null} />
     </div>
   );
 }
@@ -2317,7 +2891,7 @@ function LoanAmortisationReviewFlow(_ref) {
   _s = useState(_laInitResume); var _laStepsCollapsed = _s[0], _laSetStepsCollapsed = _s[1];
   _s = useState(_laInitResume); var _laResultsVisible = _s[0], _laSetResultsVisible = _s[1];
   _s = useState(_laInitResume); var _laCanvasReady = _s[0], _laSetCanvasReady = _s[1];
-  _s = useState(_laInitResume); var _laBoxesOpen = _s[0], _laSetBoxesOpen = _s[1];
+  _s = useState(false); var _laBoxesOpen = _s[0], _laSetBoxesOpen = _s[1];
   _s = useState(400); var _laChatWidth = _s[0], _laSetChatWidth = _s[1];
   _s = useState(false); var _laIsDragging = _s[0], _laSetIsDragging = _s[1];
   _s = useState(true); var _laIsAtBottom = _s[0], _laSetIsAtBottom = _s[1];
@@ -2401,7 +2975,7 @@ function LoanAmortisationReviewFlow(_ref) {
   };
 
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
+    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
       <style>{`@keyframes _laFadeIn{from{opacity:0}to{opacity:1}} @keyframes _laStepReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes _laStepPop{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}} @keyframes _laTextShimmer{0%{background-position:200% center}100%{background-position:-200% center}}`}</style>
       <div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
         <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-1px", flexShrink: 0 }}>Loan amortisation review</span>
@@ -2613,7 +3187,7 @@ function LoanAmortisationReviewFlow(_ref) {
                       <div key={card.idx} id={"result-" + card.key + "-0"} style={{ scrollMarginTop: 64 }}>
                         <RecommendationCard title={card.title} description={card.description} statusLabel={statusLabel} statusStyle={statusStyle}
                           collapsed={isResolved || isIgnored} isIgnored={isIgnored} hideMore={true} tableRow={card.tableRow}
-                          tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]}
+                          verticalTable={true} tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]}
                           renderCardAction={_adjCardCommentAction(_laOcUI, adjComments, onAddAdjComment, "sug_la_" + card.key)}
                           primaryLabel={card.primaryLabel} secondaryLabel={card.secondaryLabel}
                           onPrimaryAction={function() { _laSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _laSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = primaryActionLabels[card.primaryLabel] || "Journal posted"; return o; }); }}
@@ -2689,7 +3263,7 @@ function DepreciationReviewFlow(_ref) {
   _s = useState(_dpInitResume); var _dpStepsCollapsed = _s[0], _dpSetStepsCollapsed = _s[1];
   _s = useState(_dpInitResume); var _dpResultsVisible = _s[0], _dpSetResultsVisible = _s[1];
   _s = useState(_dpInitResume); var _dpCanvasReady = _s[0], _dpSetCanvasReady = _s[1];
-  _s = useState(_dpInitResume); var _dpBoxesOpen = _s[0], _dpSetBoxesOpen = _s[1];
+  _s = useState(false); var _dpBoxesOpen = _s[0], _dpSetBoxesOpen = _s[1];
   _s = useState(400); var _dpChatWidth = _s[0], _dpSetChatWidth = _s[1];
   _s = useState(false); var _dpIsDragging = _s[0], _dpSetIsDragging = _s[1];
   _s = useState(true); var _dpIsAtBottom = _s[0], _dpSetIsAtBottom = _s[1];
@@ -2773,7 +3347,7 @@ function DepreciationReviewFlow(_ref) {
   };
 
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
+    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
       <style>{`@keyframes _dpFadeIn{from{opacity:0}to{opacity:1}} @keyframes _dpStepReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes _dpStepPop{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}} @keyframes _dpTextShimmer{0%{background-position:200% center}100%{background-position:-200% center}}`}</style>
       <div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
         <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-1px", flexShrink: 0 }}>Depreciation review</span>
@@ -2985,7 +3559,7 @@ function DepreciationReviewFlow(_ref) {
                       <div key={card.idx} id={"result-" + card.key + "-0"} style={{ scrollMarginTop: 64 }}>
                         <RecommendationCard title={card.title} description={card.description} statusLabel={statusLabel} statusStyle={statusStyle}
                           collapsed={isResolved || isIgnored} isIgnored={isIgnored} hideMore={true} tableRow={card.tableRow}
-                          tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]}
+                          verticalTable={true} tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]}
                           renderCardAction={_adjCardCommentAction(_dpOcUI, adjComments, onAddAdjComment, "sug_dp_" + card.key)}
                           primaryLabel={card.primaryLabel} secondaryLabel={card.secondaryLabel}
                           onPrimaryAction={function() { _dpSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _dpSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = primaryActionLabels[card.primaryLabel] || "Journal posted"; return o; }); }}
@@ -3036,10 +3610,7 @@ registerPage("Adjustments", {
     var _s3 = useState(false); var importDrawerOpen = _s3[0], setImportDrawerOpen = _s3[1];
     var _s4 = useState("jan_2026"); var importStartMonth = _s4[0], setImportStartMonth = _s4[1];
     var _s5 = useState(null); var importFile = _s5[0], setImportFile = _s5[1];
-    var _s6 = useState(false); var scheduleOpen = _s6[0], setScheduleOpen = _s6[1];
-    var _s7 = useState(false); var accrualScheduleOpen = _s7[0], setAccrualScheduleOpen = _s7[1];
-    var _s8 = useState(false); var deferredRevenueScheduleOpen = _s8[0], setDeferredRevenueScheduleOpen = _s8[1];
-    var _s9 = useState(false); var accruedIncomeScheduleOpen = _s9[0], setAccruedIncomeScheduleOpen = _s9[1];
+    var _s6 = useState(null); var activeScheduleType = _s6[0], setActiveScheduleType = _s6[1];
     var _s10 = useState(false); var prepaymentReviewOpen = _s10[0], setPrepaymentReviewOpen = _s10[1];
     var _s11 = useState({ resolved: 0, total: 5, hasResults: true, resolvedArray: [], ignoredArray: [], cardActions: {} }); var prepaymentReviewState = _s11[0], setPrepaymentReviewState = _s11[1];
     var _s12 = useState(false); var accrualReviewOpen = _s12[0], setAccrualReviewOpen = _s12[1];
@@ -3172,40 +3743,65 @@ registerPage("Adjustments", {
     var OverviewCard = function(_ref2) {
       var title = _ref2.title, workflow = _ref2.workflow, metrics = _ref2.metrics, onViewSchedule = _ref2.onViewSchedule, onRun = _ref2.onRun;
 
-      var wfLabel = "Review";
-      var wfColor = undefined;
-      var wfSubtitle = undefined;
-      if (workflow.status === "suggestions") {
-        var remaining = workflow.total - workflow.resolved;
-        if (remaining > 0) {
-          wfLabel = remaining + " suggestion" + (remaining !== 1 ? "s" : "");
-          wfColor = T.colorError;
-          wfSubtitle = "28 mar";
-        } else {
-          wfLabel = "0 suggestions";
-          wfColor = T.colorInfo;
-          wfSubtitle = "28 mar";
-        }
-      }
+      var hasSuggestions = workflow.status === "suggestions";
+      var remaining = hasSuggestions ? workflow.total - workflow.resolved : 0;
+      var sugText = hasSuggestions
+        ? remaining + " suggestion" + (remaining !== 1 ? "s" : "")
+        : "Not started";
+      var sugColor = hasSuggestions
+        ? (remaining > 0 ? T.colorInfoAlt : T.colorInfo)
+        : T.colorTextMuted;
+      var updatedText = hasSuggestions ? "Updated 5 May, 12:23" : null;
+      var timestampText = hasSuggestions ? "5 May, 12:23" : null;
 
       return (
         <div style={{
           background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark,
           borderRadius: 16, padding: 24, display: "flex", flexDirection: "column", gap: 20,
         }}>
-          {/* Header: title + AdjWorkflowCard */}
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-            <span style={{ fontSize: 20, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "28px", letterSpacing: "0.2px", paddingTop: 8 }}>{title}</span>
-            <AdjWorkflowCard
-              label={wfLabel}
-              color={wfColor}
-              subtitle={wfSubtitle}
-              onClick={onRun}
-            />
+          {/* Header row */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            {/* Left: title + updated */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <span style={{ fontSize: 20, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "28px", letterSpacing: "0.2px" }}>{title}</span>
+              {updatedText && <span style={{ ...T.textSm, fontWeight: 400, color: T.colorTextSecondary }}>{updatedText}</span>}
+            </div>
+
+            {/* Right: review info + Run button + divider + View full schedule */}
+            <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+              {/* Review info */}
+              <div style={{ display: "flex", flexDirection: "column", marginRight: 20 }}>
+                <span style={{ ...T.textSm, fontWeight: 500, color: T.colorTextPrimary }}>{workflow.label}</span>
+                <span style={{ ...T.textSm, fontWeight: 400, color: sugColor, lineHeight: "20px" }}>
+                  {sugText}
+                  {timestampText && (
+                    <Fragment>
+                      <span style={{ display: "inline-block", width: 4, height: 4, borderRadius: "50%", background: T.colorTextSecondary, verticalAlign: "middle", margin: "0 6px" }} />
+                      <span style={{ color: T.colorTextSecondary }}>{timestampText}</span>
+                    </Fragment>
+                  )}
+                </span>
+              </div>
+
+              {/* Run button */}
+              <SecondaryButton onClick={onRun} style={{ height: 44, padding: "8px 12px 8px 16px", fontSize: 14, gap: 8, whiteSpace: "nowrap" }}>
+                Run
+                <PlayCircleIcon color="currentColor" size={20} />
+              </SecondaryButton>
+
+              {/* Vertical divider */}
+              <div style={{ width: 1, height: 44, background: T.colorBorderDark, margin: "0 24px", flexShrink: 0 }} />
+
+              {/* View full schedule */}
+              <SecondaryButton onClick={onViewSchedule} style={{ height: 44, padding: "8px 16px 8px 12px", fontSize: 14, gap: 8, whiteSpace: "nowrap" }}>
+                {calendarBtnIcon}
+                View full schedule
+              </SecondaryButton>
+            </div>
           </div>
 
           {/* Divider */}
-          <div style={{ height: 1, background: T.colorBorderLight }} />
+          <div style={{ height: 1, background: T.colorBorderDark }} />
 
           {/* Metrics row */}
           <div style={{ display: "flex", gap: 32 }}>
@@ -3221,7 +3817,10 @@ registerPage("Adjustments", {
             </div>
 
             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
-              <span style={{ ...T.textSm, fontWeight: 400, color: T.colorTextSecondary }}>Additions</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <span style={{ ...T.textSm, fontWeight: 400, color: T.colorTextSecondary }}>Additions</span>
+                {_ovInfoIcon}
+              </div>
               <span style={{ fontSize: 18, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{metrics.additions}</span>
             </div>
 
@@ -3238,12 +3837,6 @@ registerPage("Adjustments", {
               </div>
             </div>
           </div>
-
-          {/* View full schedule button */}
-          <SecondaryButton onClick={onViewSchedule} style={{ height: 40, padding: "8px 16px 8px 12px", fontSize: 14, gap: 8, whiteSpace: "nowrap", alignSelf: "flex-start" }}>
-            {calendarBtnIcon}
-            View full schedule
-          </SecondaryButton>
         </div>
       );
     };
@@ -3273,7 +3866,7 @@ registerPage("Adjustments", {
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <OverviewCard
               title="Prepayments"
-              onViewSchedule={function() { setScheduleOpen(true); }}
+              onViewSchedule={function() { setActiveScheduleType("prepayments"); }}
               onRun={function() { setPrepaymentReviewOpen(true); }}
               workflow={prepaymentReviewState && prepaymentReviewState.hasResults
                 ? { label: "Review prepayments", status: "suggestions", resolved: prepaymentReviewState.resolved, total: prepaymentReviewState.total }
@@ -3290,7 +3883,7 @@ registerPage("Adjustments", {
 
             <OverviewCard
               title="Accruals"
-              onViewSchedule={function() { setAccrualScheduleOpen(true); }}
+              onViewSchedule={function() { setActiveScheduleType("accruals"); }}
               onRun={function() { setAccrualReviewOpen(true); }}
               workflow={accrualReviewState && accrualReviewState.hasResults
                 ? { label: "Review accruals", status: "suggestions", resolved: accrualReviewState.resolved, total: accrualReviewState.total }
@@ -3307,7 +3900,7 @@ registerPage("Adjustments", {
 
             <OverviewCard
               title="Deferred revenue"
-              onViewSchedule={function() { setDeferredRevenueScheduleOpen(true); }}
+              onViewSchedule={function() { setActiveScheduleType("deferred_revenue"); }}
               onRun={function() { setDeferredRevenueReviewOpen(true); }}
               workflow={deferredRevenueReviewState && deferredRevenueReviewState.hasResults
                 ? { label: "Review deferred revenue", status: "suggestions", resolved: deferredRevenueReviewState.resolved, total: deferredRevenueReviewState.total }
@@ -3324,7 +3917,7 @@ registerPage("Adjustments", {
 
             <OverviewCard
               title="Accrued income"
-              onViewSchedule={function() { setAccruedIncomeScheduleOpen(true); }}
+              onViewSchedule={function() { setActiveScheduleType("accrued_income"); }}
               onRun={function() { setAccruedIncomeReviewOpen(true); }}
               workflow={accruedIncomeReviewState && accruedIncomeReviewState.hasResults
                 ? { label: "Review accrued income", status: "suggestions", resolved: accruedIncomeReviewState.resolved, total: accruedIncomeReviewState.total }
@@ -3511,10 +4104,23 @@ registerPage("Adjustments", {
         </Sidebar>
 
         {/* Schedule full-screen overlays */}
-        <PrepaymentSchedulePage open={scheduleOpen} onClose={function() { setScheduleOpen(false); }} />
-        <AccrualSchedulePage open={accrualScheduleOpen} onClose={function() { setAccrualScheduleOpen(false); }} />
-        <DeferredRevenueSchedulePage open={deferredRevenueScheduleOpen} onClose={function() { setDeferredRevenueScheduleOpen(false); }} />
-        <AccruedIncomeSchedulePage open={accruedIncomeScheduleOpen} onClose={function() { setAccruedIncomeScheduleOpen(false); }} />
+        {(function() {
+          var _schSugMap = {
+            prepayments: prepaymentReviewState && prepaymentReviewState.hasResults ? prepaymentReviewState.total - prepaymentReviewState.resolved : null,
+            accruals: accrualReviewState && accrualReviewState.hasResults ? accrualReviewState.total - accrualReviewState.resolved : null,
+            deferred_revenue: deferredRevenueReviewState && deferredRevenueReviewState.hasResults ? deferredRevenueReviewState.total - deferredRevenueReviewState.resolved : null,
+            accrued_income: accruedIncomeReviewState && accruedIncomeReviewState.hasResults ? accruedIncomeReviewState.total - accruedIncomeReviewState.resolved : null,
+          };
+          var _schSugCount = activeScheduleType ? _schSugMap[activeScheduleType] : null;
+          return (
+            <Fragment>
+              <PrepaymentSchedulePage open={activeScheduleType === "prepayments"} onClose={function() { setActiveScheduleType(null); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_PR_CARDS} reviewState={prepaymentReviewState} reviewTitle="Prepayments review" onRunReview={function() { setPrepaymentReviewOpen(true); }} />
+              <AccrualSchedulePage open={activeScheduleType === "accruals"} onClose={function() { setActiveScheduleType(null); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_AR_CARDS} reviewState={accrualReviewState} reviewTitle="Accruals review" onRunReview={function() { setAccrualReviewOpen(true); }} />
+              <DeferredRevenueSchedulePage open={activeScheduleType === "deferred_revenue"} onClose={function() { setActiveScheduleType(null); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_DRR_CARDS} reviewState={deferredRevenueReviewState} reviewTitle="Deferred revenue review" onRunReview={function() { setDeferredRevenueReviewOpen(true); }} />
+              <AccruedIncomeSchedulePage open={activeScheduleType === "accrued_income"} onClose={function() { setActiveScheduleType(null); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_AIR_CARDS} reviewState={accruedIncomeReviewState} reviewTitle="Accrued income review" onRunReview={function() { setAccruedIncomeReviewOpen(true); }} />
+            </Fragment>
+          );
+        })()}
         {prepaymentReviewOpen && <PrepaymentReviewFlow onClose={function() { setPrepaymentReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setPrepaymentReviewState} savedState={prepaymentReviewState} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />}
         {accrualReviewOpen && <AccrualReviewFlow onClose={function() { setAccrualReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setAccrualReviewState} savedState={accrualReviewState} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />}
         {deferredRevenueReviewOpen && <DeferredRevenueReviewFlow onClose={function() { setDeferredRevenueReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setDeferredRevenueReviewState} savedState={deferredRevenueReviewState} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />}
