@@ -9,6 +9,12 @@ var NAV_TO_SLUG = {
   "Balance sheet": "balance-sheet",
   "Client context": "settings",
 };
+
+var NAV_EXTERNAL_LINKS = {
+  "Collect documents": "https://danielvictorin-mimo.github.io/bankreconciliation/#accounting/collect-documents",
+  "Inbox": "https://danielvictorin-mimo.github.io/bankreconciliation/#accounting/inbox",
+  "Bank reconciliation": "https://danielvictorin-mimo.github.io/bankreconciliation/#accounting/bank-reconciliation",
+};
 var SLUG_TO_NAV = {};
 Object.keys(NAV_TO_SLUG).forEach(function(k) { SLUG_TO_NAV[NAV_TO_SLUG[k]] = k; });
 
@@ -24,6 +30,11 @@ function App() {
 
   // Sync hash with navigation
   var navigateTo = function(label) {
+    var extLink = NAV_EXTERNAL_LINKS[label];
+    if (extLink) {
+      window.open(extLink, "_blank");
+      return;
+    }
     setActiveNav(label);
     var slug = NAV_TO_SLUG[label];
     if (slug) {

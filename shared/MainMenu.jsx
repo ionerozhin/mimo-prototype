@@ -12,6 +12,7 @@ function MainMenu({
   companyName = "Seabrook Foods Ltd.",
   userName = "Laura Bennett",
   userRole = "Clifton & Harrow",
+  userAvatar = typeof AVATAR_URL !== "undefined" && AVATAR_URL ? AVATAR_URL : null,
   navItems = [
     { label: "Home",                icon: "home" },
     { label: "Collect documents",   icon: "fileQuestion" },
@@ -150,7 +151,10 @@ function MainMenu({
         onMouseLeave={e => e.currentTarget.style.background = "transparent"}
       >
         <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#F0F5FC", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: "#4C71DF" }}>{userName.charAt(0)}</span>
+          {userAvatar
+            ? <img src={userAvatar} alt={userName} style={{ width: 36, height: 36, objectFit: "cover" }} />
+            : <span style={{ fontSize: 13, fontWeight: 600, color: "#4C71DF" }}>{userName.charAt(0)}</span>
+          }
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: "#080908", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userName}</div>

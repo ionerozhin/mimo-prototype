@@ -37,6 +37,20 @@ if os.path.exists(avatar_path):
         avatar_svg = f.read().replace('`', '\\`').replace('${', '\\${')
         avatar_script = 'const AVATAR_SVG = `{}`;'.format(avatar_svg)
 
+# Load avatar photo if present (jpg/png) and embed as base64 data URL
+avatar_photo_script = ''
+for ext in ['avatar.jpg', 'avatar.png']:
+    ap = os.path.join(base, ext)
+    if os.path.exists(ap):
+        import base64 as b64
+        mime = 'image/jpeg' if ext.endswith('.jpg') else 'image/png'
+        with open(ap, 'rb') as f:
+            encoded = b64.b64encode(f.read()).decode()
+        avatar_photo_script = 'var AVATAR_URL = "data:{};base64,{}";'.format(mime, encoded)
+        break
+if not avatar_photo_script:
+    avatar_photo_script = 'var AVATAR_URL = "";'
+
 parts = []
 parts.append("""<!DOCTYPE html>
 <html lang="en">
@@ -79,6 +93,7 @@ window.onerror = function(msg, src, line, col, err) {
 """)
 if avatar_script:
     parts.append(avatar_script + '\n')
+parts.append(avatar_photo_script + '\n')
 parts.append(compiled)
 # Note: App shell calls ReactDOM.createRoot itself — no extra render call needed
 parts.append("""

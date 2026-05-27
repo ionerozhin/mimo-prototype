@@ -218,8 +218,11 @@ function SettingsSidebar({ activeItem, onItemClick, onBack, userName, userRole }
         onMouseEnter={function(e) { e.currentTarget.style.background = "rgba(0,0,0,0.04)"; }}
         onMouseLeave={function(e) { e.currentTarget.style.background = "transparent"; }}
       >
-        <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#F0F5FC", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: "#4C71DF" }}>{_userName.charAt(0)}</span>
+        <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#F0F5FC", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
+          {typeof AVATAR_URL !== "undefined" && AVATAR_URL
+            ? <img src={AVATAR_URL} alt={_userName} style={{ width: 36, height: 36, objectFit: "cover" }} />
+            : <span style={{ fontSize: 13, fontWeight: 600, color: "#4C71DF" }}>{_userName.charAt(0)}</span>
+          }
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: T.colorTextPrimary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{_userName}</div>
