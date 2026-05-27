@@ -11,6 +11,7 @@ var NAV_TO_SLUG = {
 };
 
 var NAV_EXTERNAL_LINKS = {
+  "Home": "https://danielvictorin-mimo.github.io/bankreconciliation/",
   "Collect documents": "https://danielvictorin-mimo.github.io/bankreconciliation/#accounting/collect-documents",
   "Inbox": "https://danielvictorin-mimo.github.io/bankreconciliation/#accounting/inbox",
   "Bank reconciliation": "https://danielvictorin-mimo.github.io/bankreconciliation/#accounting/bank-reconciliation",

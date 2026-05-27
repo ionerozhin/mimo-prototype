@@ -35,8 +35,8 @@ function MainMenu({
     }}>
 
       {/* Mimo logo — 96px header */}
-      <div style={{ height: 96, display: "flex", alignItems: "center", padding: "0 40px", flexShrink: 0 }}>
-        <svg width="93" height="20" viewBox="0 0 98 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <div style={{ height: 96, display: "flex", alignItems: "center", padding: "0 32px", flexShrink: 0 }}>
+        <svg width="110" height="24" viewBox="0 0 98 21" fill="none" xmlns="http://www.w3.org/2000/svg">
           <g clipPath="url(#mimoClip)">
             <path d="M21.2948 0.316406H16.2686V19.8237H21.2948V0.316406Z" fill="#1F2024"/>
             <path d="M3.55406 0L0 3.55406L10.9144 14.4685L14.4685 10.9144L3.55406 0Z" fill="#1F2024"/>
@@ -54,33 +54,40 @@ function MainMenu({
         </svg>
       </div>
 
-      {/* Company selector — white bordered card */}
-      <div style={{ padding: "0 12px", margin: "12px 0 0", flexShrink: 0, height: 42, display: "flex", alignItems: "center" }}>
+      {/* Company selector */}
+      <div style={{ padding: "0 8px", margin: "12px 0 0", flexShrink: 0, height: 42, display: "flex", alignItems: "center" }}>
         <div style={{
-          display: "flex", alignItems: "center", gap: 8, width: "100%",
+          display: "flex", alignItems: "center", gap: 16, width: "100%",
           height: 42, padding: "0 16px", background: "#FFFFFF",
           border: "1px solid #E9E9EB", borderRadius: 8, cursor: "pointer",
+          margin: "0 8px", boxSizing: "border-box",
         }}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
             <path d="M10 12.5L5.5 8L10 3.5" stroke="#545453" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span style={{ fontSize: 14, fontWeight: 500, color: "#080908" }}>{companyName}</span>
+          <span style={{ fontSize: 14, fontWeight: 500, color: "#080908", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{companyName}</span>
         </div>
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, padding: "0 8px 0", overflowY: "auto" }}>
+      <nav style={{ flex: 1, padding: "0 8px", overflowY: "auto", overflowX: "hidden" }}>
 
         {/* Divider above Associate */}
-        <div style={{ height: 1, background: "#E9E9EB", margin: "16px 12px" }} />
+        <div style={{ height: 1, background: "#E9E9EB", margin: "16px 8px" }} />
 
         {/* Associate */}
         <button
           onClick={() => setAssociateOpen(o => !o)}
-          style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 20px 6px", background: "none", border: "none", cursor: "pointer" }}
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+            height: 40, padding: "0 16px", marginLeft: 8, marginRight: 8, marginBottom: 1,
+            width: "calc(100% - 16px)", background: "none", border: "none", cursor: "pointer", borderRadius: 6,
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = "rgba(0,0,0,0.04)"}
+          onMouseLeave={e => e.currentTarget.style.background = "none"}
         >
           <span style={{ fontSize: 14, fontWeight: 500, color: "#080908" }}>Associate</span>
-          <Chevron up={associateOpen} />
+          <Chevron up={associateOpen} size={18} />
         </button>
 
         {associateOpen && navItems.map(item => {
@@ -90,11 +97,11 @@ function MainMenu({
               key={item.label}
               onClick={() => onNavChange?.(item.label)}
               style={{
-                width: "100%", display: "flex", alignItems: "center", gap: 8,
-                height: 40, padding: "0 12px", marginBottom: 1,
+                display: "flex", alignItems: "center", gap: 12,
+                height: 40, padding: "0 16px",
                 marginLeft: 8, marginRight: 8, width: "calc(100% - 16px)",
                 borderRadius: 6, border: "none", cursor: "pointer",
-                background: active ? "#F0F0F0" : "transparent",
+                background: active ? "#F5F5F5" : "transparent",
                 textAlign: "left", boxShadow: "none",
               }}
               onMouseEnter={e => { if (!active) e.currentTarget.style.background = "rgba(0,0,0,0.04)"; }}
@@ -109,29 +116,35 @@ function MainMenu({
         })}
 
         {/* Divider */}
-        <div style={{ height: 1, background: "#E9E9EB", margin: "16px 12px" }} />
+        <div style={{ height: 1, background: "#E9E9EB", margin: "16px 8px" }} />
 
         {/* Payments */}
         <button
           onClick={() => setPaymentsOpen(o => !o)}
-          style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 20px 4px", background: "none", border: "none", cursor: "pointer" }}
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+            height: 40, padding: "0 16px", marginLeft: 8, marginRight: 8, marginBottom: 1,
+            width: "calc(100% - 16px)", background: "none", border: "none", cursor: "pointer", borderRadius: 6,
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = "rgba(0,0,0,0.04)"}
+          onMouseLeave={e => e.currentTarget.style.background = "none"}
         >
           <span style={{ fontSize: 14, fontWeight: 500, color: "#080908" }}>Payments</span>
-          <Chevron up={paymentsOpen} />
+          <Chevron up={paymentsOpen} size={18} />
         </button>
 
         {/* Divider */}
-        <div style={{ height: 1, background: "#E9E9EB", margin: "16px 12px" }} />
+        <div style={{ height: 1, background: "#E9E9EB", margin: "16px 8px" }} />
 
         {/* Settings */}
         <button
           onClick={() => onNavChange?.("Client context")}
           style={{
-            width: "calc(100% - 16px)", display: "flex", alignItems: "center", gap: 8,
-            height: 40, padding: "0 12px", marginBottom: 1,
+            width: "calc(100% - 16px)", display: "flex", alignItems: "center", gap: 12,
+            height: 40, padding: "0 16px",
             marginLeft: 8, marginRight: 8,
             borderRadius: 6, border: "none", cursor: "pointer",
-            background: activeNav === "Client context" ? "#F0F0F0" : "transparent", textAlign: "left", boxShadow: "none",
+            background: activeNav === "Client context" ? "#F5F5F5" : "transparent", textAlign: "left", boxShadow: "none",
           }}
           onMouseEnter={e => { if (activeNav !== "Client context") e.currentTarget.style.background = "rgba(0,0,0,0.04)"; }}
           onMouseLeave={e => { if (activeNav !== "Client context") e.currentTarget.style.background = "transparent"; }}
@@ -143,7 +156,7 @@ function MainMenu({
       </nav>
 
       {/* Divider above user */}
-      <div style={{ height: 1, background: "#E9E9EB", margin: "0 12px", flexShrink: 0 }} />
+      <div style={{ height: 1, background: "#E9E9EB", margin: "0 16px", flexShrink: 0 }} />
 
       {/* User profile */}
       <div
@@ -158,16 +171,9 @@ function MainMenu({
           }
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: "#080908", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userName}</div>
-          <div style={{ fontSize: 12, color: "#8C8C8B", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userRole}</div>
+          <div style={{ fontSize: 14, fontWeight: 500, color: "#080908", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userName}</div>
+          <div style={{ fontSize: 14, color: "#8C8C8B", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 4 }}>{userRole}</div>
         </div>
-        <button style={{ border: "none", background: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <circle cx="8" cy="3" r="1.2" fill="#545453"/>
-            <circle cx="8" cy="8" r="1.2" fill="#545453"/>
-            <circle cx="8" cy="13" r="1.2" fill="#545453"/>
-          </svg>
-        </button>
       </div>
     </aside>
   );
