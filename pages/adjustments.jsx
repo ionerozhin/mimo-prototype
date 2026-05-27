@@ -4035,6 +4035,7 @@ registerPage("Adjustments", {
     var _s31 = useState(null); var loanReviewState = _s31[0], setLoanReviewState = _s31[1];
     var _s32 = useState(false); var depreciationReviewOpen = _s32[0], setDepreciationReviewOpen = _s32[1];
     var _s33 = useState(null); var depreciationReviewState = _s33[0], setDepreciationReviewState = _s33[1];
+    var _s34 = useState(false); var journalModalOpen = _s34[0], setJournalModalOpen = _s34[1];
 
     // GL impact per suggestion card
     var _glConfig = {
@@ -4055,6 +4056,41 @@ registerPage("Adjustments", {
       var label = (remaining > 0 ? "GL +£" : "GL –£") + abs.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       return { label: label, color: T.colorError, bg: T.colorErrorBg };
     };
+
+    // Compute scheduled journal entries from all review states
+    var _scheduledJournals = [];
+    var _sjNextNum = 49995;
+    var _sjCollectEntries = function(reviewState, cards, category) {
+      if (!reviewState || !reviewState.cardActions) return;
+      cards.forEach(function(card) {
+        if (reviewState.cardActions[card.idx] === "Added to schedule") {
+          var amount = card.drawer.amount;
+          var desc = card.drawer.description;
+          var debitAccount, creditAccount;
+          if (category === "prepayments") {
+            debitAccount = card.drawer.expenseAccount;
+            creditAccount = "1103 – Prepayments";
+          } else if (category === "accruals") {
+            debitAccount = card.drawer.expenseAccount;
+            creditAccount = "2109 – Accruals";
+          } else if (category === "deferred_revenue") {
+            debitAccount = "2110 – Deferred income";
+            creditAccount = card.drawer.revenueAccount;
+          } else if (category === "accrued_income") {
+            debitAccount = card.drawer.incomeAccount;
+            creditAccount = "4000 – Sales";
+          }
+          _scheduledJournals.push({ description: desc, debitAccount: debitAccount, creditAccount: creditAccount, amount: amount });
+        }
+      });
+    };
+    _sjCollectEntries(prepaymentReviewState, _PR_CARDS, "prepayments");
+    _sjCollectEntries(accrualReviewState, _AR_CARDS, "accruals");
+    _sjCollectEntries(deferredRevenueReviewState, _DRR_CARDS, "deferred_revenue");
+    _sjCollectEntries(accruedIncomeReviewState, _AIR_CARDS, "accrued_income");
+    var _sjTotalDebit = _scheduledJournals.reduce(function(sum, j) { return sum + parseFloat(j.amount.replace(/,/g, "")); }, 0);
+    var _sjTotalCredit = _sjTotalDebit;
+    var _sjCount = _scheduledJournals.length;
 
     // Suggestion card comments (shared across all review flows)
     var _scm = useState({}); var adjComments = _scm[0]; var setAdjComments = _scm[1];
@@ -4274,6 +4310,32 @@ registerPage("Adjustments", {
               </SecondaryButton>
             </div>
           </div>
+
+          {_sjCount > 0 && (
+            <div style={{
+              background: T.colorSurfaceSecondary, border: "1px solid " + T.colorBorderDark,
+              borderRadius: 12, padding: "14px 20px",
+              display: "flex", alignItems: "center", gap: 14,
+            }}>
+              <div style={{
+                width: 40, height: 40, borderRadius: 10, background: "#EAECF0",
+                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+              }}>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <circle cx="10" cy="10" r="8.25" stroke={T.colorTextSecondary} strokeWidth="1.5" />
+                  <path d="M10 5.5V10L13 12" stroke={T.colorTextSecondary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 1 }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: T.colorTextPrimary }}>{"1 scheduled journal"}</span>
+                <span style={{ fontSize: 13, color: T.colorTextSecondary }}>Will be published to Xero today around 8 PM</span>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                <PrimaryButton onClick={function() {}} style={{ height: 40, padding: "8px 16px", fontSize: 14 }}>Publish now</PrimaryButton>
+                <SecondaryButton onClick={function() { setJournalModalOpen(true); }} style={{ height: 40, padding: "8px 16px", fontSize: 14 }}>View journals</SecondaryButton>
+              </div>
+            </div>
+          )}
 
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <OverviewCard
@@ -4539,6 +4601,64 @@ registerPage("Adjustments", {
         {accruedIncomeReviewOpen && <AccruedIncomeReviewFlow onClose={function() { setAccruedIncomeReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setAccruedIncomeReviewState} savedState={accruedIncomeReviewState} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />}
         {loanReviewOpen && <LoanAmortisationReviewFlow onClose={function() { setLoanReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setLoanReviewState} savedState={loanReviewState} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />}
         {depreciationReviewOpen && <DepreciationReviewFlow onClose={function() { setDepreciationReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setDepreciationReviewState} savedState={depreciationReviewState} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />}
+
+        <Modal open={journalModalOpen} onClose={function() { setJournalModalOpen(false); }} width={720} showClose={true} showDivider={false}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+            {/* Journal header */}
+            <div style={{ background: T.colorSurfaceSecondary, borderRadius: 10, padding: "16px 20px", marginBottom: 0, border: "1px solid " + T.colorBorderDark }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <span style={{ fontSize: 15, fontWeight: 500, color: T.colorTextPrimary }}>{"Journal #" + _sjNextNum}</span>
+                  <span style={{ fontSize: 13, color: T.colorTextSecondary }}>{"30 Apr 2026 – Adjustment releases April 2026"}</span>
+                </div>
+                <span style={{ fontSize: 12, color: T.colorTextSecondary, background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 6, padding: "4px 10px", display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.25" stroke={T.colorTextSecondary} strokeWidth="1.5" /><path d="M10 5.5V10L13 12" stroke={T.colorTextSecondary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  {"8:00 PM, 30 Apr"}
+                </span>
+              </div>
+
+              {/* Journal table */}
+              <div style={{ marginTop: 16, borderRadius: 8, border: "1px solid " + T.colorBorderDark, overflow: "hidden", maxHeight: 400, overflowY: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, fontFamily: T.fontFamily }}>
+                  <thead>
+                    <tr style={{ background: T.colorSurfacePrimary }}>
+                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: T.colorTextSecondary, fontSize: 12, borderBottom: "1px solid " + T.colorBorderDark }}>Description</th>
+                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: T.colorTextSecondary, fontSize: 12, borderBottom: "1px solid " + T.colorBorderDark }}>Account</th>
+                      <th style={{ textAlign: "right", padding: "10px 14px", fontWeight: 500, color: T.colorTextSecondary, fontSize: 12, borderBottom: "1px solid " + T.colorBorderDark }}>Debit</th>
+                      <th style={{ textAlign: "right", padding: "10px 14px", fontWeight: 500, color: T.colorTextSecondary, fontSize: 12, borderBottom: "1px solid " + T.colorBorderDark }}>Credit</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {_scheduledJournals.map(function(j, i) {
+                      var amt = "£" + parseFloat(j.amount.replace(/,/g, "")).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                      return React.createElement(Fragment, { key: i },
+                        React.createElement("tr", { style: { background: i % 2 === 0 ? T.colorSurfacePrimary : T.colorSurfaceSecondary, borderBottom: "1px solid " + T.colorBorderLight } },
+                          React.createElement("td", { style: { padding: "10px 14px", color: T.colorTextSecondary } }, j.description),
+                          React.createElement("td", { style: { padding: "10px 14px", color: T.colorTextPrimary } }, j.debitAccount),
+                          React.createElement("td", { style: { padding: "10px 14px", textAlign: "right", color: T.colorTextPrimary } }, amt),
+                          React.createElement("td", { style: { padding: "10px 14px", textAlign: "right", color: T.colorTextSecondary } }, "-")
+                        ),
+                        React.createElement("tr", { style: { background: i % 2 === 0 ? T.colorSurfaceSecondary : T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorBorderLight } },
+                          React.createElement("td", { style: { padding: "10px 14px", color: T.colorTextSecondary } }, j.description),
+                          React.createElement("td", { style: { padding: "10px 14px", color: T.colorTextPrimary } }, j.creditAccount),
+                          React.createElement("td", { style: { padding: "10px 14px", textAlign: "right", color: T.colorTextSecondary } }, "-"),
+                          React.createElement("td", { style: { padding: "10px 14px", textAlign: "right", color: T.colorTextPrimary } }, amt)
+                        )
+                      );
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr style={{ borderTop: "2px solid " + T.colorBorderDark, background: T.colorSurfacePrimary }}>
+                      <td style={{ padding: "10px 14px", fontWeight: 600, color: T.colorTextPrimary }} colSpan={2}>Total</td>
+                      <td style={{ padding: "10px 14px", textAlign: "right", fontWeight: 600, color: T.colorTextPrimary }}>{"£" + _sjTotalDebit.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td style={{ padding: "10px 14px", textAlign: "right", fontWeight: 600, color: T.colorTextPrimary }}>{"£" + _sjTotalCredit.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+        </Modal>
       </div>
     );
   },
