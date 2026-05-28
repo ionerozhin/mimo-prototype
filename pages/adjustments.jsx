@@ -4653,25 +4653,38 @@ registerPage("Adjustments", {
           return React.createElement(Modal, {
             open: journalModalOpen,
             onClose: function() { setJournalModalOpen(false); },
-            width: 720,
+            width: 860,
             showClose: true,
-            title: "Journal #" + _sjNextNum,
-            text: "30 Apr 2026 – Adjustment releases April 2026",
+            showDivider: false,
+            title: "Scheduled journals",
             footer: React.createElement(Fragment, null,
               React.createElement(SecondaryButton, { onClick: function() { setJournalModalOpen(false); }, style: { height: 40, padding: "8px 16px", fontSize: 14 } }, "Close"),
               React.createElement(PrimaryButton, { onClick: function() {}, style: { height: 40, padding: "8px 16px", fontSize: 14 } }, "Publish now")
             ),
           },
-            React.createElement(DataTable, {
-              columns: [
-                { key: "description", label: "Description", width: "200px" },
-                { key: "account", label: "Account", width: "1fr" },
-                { key: "debit", label: "Debit", width: "100px", align: "right" },
-                { key: "credit", label: "Credit", width: "100px", align: "right" },
-              ],
-              rows: _sjRows.concat([{ description: "", account: React.createElement("span", { style: { fontWeight: 600 } }, "Total"), debit: React.createElement("span", { style: { fontWeight: 600 } }, _sjTotalFmt), credit: React.createElement("span", { style: { fontWeight: 600 } }, _sjTotalFmt) }]),
-              minWidth: 660,
-            })
+            React.createElement("div", { style: { margin: "0 -24px", display: "flex", flexDirection: "column", maxHeight: "calc(70vh - 200px)" } },
+              // Divider above scrollable area
+              React.createElement("div", { style: { height: 1, background: T.colorSurfaceDark, flexShrink: 0 } }),
+              // Scrollable content area with DS side padding and 24px vertical spacing
+              React.createElement("div", { style: { flex: 1, overflowY: "auto", minHeight: 0, padding: "24px 24px" } },
+                React.createElement(DataTable, {
+                  title: React.createElement(Fragment, null,
+                    React.createElement("span", { style: { display: "block", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary } }, "Journal #" + _sjNextNum),
+                    React.createElement("span", { style: { display: "block", fontSize: 12, fontWeight: 400, color: T.colorTextSecondary, marginTop: 2 } }, "30 Apr 2026 – Adjustment releases April 2026")
+                  ),
+                  columns: [
+                    { key: "description", label: "Description", width: "1fr" },
+                    { key: "account", label: "Account", width: "220px" },
+                    { key: "debit", label: "Debit", width: "130px", align: "right" },
+                    { key: "credit", label: "Credit", width: "130px", align: "right" },
+                  ],
+                  rows: _sjRows.concat([{ description: "", account: React.createElement("span", { style: { fontWeight: 600 } }, "Total"), debit: React.createElement("span", { style: { fontWeight: 600 } }, _sjTotalFmt), credit: React.createElement("span", { style: { fontWeight: 600 } }, _sjTotalFmt) }]),
+                  minWidth: 660,
+                })
+              ),
+              // Divider below scrollable area
+              React.createElement("div", { style: { height: 1, background: T.colorSurfaceDark, flexShrink: 0 } })
+            )
           );
         })()}
       </div>
