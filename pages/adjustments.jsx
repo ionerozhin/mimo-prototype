@@ -4037,6 +4037,16 @@ registerPage("Adjustments", {
     var _s33 = useState(null); var depreciationReviewState = _s33[0], setDepreciationReviewState = _s33[1];
     var _s34 = useState(false); var journalModalOpen = _s34[0], setJournalModalOpen = _s34[1];
 
+    // Lock body scroll when journal modal is open
+    useEffect(function() {
+      if (journalModalOpen) {
+        document.body.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = "";
+      }
+      return function() { document.body.style.overflow = ""; };
+    }, [journalModalOpen]);
+
     // GL impact per suggestion card
     var _glConfig = {
       prepayments:      { initial: -5140.20, impacts: { 2: 145.20, 3: 195.00, 4: 4800.00 } },
@@ -4631,63 +4641,39 @@ registerPage("Adjustments", {
         {loanReviewOpen && <LoanAmortisationReviewFlow onClose={function() { setLoanReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setLoanReviewState} savedState={loanReviewState} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />}
         {depreciationReviewOpen && <DepreciationReviewFlow onClose={function() { setDepreciationReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setDepreciationReviewState} savedState={depreciationReviewState} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />}
 
-        <Modal open={journalModalOpen} onClose={function() { setJournalModalOpen(false); }} width={720} showClose={true} showDivider={false}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            {/* Journal header */}
-            <div style={{ background: T.colorSurfaceSecondary, borderRadius: 10, padding: "16px 20px", marginBottom: 0, border: "1px solid " + T.colorBorderDark }}>
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  <span style={{ fontSize: 15, fontWeight: 500, color: T.colorTextPrimary }}>{"Journal #" + _sjNextNum}</span>
-                  <span style={{ fontSize: 13, color: T.colorTextSecondary }}>{"30 Apr 2026 – Adjustment releases April 2026"}</span>
-                </div>
-                <span style={{ fontSize: 12, color: T.colorTextSecondary, background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 6, padding: "4px 10px", display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
-                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.25" stroke={T.colorTextSecondary} strokeWidth="1.5" /><path d="M10 5.5V10L13 12" stroke={T.colorTextSecondary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  {"8:00 PM, 30 Apr"}
-                </span>
-              </div>
-
-              {/* Journal table */}
-              <div style={{ marginTop: 16, borderRadius: 8, border: "1px solid " + T.colorBorderDark, overflow: "hidden", maxHeight: 400, overflowY: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, fontFamily: T.fontFamily }}>
-                  <thead>
-                    <tr style={{ background: T.colorSurfacePrimary }}>
-                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: T.colorTextSecondary, fontSize: 12, borderBottom: "1px solid " + T.colorBorderDark }}>Description</th>
-                      <th style={{ textAlign: "left", padding: "10px 14px", fontWeight: 500, color: T.colorTextSecondary, fontSize: 12, borderBottom: "1px solid " + T.colorBorderDark }}>Account</th>
-                      <th style={{ textAlign: "right", padding: "10px 14px", fontWeight: 500, color: T.colorTextSecondary, fontSize: 12, borderBottom: "1px solid " + T.colorBorderDark }}>Debit</th>
-                      <th style={{ textAlign: "right", padding: "10px 14px", fontWeight: 500, color: T.colorTextSecondary, fontSize: 12, borderBottom: "1px solid " + T.colorBorderDark }}>Credit</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {_scheduledJournals.map(function(j, i) {
-                      var amt = "£" + parseFloat(j.amount.replace(/,/g, "")).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                      return React.createElement(Fragment, { key: i },
-                        React.createElement("tr", { style: { background: i % 2 === 0 ? T.colorSurfacePrimary : T.colorSurfaceSecondary, borderBottom: "1px solid " + T.colorBorderLight } },
-                          React.createElement("td", { style: { padding: "10px 14px", color: T.colorTextSecondary } }, j.description),
-                          React.createElement("td", { style: { padding: "10px 14px", color: T.colorTextPrimary } }, j.debitAccount),
-                          React.createElement("td", { style: { padding: "10px 14px", textAlign: "right", color: T.colorTextPrimary } }, amt),
-                          React.createElement("td", { style: { padding: "10px 14px", textAlign: "right", color: T.colorTextSecondary } }, "-")
-                        ),
-                        React.createElement("tr", { style: { background: i % 2 === 0 ? T.colorSurfaceSecondary : T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorBorderLight } },
-                          React.createElement("td", { style: { padding: "10px 14px", color: T.colorTextSecondary } }, j.description),
-                          React.createElement("td", { style: { padding: "10px 14px", color: T.colorTextPrimary } }, j.creditAccount),
-                          React.createElement("td", { style: { padding: "10px 14px", textAlign: "right", color: T.colorTextSecondary } }, "-"),
-                          React.createElement("td", { style: { padding: "10px 14px", textAlign: "right", color: T.colorTextPrimary } }, amt)
-                        )
-                      );
-                    })}
-                  </tbody>
-                  <tfoot>
-                    <tr style={{ borderTop: "2px solid " + T.colorBorderDark, background: T.colorSurfacePrimary }}>
-                      <td style={{ padding: "10px 14px", fontWeight: 600, color: T.colorTextPrimary }} colSpan={2}>Total</td>
-                      <td style={{ padding: "10px 14px", textAlign: "right", fontWeight: 600, color: T.colorTextPrimary }}>{"£" + _sjTotalDebit.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td style={{ padding: "10px 14px", textAlign: "right", fontWeight: 600, color: T.colorTextPrimary }}>{"£" + _sjTotalCredit.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>
-          </div>
-        </Modal>
+        {(function() {
+          var _sjFmt = function(v) { return "£" + parseFloat(v.replace(/,/g, "")).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+          var _sjRows = [];
+          _scheduledJournals.forEach(function(j) {
+            var amt = _sjFmt(j.amount);
+            _sjRows.push({ description: j.description, account: j.debitAccount, debit: amt, credit: "–" });
+            _sjRows.push({ description: j.description, account: j.creditAccount, debit: "–", credit: amt });
+          });
+          var _sjTotalFmt = "£" + _sjTotalDebit.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          return React.createElement(Modal, {
+            open: journalModalOpen,
+            onClose: function() { setJournalModalOpen(false); },
+            width: 720,
+            showClose: true,
+            title: "Journal #" + _sjNextNum,
+            text: "30 Apr 2026 – Adjustment releases April 2026",
+            footer: React.createElement(Fragment, null,
+              React.createElement(SecondaryButton, { onClick: function() { setJournalModalOpen(false); }, style: { height: 40, padding: "8px 16px", fontSize: 14 } }, "Close"),
+              React.createElement(PrimaryButton, { onClick: function() {}, style: { height: 40, padding: "8px 16px", fontSize: 14 } }, "Publish now")
+            ),
+          },
+            React.createElement(DataTable, {
+              columns: [
+                { key: "description", label: "Description", width: "200px" },
+                { key: "account", label: "Account", width: "1fr" },
+                { key: "debit", label: "Debit", width: "100px", align: "right" },
+                { key: "credit", label: "Credit", width: "100px", align: "right" },
+              ],
+              rows: _sjRows.concat([{ description: "", account: React.createElement("span", { style: { fontWeight: 600 } }, "Total"), debit: React.createElement("span", { style: { fontWeight: 600 } }, _sjTotalFmt), credit: React.createElement("span", { style: { fontWeight: 600 } }, _sjTotalFmt) }]),
+              minWidth: 660,
+            })
+          );
+        })()}
       </div>
     );
   },
