@@ -21649,86 +21649,171 @@ function PlStreamingMessage(_smRef) {
 // ── Account list for selector dropdown ─────────────────────────────────────
 var PL_ACCOUNT_LIST = [
   { code: "4000", name: "Sales" },
-  { code: "4100", name: "Other revenue" },
-  { code: "5000", name: "Cost of sales" },
+  { code: "4010", name: "Online & direct sales" },
+  { code: "4100", name: "Other income" },
+  { code: "4200", name: "Rental income" },
+  { code: "5000", name: "Purchases – raw materials" },
+  { code: "5001", name: "Purchases – packaging" },
+  { code: "5010", name: "Direct labour" },
+  { code: "5020", name: "Freight & carriage" },
+  { code: "5030", name: "Stock adjustments" },
+  { code: "5040", name: "Production overheads" },
   { code: "6000", name: "Rent" },
-  { code: "6100", name: "Utilities" },
+  { code: "6010", name: "Rates" },
+  { code: "6020", name: "Light, heat & power" },
+  { code: "6030", name: "Insurance" },
+  { code: "6040", name: "Repairs & maintenance" },
+  { code: "6110", name: "Advertising & marketing" },
   { code: "6200", name: "Professional fees" },
-  { code: "6400", name: "Travel" },
-  { code: "6410", name: "Subscriptions" },
-  { code: "7000", name: "Salaries" },
-  { code: "7100", name: "Employer NIC" },
-  { code: "7200", name: "Pension" },
+  { code: "6210", name: "Bank charges" },
+  { code: "6220", name: "Subscriptions" },
+  { code: "6230", name: "Telephone & internet" },
+  { code: "6250", name: "Travel & subsistence" },
+  { code: "6310", name: "Motor expenses" },
+  { code: "6420", name: "General expenses" },
+  { code: "7000", name: "Wages & salaries" },
+  { code: "7002", name: "Employer NI" },
+  { code: "7003", name: "Pension costs" },
+  { code: "7010", name: "Directors' remuneration" },
   { code: "8000", name: "Depreciation" },
-  { code: "8100", name: "Interest payable" },
-  { code: "9000", name: "Corporation tax" },
+  { code: "8010", name: "Amortisation" },
+  { code: "8100", name: "Bad debts" },
 ];
 
-// ── Per-account flow configuration ─────────────────────────────────────────
-// Maps account codes to their prepare-flow content.
-// For now only 4000 is populated; others will be added incrementally.
-var PL_PREPARE_CONFIG = {
-  "4000": {
-    title: "4000 – Sales",
-    section: "Revenue",
+// ── Helper: build a standard config from account data ──────────────────────
+function _plMakeConfig(code, name, section, actual, ref, variance, pct, txCount, summaryText, suggestions) {
+  return {
+    title: code + " – " + name,
+    section: section,
+    actual: actual, ref: ref, variance: variance, pct: pct,
     steps: [
-      { label: "Loading transactions for April 2026", duration: 800, subtext: "48 transactions found" },
-      { label: "Comparing against March actuals", duration: 600, subtext: "+3.5% variance identified" },
-      { label: "Cross-referencing prior year pattern", duration: 700, subtext: "Seasonal uplift consistent" },
-      { label: "Checking for unposted invoices", duration: 500, subtext: "None found" },
+      { label: "Loading transactions for April 2026", duration: 800, subtext: txCount + " transactions found" },
+      { label: "Comparing against March actuals", duration: 600, subtext: pct + " variance identified" },
+      { label: "Cross-referencing prior year pattern", duration: 700, subtext: "Pattern analysis complete" },
+      { label: "Checking for unposted items", duration: 500, subtext: suggestions.length > 0 ? suggestions.length + " item" + (suggestions.length !== 1 ? "s" : "") + " flagged" : "None found" },
       { label: "Generating summary", duration: 400 },
     ],
     introSegments: [
       { text: "I'll review ", bold: false },
-      { text: "4000 – Sales", bold: true },
+      { text: code + " – " + name, bold: true },
       { text: " for ", bold: false },
       { text: "April 2026", bold: true },
-      { text: ". I'll compare against the prior month, check for unposted invoices, and flag anything that needs your attention.", bold: false },
+      { text: ". I'll compare against the prior month, check for unposted items, and flag anything that needs your attention.", bold: false },
     ],
     summarySegments: [
-      { text: "Revenue of ", bold: false },
-      { text: "£312,450.00", bold: true },
+      { text: name + " of ", bold: false },
+      { text: actual, bold: true },
       { text: " is ", bold: false },
-      { text: "3.5% above March", bold: true },
-      { text: ", driven by increased wholesale orders from Tesco and Sainsbury's ahead of the summer season. This is consistent with the seasonal pattern seen in prior years. ", bold: false },
-      { text: "No adjustments are needed.", bold: true },
+      { text: pct + " vs March", bold: true },
+      { text: ". " + summaryText, bold: false },
     ],
-  },
+  };
+}
+
+// ── Suggestion cards per account ───────────────────────────────────────────
+var PL_ACCOUNT_CARDS = {
+  "4000": [
+    { idx: 0, key: "4000-accrual", title: "Accrue April wholesale commission", description: "Wholesale commissions to Tesco are typically posted in the first week of the following month. The April commission of £4,280.00 has not yet been received or posted. A matching accrual was raised in each of the prior 11 months.", tableRow: { account: "4000 – Sales", amount: "£4,280.00", period: "Apr 2026", reasoning: "Consistent trend of accruals from the past" }, primaryLabel: "Review suggestion", secondaryLabel: "I have solved this issue" },
+    { idx: 1, key: "4000-variance", title: "Investigate Sainsbury's volume uplift", description: "Sainsbury's wholesale orders increased by 18.2% compared to March, contributing £8,400.00 of additional revenue. This exceeds the seasonal pattern observed in prior years (typical April uplift is 8–12%). Confirm whether this reflects a new contract or promotional agreement.", tableRow: { account: "4000 – Sales", amount: "£8,400.00", period: "Apr 2026", reasoning: "Variance exceeds seasonal norm by 6–10 pp" }, primaryLabel: "Review suggestion", secondaryLabel: "I have solved this issue" },
+    { idx: 2, key: "4000-credit", title: "Post outstanding credit note CN-4821", description: "Credit note CN-4821 for £1,250.00 was issued on 28 April to Waitrose for damaged goods but has not been posted to the ledger. Leaving the credit note unposted overstates April revenue by £1,250.00.", tableRow: { account: "4000 – Sales", amount: "–£1,250.00", period: "Apr 2026", reasoning: "Credit note issued but not posted" }, primaryLabel: "Review suggestion", secondaryLabel: "I have solved this issue" },
+  ],
+  "4010": [],
+  "4100": [
+    { idx: 0, key: "4100-pallet", title: "Verify pallet return credit classification", description: "£1,150.00 of pallet return credits have been posted to Other income. In prior periods these were netted against Cost of sales. Confirm whether the reclassification is intentional or a posting error.", tableRow: { account: "4100 – Other income", amount: "£1,150.00", period: "Apr 2026", reasoning: "Inconsistent classification vs prior periods" }, primaryLabel: "Review suggestion", secondaryLabel: "I have solved this issue" },
+  ],
+  "4200": [],
+  "5000": [
+    { idx: 0, key: "5000-cutoff", title: "Check purchase cut-off for late April deliveries", description: "Two supplier invoices totalling £2,840.00 from Meadow Fresh Dairy are dated 29–30 April but were received on 2 May. Confirm whether goods were received in April and the accrual is required.", tableRow: { account: "5000 – Raw materials", amount: "£2,840.00", period: "Apr 2026", reasoning: "Late invoices near period boundary" }, primaryLabel: "Review suggestion", secondaryLabel: "I have solved this issue" },
+  ],
+  "5001": [],
+  "5010": [
+    { idx: 0, key: "5010-overtime", title: "Investigate overtime variance", description: "Direct labour is 5.2% above March (£1,200.00 increase). Overtime hours logged in the final week of April were 40% higher than the monthly average. Confirm whether this relates to the Sainsbury's order uplift or a one-off production run.", tableRow: { account: "5010 – Direct labour", amount: "£1,200.00", period: "Apr 2026", reasoning: "Overtime significantly above average" }, primaryLabel: "Review suggestion", secondaryLabel: "I have solved this issue" },
+  ],
+  "5020": [
+    { idx: 0, key: "5020-surcharge", title: "Review fuel surcharge increase from DHL", description: "Freight costs increased 16.2% (£1,650.00) driven by a fuel surcharge adjustment from DHL effective 1 April. Confirm whether the surcharge is a permanent rate change or a one-off catch-up billing.", tableRow: { account: "5020 – Freight", amount: "£1,650.00", period: "Apr 2026", reasoning: "Exceeds normal monthly variance range" }, primaryLabel: "Review suggestion", secondaryLabel: "I have solved this issue" },
+  ],
+  "5030": [
+    { idx: 0, key: "5030-writeoff", title: "Verify stock write-off reversal", description: "Stock adjustments are £260.00 below March. A write-off of £680.00 posted in March for expired product was partially reversed in April (£260.00). Confirm the reversal is supported by a recount or quality inspection.", tableRow: { account: "5030 – Stock adj.", amount: "–£260.00", period: "Apr 2026", reasoning: "Reversal of prior month write-off" }, primaryLabel: "Review suggestion", secondaryLabel: "I have solved this issue" },
+  ],
+  "5040": [],
+  "6000": [],
+  "6010": [],
+  "6020": [],
+  "6030": [],
+  "6040": [
+    { idx: 0, key: "6040-conveyor", title: "Check capitalisation of conveyor belt service", description: "A £1,320.00 charge for conveyor belt servicing was posted to Repairs & maintenance. The invoice description references 'belt replacement and motor upgrade'. If the work extends the asset's useful life, part or all should be capitalised to fixed assets.", tableRow: { account: "6040 – Repairs", amount: "£1,320.00", period: "Apr 2026", reasoning: "May meet capitalisation threshold" }, primaryLabel: "Review suggestion", secondaryLabel: "I have solved this issue" },
+  ],
+  "6110": [
+    { idx: 0, key: "6110-prepay", title: "Consider prepaying summer campaign costs", description: "£3,200.00 of advertising spend relates to a summer campaign running May–August. If the campaign was invoiced in advance, a prepayment may be required to spread the cost over the campaign period.", tableRow: { account: "6110 – Advertising", amount: "£3,200.00", period: "Apr 2026", reasoning: "Multi-period campaign invoiced upfront" }, primaryLabel: "Review suggestion", secondaryLabel: "I have solved this issue" },
+  ],
+  "6200": [
+    { idx: 0, key: "6200-audit", title: "Verify year-end audit accrual", description: "Professional fees jumped from £2,400 to £6,800 (+£4,400). A £4,200 accrual for the year-end audit was posted in April. Confirm the accrual is at the correct amount and that no prior-period accrual needs reversing.", tableRow: { account: "6200 – Professional fees", amount: "£4,200.00", period: "Apr 2026", reasoning: "Year-end audit accrual posted" }, primaryLabel: "Review suggestion", secondaryLabel: "I have solved this issue" },
+    { idx: 1, key: "6200-legal", title: "Classify legal advisory fee", description: "An invoice for £200.00 from Walker & Co Solicitors was posted to Professional fees. The description references 'property lease review'. Confirm whether this relates to the warehouse sublease and should be reallocated to Rent or Property costs.", tableRow: { account: "6200 – Professional fees", amount: "£200.00", period: "Apr 2026", reasoning: "Possible misclassification" }, primaryLabel: "Review suggestion", secondaryLabel: "I have solved this issue" },
+  ],
+  "6210": [],
+  "6220": [],
+  "6230": [],
+  "6250": [
+    { idx: 0, key: "6250-tradeshow", title: "Confirm trade show travel allocation", description: "£330.00 of additional travel costs relate to the FoodTech Expo (Birmingham, 22–24 April). Two team members attended. Verify that hotel and mileage claims have been properly supported with receipts.", tableRow: { account: "6250 – Travel", amount: "£330.00", period: "Apr 2026", reasoning: "Event-related spend needs receipt verification" }, primaryLabel: "Review suggestion", secondaryLabel: "I have solved this issue" },
+  ],
+  "6310": [],
+  "6420": [
+    { idx: 0, key: "6420-miscodings", title: "Investigate potential Barclays card miscodings", description: "General expenses increased 92.5% (£1,850.00). Multiple transactions from the Barclays corporate card were auto-coded to General expenses. Review the individual postings to confirm correct account allocation — some may belong to Travel, Subscriptions, or Entertainment.", tableRow: { account: "6420 – General expenses", amount: "£1,850.00", period: "Apr 2026", reasoning: "Auto-coded card transactions likely miscoded" }, primaryLabel: "Review suggestion", secondaryLabel: "I have solved this issue" },
+    { idx: 1, key: "6420-amazon", title: "Reclassify Amazon Business purchases", description: "Three Amazon Business purchases totalling £420.00 were coded to General expenses. Based on item descriptions (printer cartridges, packing tape, labels), these should be allocated to Stationery or Packaging.", tableRow: { account: "6420 – General expenses", amount: "£420.00", period: "Apr 2026", reasoning: "Identifiable purchases in wrong nominal" }, primaryLabel: "Review suggestion", secondaryLabel: "I have solved this issue" },
+  ],
+  "7000": [
+    { idx: 0, key: "7000-payreview", title: "Confirm April pay review uplift", description: "Wages & salaries increased 6.2% (£1,900.00) following the annual pay review effective 1 April. Cross-reference the payroll summary to confirm all uplifts match approved rates and that no retrospective adjustments are needed.", tableRow: { account: "7000 – Wages & salaries", amount: "£1,900.00", period: "Apr 2026", reasoning: "First month of new pay rates" }, primaryLabel: "Review suggestion", secondaryLabel: "I have solved this issue" },
+  ],
+  "7002": [],
+  "7003": [],
+  "7010": [],
+  "8000": [],
+  "8010": [],
+  "8100": [
+    { idx: 0, key: "8100-provision", title: "Review bad debt provision increase", description: "Bad debts of £1,240.00 were posted in April against a nil balance in March. This relates to a specific provision for invoice INV-3844 (Waitrose, 90+ days overdue). Confirm the provision methodology is consistent and that no credit insurance recovery is expected.", tableRow: { account: "8100 – Bad debts", amount: "£1,240.00", period: "Apr 2026", reasoning: "New provision — no prior month balance" }, primaryLabel: "Review suggestion", secondaryLabel: "I have solved this issue" },
+  ],
 };
 
-// ── Suggestion cards for 4000 – Sales ──────────────────────────────────────
-var PL_SALES_CARDS = [
-  {
-    idx: 0,
-    key: "missing-accrual",
-    category: "Missing accruals",
-    title: "Accrue April wholesale commission",
-    description: "Wholesale commissions to Tesco are typically posted in the first week of the following month. The April commission of £4,280.00 has not yet been received or posted. A matching accrual was raised in each of the prior 11 months. Without an accrual, April revenue will be overstated.",
-    tableRow: { account: "4000 – Sales", amount: "£4,280.00", period: "Apr 2026", reasoning: "Consistent trend of accruals from the past" },
-    primaryLabel: "Review suggestion",
-    secondaryLabel: "I have solved this issue",
-  },
-  {
-    idx: 1,
-    key: "investigate-variance",
-    category: "Variance investigation",
-    title: "Investigate Sainsbury's volume uplift",
-    description: "Sainsbury's wholesale orders increased by 18.2% compared to March, contributing £8,400.00 of additional revenue. This exceeds the seasonal pattern observed in prior years (typical April uplift is 8–12%). Confirm whether this reflects a new contract or promotional agreement, or whether it may reverse in May.",
-    tableRow: { account: "4000 – Sales", amount: "£8,400.00", period: "Apr 2026", reasoning: "Variance exceeds seasonal norm by 6–10 pp" },
-    primaryLabel: "Review suggestion",
-    secondaryLabel: "I have solved this issue",
-  },
-  {
-    idx: 2,
-    key: "credit-note",
-    category: "Unposted items",
-    title: "Post outstanding credit note CN-4821",
-    description: "Credit note CN-4821 for £1,250.00 was issued on 28 April to Waitrose for damaged goods but has not been posted to the ledger. The original invoice (INV-4103) was posted in March. Leaving the credit note unposted overstates April revenue by £1,250.00.",
-    tableRow: { account: "4000 – Sales", amount: "–£1,250.00", period: "Apr 2026", reasoning: "Credit note issued but not posted" },
-    primaryLabel: "Review suggestion",
-    secondaryLabel: "I have solved this issue",
-  },
-];
+// ── Per-account flow configuration ─────────────────────────────────────────
+var PL_PREPARE_CONFIG = {};
+(function() {
+  var accts = [
+    ["4000","Sales","Revenue","£312,450.00","£301,800.00","£10,650.00","+3.5%",48,"Driven by increased wholesale orders from Tesco and Sainsbury's ahead of the summer season. Seasonal uplift is consistent with prior years."],
+    ["4010","Online & direct sales","Revenue","£28,920.00","£28,100.00","£820.00","+2.9%",22,"Consistent with recent trend. No issues identified."],
+    ["4100","Other income","Revenue","£5,400.00","£4,250.00","£1,150.00","+27.1%",8,"Increase driven by pallet return credits. Classification should be verified against prior period treatment."],
+    ["4200","Rental income","Revenue","£1,950.00","£1,950.00","£0.00","0.0%",2,"Sublease income for warehouse unit B. No change from prior month."],
+    ["5000","Purchases – raw materials","Cost of sales","£142,380.00","£138,900.00","£3,480.00","+2.5%",34,"Stable following supplier contract renewal. Cut-off on late April deliveries should be checked."],
+    ["5001","Purchases – packaging","Cost of sales","£18,460.00","£17,800.00","£660.00","+3.7%",12,"No significant variances or suggestions identified."],
+    ["5010","Direct labour","Cost of sales","£24,300.00","£23,100.00","£1,200.00","+5.2%",6,"Overtime hours slightly above budget in the final week of April. May relate to Sainsbury's order uplift."],
+    ["5020","Freight & carriage","Cost of sales","£11,850.00","£10,200.00","£1,650.00","+16.2%",18,"Fuel surcharge increase from DHL effective 1 April. Warrants review."],
+    ["5030","Stock adjustments","Cost of sales","£3,420.00","£3,680.00","–£260.00","–7.1%",4,"Partial reversal of a March write-off. Confirm supported by recount."],
+    ["5040","Production overheads","Cost of sales","£3,230.00","£3,150.00","£80.00","+2.5%",8,"No significant variances or suggestions identified."],
+    ["6000","Rent","Overheads","£8,500.00","£8,500.00","£0.00","0.0%",1,"Quarterly charge, consistent with prior periods. No issues."],
+    ["6010","Rates","Overheads","£2,100.00","£2,100.00","£0.00","0.0%",1,"No variances or suggestions identified."],
+    ["6020","Light, heat & power","Overheads","£3,640.00","£4,280.00","–£640.00","–15.0%",6,"Seasonal decrease expected as heating usage declines. No issues."],
+    ["6030","Insurance","Overheads","£2,450.00","£2,450.00","£0.00","0.0%",1,"Annual premium spread monthly. No change."],
+    ["6040","Repairs & maintenance","Overheads","£4,120.00","£2,800.00","£1,320.00","+47.1%",5,"Includes conveyor belt service — potential capitalisation required."],
+    ["6110","Advertising & marketing","Overheads","£3,200.00","£2,600.00","£600.00","+23.1%",7,"Summer campaign spend starting. May require prepayment treatment."],
+    ["6200","Professional fees","Overheads","£6,800.00","£2,400.00","£4,400.00","+183.3%",4,"Year-end audit accrual posted. Verify amount and check for misclassified legal fees."],
+    ["6210","Bank charges","Overheads","£480.00","£460.00","£20.00","+4.3%",14,"Consistent with account activity. No issues."],
+    ["6220","Subscriptions","Overheads","£890.00","£870.00","£20.00","+2.3%",3,"No significant variances or suggestions identified."],
+    ["6230","Telephone & internet","Overheads","£720.00","£710.00","£10.00","+1.4%",2,"No significant variances or suggestions identified."],
+    ["6250","Travel & subsistence","Overheads","£1,680.00","£1,350.00","£330.00","+24.4%",9,"Trade show travel included. Receipts should be verified."],
+    ["6310","Motor expenses","Overheads","£2,340.00","£2,280.00","£60.00","+2.6%",4,"No significant variances or suggestions identified."],
+    ["6420","General expenses","Overheads","£3,850.00","£2,000.00","£1,850.00","+92.5%",16,"Significant increase driven by auto-coded Barclays card transactions. Likely miscodings to investigate."],
+    ["7000","Wages & salaries","Staff costs","£32,400.00","£30,500.00","£1,900.00","+6.2%",3,"Annual pay review effective 1 April. Cross-reference payroll summary."],
+    ["7002","Employer NI","Staff costs","£3,890.00","£3,640.00","£250.00","+6.9%",1,"Increase consistent with pay review uplift. No issues."],
+    ["7003","Pension costs","Staff costs","£2,160.00","£2,020.00","£140.00","+6.9%",1,"Increase consistent with pay review uplift. No issues."],
+    ["7010","Directors' remuneration","Staff costs","£8,333.00","£8,333.00","£0.00","0.0%",1,"No change from prior month. No issues."],
+    ["8000","Depreciation","Other","£6,012.00","£6,012.00","£0.00","0.0%",1,"Fixed monthly charge per FA register. No issues."],
+    ["8010","Amortisation","Other","£2,000.00","£2,000.00","£0.00","0.0%",1,"No issues identified."],
+    ["8100","Bad debts","Other","£1,240.00","£0.00","£1,240.00","new",3,"New provision for overdue Waitrose invoice. Confirm methodology and check for credit insurance recovery."],
+  ];
+  accts.forEach(function(a) {
+    var cards = PL_ACCOUNT_CARDS[a[0]] || [];
+    PL_PREPARE_CONFIG[a[0]] = _plMakeConfig(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], cards);
+  });
+})();
 
 
 // ── Close icon ─────────────────────────────────────────────────────────────
@@ -21747,11 +21832,21 @@ var PlBackIcon = function() {
 };
 
 
+// ── Persistent state cache (survives close/reopen within session) ──────────
+var _plFlowCache = {};
+function _plGetCache(code) {
+  if (!_plFlowCache[code]) {
+    _plFlowCache[code] = { resolvedCards: new Set(), ignoredCards: new Set(), cardActions: {}, flowComplete: false, markedCompleted: false };
+  }
+  return _plFlowCache[code];
+}
+
 // ── PlPrepareFlow component ────────────────────────────────────────────────
 function PlPrepareFlow(_ref) {
   var accountCode = _ref.accountCode;
   var selectedPeriod = _ref.selectedPeriod || "April 2026";
   var onClose = _ref.onClose;
+  var onNavigate = _ref.onNavigate;
 
   var config = PL_PREPARE_CONFIG[accountCode];
   if (!config) {
@@ -21780,45 +21875,54 @@ function PlPrepareFlow(_ref) {
     );
   }
 
-  // ── State ──
-  var _s = useState(false); var stepsPopulated = _s[0], setStepsPopulated = _s[1];
-  _s = useState([]); var stepStatuses = _s[0], setStepStatuses = _s[1];
-  _s = useState([]); var stepSubtexts = _s[0], setStepSubtexts = _s[1];
-  _s = useState(0); var visibleSteps = _s[0], setVisibleSteps = _s[1];
-  _s = useState(false); var summaryVisible = _s[0], setSummaryVisible = _s[1];
+  // ── Per-account cards ──
+  var _plCards = PL_ACCOUNT_CARDS[accountCode] || [];
+
+  // ── Persistent state (survives close/reopen) ──
+  var cache = _plGetCache(accountCode);
+  var _s = useState(cache.flowComplete); var stepsPopulated = _s[0], setStepsPopulated = _s[1];
+  _s = useState(cache.flowComplete ? config.steps.map(function() { return "done"; }) : []); var stepStatuses = _s[0], setStepStatuses = _s[1];
+  _s = useState(cache.flowComplete ? config.steps.map(function() { return true; }) : []); var stepSubtexts = _s[0], setStepSubtexts = _s[1];
+  _s = useState(cache.flowComplete ? config.steps.length : 0); var visibleSteps = _s[0], setVisibleSteps = _s[1];
+  _s = useState(cache.flowComplete); var summaryVisible = _s[0], setSummaryVisible = _s[1];
   _s = useState(400); var chatWidth = _s[0], setChatWidth = _s[1];
   _s = useState(false); var isDragging = _s[0], setIsDragging = _s[1];
   _s = useState(true); var isAtBottom = _s[0], setIsAtBottom = _s[1];
-  _s = useState(false); var acctDropOpen = _s[0], setAcctDropOpen = _s[1];
+  // acctDropOpen removed — DS Dropdown handles its own state
   _s = useState(""); var inputValue = _s[0], setInputValue = _s[1];
-  _s = useState(new Set()); var resolvedCards = _s[0], setResolvedCards = _s[1];
-  _s = useState(new Set()); var ignoredCards = _s[0], setIgnoredCards = _s[1];
-  _s = useState({}); var cardActions = _s[0], setCardActions = _s[1];
+  _s = useState(function() { return new Set(cache.resolvedCards); }); var resolvedCards = _s[0], setResolvedCards = _s[1];
+  _s = useState(function() { return new Set(cache.ignoredCards); }); var ignoredCards = _s[0], setIgnoredCards = _s[1];
+  _s = useState(function() { return Object.assign({}, cache.cardActions); }); var cardActions = _s[0], setCardActions = _s[1];
+  _s = useState(cache.markedCompleted); var markedCompleted = _s[0], setMarkedCompleted = _s[1];
   _s = useState(false); var highlightsOpen = _s[0], setHighlightsOpen = _s[1];
   _s = useState(false); var analysisOpen = _s[0], setAnalysisOpen = _s[1];
 
+  // ── Sync state back to cache on every change ──
+  useEffect(function() {
+    cache.resolvedCards = new Set(resolvedCards);
+    cache.ignoredCards = new Set(ignoredCards);
+    cache.cardActions = Object.assign({}, cardActions);
+  }, [resolvedCards, ignoredCards, cardActions]);
+  useEffect(function() {
+    if (summaryVisible) cache.flowComplete = true;
+  }, [summaryVisible]);
+  useEffect(function() {
+    cache.markedCompleted = markedCompleted;
+  }, [markedCompleted]);
+
   var chatScrollRef = useRef(null);
   var chatEndRef = useRef(null);
-  var acctDropRef = useRef(null);
-
-  // ── Close dropdown on click outside ──
-  useEffect(function() {
-    if (!acctDropOpen) return;
-    var handler = function(e) {
-      if (acctDropRef.current && !acctDropRef.current.contains(e.target)) setAcctDropOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return function() { document.removeEventListener("mousedown", handler); };
-  }, [acctDropOpen]);
+  // Dropdown ref removed — DS Dropdown handles its own open/close
 
   // ── Typewriter for intro message ──
+  var isResume = cache.flowComplete;
   var introFull = config.introSegments.map(function(s) { return s.text; }).join("");
-  var tw = PlUseTypewriter(introFull, 18, false);
+  var tw = PlUseTypewriter(introFull, 18, isResume);
   var introDone = tw.done;
 
   // ── Step reveal after intro typed ──
   useEffect(function() {
-    if (!introDone) return;
+    if (!introDone || isResume) return;
     var REVEAL = 80, timers = [];
     config.steps.forEach(function(_, i) {
       timers.push(setTimeout(function() {
@@ -21831,7 +21935,7 @@ function PlPrepareFlow(_ref) {
 
   // ── Step progression after populated ──
   useEffect(function() {
-    if (!stepsPopulated) return;
+    if (!stepsPopulated || isResume) return;
     setStepStatuses(config.steps.map(function(_, i) { return i === 0 ? "active" : "pending"; }));
     setStepSubtexts(config.steps.map(function() { return false; }));
     var timers = [], cum = 0;
@@ -21907,7 +22011,7 @@ function PlPrepareFlow(_ref) {
 
   // ── Summary typewriter ──
   var summaryFull = config.summarySegments ? config.summarySegments.map(function(s) { return s.text; }).join("") : "";
-  var summaryTw = PlUseTypewriter(summaryVisible ? summaryFull : "", 18, false);
+  var summaryTw = PlUseTypewriter(summaryVisible ? summaryFull : "", 18, isResume);
 
   // ── Render ──
   return React.createElement("div", {
@@ -21925,38 +22029,40 @@ function PlPrepareFlow(_ref) {
     },
       // Title
       React.createElement("span", { style: { fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-1px", flexShrink: 0 } }, "Prepare Profit and Loss"),
-      // Account selector dropdown
-      React.createElement("div", { ref: acctDropRef, style: { position: "relative" } },
-        React.createElement("button", {
-          onClick: function() { setAcctDropOpen(function(o) { return !o; }); },
-          style: { display: "inline-flex", alignItems: "center", gap: 8, padding: "0 12px", height: 48, border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap" },
-        },
-          React.createElement("span", null, config.title),
-          React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none", style: { transition: "transform 0.2s ease", transform: acctDropOpen ? "rotate(180deg)" : "rotate(0deg)", flexShrink: 0 } },
-            React.createElement("path", { d: "M4 6L8 10L12 6", stroke: "#080908", strokeWidth: "1.25", strokeLinecap: "round", strokeLinejoin: "round" })
-          )
-        ),
-        acctDropOpen && React.createElement("div", {
-          style: { position: "absolute", top: "calc(100% + 4px)", left: 0, background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.08)", zIndex: 100, minWidth: 260, overflow: "hidden", padding: "6px" },
-        },
-          PL_ACCOUNT_LIST.map(function(acct) {
-            var isSelected = acct.code === accountCode;
-            var isConfigured = !!PL_PREPARE_CONFIG[acct.code];
-            return React.createElement("button", {
-              key: acct.code,
-              onClick: isConfigured ? function() { setAcctDropOpen(false); } : undefined,
-              style: { width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, textAlign: "left", padding: "10px 12px", fontSize: 14, color: isConfigured ? T.colorTextPrimary : T.colorTextDisabled, fontWeight: isSelected ? 500 : 400, background: isSelected ? T.colorBorderLight : "transparent", border: "none", cursor: isConfigured ? "pointer" : "default", borderRadius: 8, boxSizing: "border-box", fontFamily: "'Inter', sans-serif" },
-              onMouseEnter: function(e) { if (!isSelected && isConfigured) e.currentTarget.style.background = T.colorSurfaceSecondary; },
-              onMouseLeave: function(e) { if (!isSelected) e.currentTarget.style.background = "transparent"; },
-            },
-              React.createElement("span", null, acct.code + " – " + acct.name),
-              isSelected && React.createElement("span", { style: { fontSize: 12, fontWeight: 500, color: T.colorWarning, background: T.colorWarningBg, padding: "2px 8px", borderRadius: 20, whiteSpace: "nowrap", flexShrink: 0 } }, "In review")
-            );
-          })
-        )
-      ),
+      // Account selector (DS Dropdown)
+      React.createElement(Dropdown, {
+        value: accountCode,
+        onChange: function(code) { if (onNavigate && code !== accountCode) onNavigate(code); },
+        options: PL_ACCOUNT_LIST.map(function(a) { return { value: a.code, label: a.code + " – " + a.name }; }),
+        searchable: true,
+        searchPlaceholder: "Search accounts…",
+        width: "auto",
+        size: "lg",
+      }),
       // Spacer
       React.createElement("div", { style: { flex: 1 } }),
+      // Left to review counter (when results are in)
+      summaryVisible && (function() {
+        var total = _plCards.length;
+        var handled = 0;
+        _plCards.forEach(function(c) { if (resolvedCards.has(c.idx) || ignoredCards.has(c.idx)) handled++; });
+        var remaining = Math.max(0, total - handled);
+        var allHandled = remaining <= 0;
+        return React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12 } },
+          !markedCompleted && total > 0 && React.createElement("span", { style: { fontSize: 14, color: T.colorTextThird, whiteSpace: "nowrap" } },
+            "Left to review: ",
+            React.createElement("strong", { style: { color: T.colorTextPrimary } }, remaining + " suggestion" + (remaining !== 1 ? "s" : ""))
+          ),
+          markedCompleted
+            ? React.createElement(StatusBadge, { variant: "info" }, "Completed")
+            : React.createElement("button", {
+                onClick: function() { setMarkedCompleted(true); },
+                style: { height: 36, padding: "0 16px", borderRadius: 8, border: "none", background: T.colorBrandPrimary, color: T.colorTextLight, fontSize: 14, fontWeight: 500, cursor: "pointer", whiteSpace: "nowrap" },
+                onMouseEnter: function(e) { e.currentTarget.style.background = T.colorBrandPrimaryHover; },
+                onMouseLeave: function(e) { e.currentTarget.style.background = T.colorBrandPrimary; },
+              }, "Mark as completed")
+        );
+      })(),
       // Close button
       React.createElement("button", { onClick: onClose, style: { border: "none", background: "none", cursor: "pointer", padding: 0 } },
         React.createElement("svg", { width: 30, height: 30, viewBox: "0 0 30 30", fill: "none" },
@@ -22077,7 +22183,7 @@ function PlPrepareFlow(_ref) {
           React.createElement("div", { style: { padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" } },
 
             // ── Overview section ──
-            React.createElement("div", { style: { background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 8, padding: "24px 24px 20px", marginBottom: 20 } },
+            React.createElement("div", { style: { marginBottom: 20 } },
               React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 } },
                 React.createElement("h3", { style: { fontSize: 20, fontWeight: 500, color: T.colorTextPrimary, margin: 0 } }, "Overview"),
                 React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12 } },
@@ -22093,7 +22199,7 @@ function PlPrepareFlow(_ref) {
                   { key: "variance", label: "Variance", width: "1fr" },
                 ],
                 rows: [
-                  { account: "4000 – Sales", actual: "£312,450.00", ref: "£301,880.00", variance: React.createElement("div", null, React.createElement("span", null, "+£10,570.00"), React.createElement("span", { style: { display: "block", fontSize: 12, fontWeight: 500, color: T.colorTextSecondary, background: T.colorBorderLight, borderRadius: 4, padding: "0 6px", marginTop: 4, width: "fit-content" } }, "+3.5%")) },
+                  { account: config.title, actual: config.actual, ref: config.ref, variance: React.createElement("div", null, React.createElement("span", null, config.variance), React.createElement("span", { style: { display: "block", fontSize: 12, fontWeight: 500, color: T.colorTextSecondary, background: T.colorBorderLight, borderRadius: 4, padding: "0 6px", marginTop: 4, width: "fit-content" } }, config.pct)) },
                 ],
               })
             ),
@@ -22109,9 +22215,10 @@ function PlPrepareFlow(_ref) {
               ),
               React.createElement("div", { style: { overflow: "hidden", maxHeight: highlightsOpen ? 400 : 0, opacity: highlightsOpen ? 1 : 0, transition: "max-height 0.5s cubic-bezier(0.16,1,0.3,1), opacity 0.4s ease" } },
                 React.createElement("div", { style: { fontSize: 14, color: T.colorTextBody, lineHeight: "20px", margin: "0 20px 16px", borderTop: "1px solid " + T.colorBorderSubtle, paddingTop: 14 } },
-                  React.createElement("p", { style: { margin: "0 0 10px" } }, "Revenue of £312,450.00 is 3.5% above March, driven by increased wholesale orders from Tesco and Sainsbury's."),
-                  React.createElement("p", { style: { margin: "0 0 10px" } }, "The seasonal uplift is consistent with prior-year patterns (April 2025: +3.1%, April 2024: +2.8%)."),
-                  React.createElement("p", { style: { margin: 0 } }, "Three items require attention: one unposted credit note, one missing commission accrual, and one volume variance that exceeds seasonal norms.")
+                  React.createElement("p", { style: { margin: "0 0 10px" } }, config.title + " at " + config.actual + " is " + config.pct + " vs March (" + config.ref + ")."),
+                  _plCards.length > 0
+                    ? React.createElement("p", { style: { margin: 0 } }, _plCards.length + " item" + (_plCards.length !== 1 ? "s" : "") + " flagged for review.")
+                    : React.createElement("p", { style: { margin: 0 } }, "No issues identified.")
                 )
               )
             ),
@@ -22127,44 +22234,46 @@ function PlPrepareFlow(_ref) {
               ),
               React.createElement("div", { style: { overflow: "hidden", maxHeight: analysisOpen ? 500 : 0, opacity: analysisOpen ? 1 : 0, transition: "max-height 0.5s cubic-bezier(0.16,1,0.3,1), opacity 0.4s ease" } },
                 React.createElement("div", { style: { fontSize: 14, color: T.colorTextBody, lineHeight: "20px", margin: "0 20px 16px", borderTop: "1px solid " + T.colorBorderSubtle, paddingTop: 14 } },
-                  React.createElement("p", { style: { margin: "0 0 10px" } }, "The P&L review for April 2026 cross-referenced 48 sales transactions against the prior month, prior year, and outstanding invoices and credit notes."),
-                  React.createElement("p", { style: { margin: "0 0 10px" } }, "The most significant finding is an 18.2% volume uplift from Sainsbury's (£8,400.00) that exceeds the typical seasonal range of 8–12%. This could indicate a new contract or promotional agreement, or a one-off order that will reverse in May."),
-                  React.createElement("p", { style: { margin: "0 0 10px" } }, "A wholesale commission accrual of £4,280.00 is missing. This recurring accrual has been raised in each of the prior 11 months and appears to have been missed during April period close."),
-                  React.createElement("p", { style: { margin: 0 } }, "Credit note CN-4821 (£1,250.00) for damaged goods was issued to Waitrose on 28 April but remains unposted, overstating revenue by that amount.")
+                  React.createElement("p", { style: { margin: "0 0 10px" } }, "The review for " + config.title + " (April 2026) compared current month against March actuals, prior year patterns, and outstanding items."),
+                  config.summarySegments && React.createElement("p", { style: { margin: _plCards.length > 0 ? "0 0 10px" : 0 } }, config.summarySegments.map(function(s) { return s.text; }).join("")),
+                  _plCards.length > 0 && React.createElement("p", { style: { margin: 0 } }, _plCards.map(function(c) { return c.title; }).join(". ") + ".")
                 )
               )
             ),
 
-            // ── Divider ──
+            // ── Divider + Suggestions ──
             React.createElement("hr", { style: { border: "none", borderTop: "1px solid " + T.colorBorderDark, margin: "32px 0 40px" } }),
 
-            // ── Suggestions header ──
             React.createElement("h3", { style: { fontSize: 20, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 16px" } }, "Suggestions"),
+
+            // ── No-suggestions empty state ──
+            _plCards.length === 0 && React.createElement("div", {
+              style: { background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, padding: "60px 40px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" },
+            },
+              React.createElement("svg", { width: 56, height: 56, viewBox: "0 0 56 56", fill: "none", style: { marginBottom: 20 } },
+                React.createElement("path", { d: "M16 28L24 36L40 20", stroke: T.colorBrandPrimary, strokeWidth: 5, strokeLinecap: "round", strokeLinejoin: "round", opacity: 0.7 }),
+                React.createElement("path", { d: "M16 28L24 36L40 20", stroke: T.colorBrandPrimary, strokeWidth: 3, strokeLinecap: "round", strokeLinejoin: "round" })
+              ),
+              React.createElement("h4", { style: { fontSize: 18, fontWeight: 600, color: T.colorTextPrimary, margin: "0 0 8px" } }, "No suggestions for this account"),
+              React.createElement("p", { style: { fontSize: 14, color: T.colorTextSecondary, margin: 0, maxWidth: 420, lineHeight: "22px" } }, "After analysing transactions, trends, balances and other activity, nothing unusual or missing was found.")
+            ),
 
             // ── Suggestion cards ──
             React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 20 } },
               (function() {
-                var cardsByCategory = {};
-                PL_SALES_CARDS.forEach(function(card) {
-                  if (!cardsByCategory[card.category]) cardsByCategory[card.category] = [];
-                  cardsByCategory[card.category].push(card);
-                });
-                var sections = [];
-                Object.keys(cardsByCategory).forEach(function(cat) {
-                  sections.push(React.createElement("h4", { key: "cat-" + cat, style: { fontSize: 16, fontWeight: 500, color: T.colorTextPrimary, margin: "8px 0 12px" } }, cat));
-                  cardsByCategory[cat].forEach(function(card) {
+                return _plCards.map(function(card) {
                     var isResolved = resolvedCards.has(card.idx);
                     var isIgnored = ignoredCards.has(card.idx);
                     var actionLabel = cardActions[card.idx];
                     var statusLabel = isResolved ? (actionLabel || "Resolved") : isIgnored ? (actionLabel || "Ignored") : "Unresolved";
                     var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
-                    sections.push(React.createElement("div", { key: card.key, style: { scrollMarginTop: 64 } },
+                    return React.createElement("div", { key: card.key, style: { scrollMarginTop: 64 } },
                       React.createElement(RecommendationCard, {
                         title: card.title,
                         description: card.description,
                         statusLabel: statusLabel,
                         statusStyle: statusStyle,
-                        collapsed: isResolved || isIgnored,
+                        collapsed: markedCompleted || isResolved || isIgnored,
                         isIgnored: isIgnored,
                         hideMore: true,
                         tableRow: card.tableRow,
@@ -22175,23 +22284,21 @@ function PlPrepareFlow(_ref) {
                           { key: "period", label: "Period", width: "0.8fr" },
                           { key: "reasoning", label: "Reasoning", width: "1.2fr" },
                         ],
-                        primaryLabel: card.primaryLabel,
-                        secondaryLabel: card.secondaryLabel,
-                        onPrimaryAction: function() {},
-                        onSecondaryAction: function() {
+                        primaryLabel: markedCompleted ? null : card.primaryLabel,
+                        secondaryLabel: markedCompleted ? null : card.secondaryLabel,
+                        onPrimaryAction: markedCompleted ? undefined : function() {},
+                        onSecondaryAction: markedCompleted ? undefined : function() {
                           var idx = card.idx;
                           setResolvedCards(function(prev) { var n = new Set(prev); n.add(idx); return n; });
                           setCardActions(function(prev) { var o = Object.assign({}, prev); o[idx] = "Resolved"; return o; });
                         },
-                        onIgnore: function() {
+                        onIgnore: markedCompleted ? undefined : function() {
                           var idx = card.idx;
                           setIgnoredCards(function(prev) { var n = new Set(prev); n.add(idx); return n; });
                         },
                       })
-                    ));
-                  });
+                    );
                 });
-                return sections;
               })()
             )
           )
@@ -22203,6 +22310,20 @@ function PlPrepareFlow(_ref) {
 
 // Make PlPrepareFlow globally available (called from profit-and-loss.jsx)
 window.PlPrepareFlow = PlPrepareFlow;
+
+// Expose flow status for the P&L table WorkflowCard
+// Returns { complete, totalSuggestions, unresolvedCount, updatedDate } or null
+window.PlGetFlowStatus = function(code) {
+  var cache = _plFlowCache[code];
+  if (!cache || !cache.flowComplete) return null;
+  var cards = PL_ACCOUNT_CARDS[code] || [];
+  var total = cards.length;
+  var handled = 0;
+  cards.forEach(function(card) {
+    if (cache.resolvedCards.has(card.idx) || cache.ignoredCards.has(card.idx)) handled++;
+  });
+  return { complete: true, markedCompleted: !!cache.markedCompleted, totalSuggestions: total, unresolvedCount: total - handled, hasSuggestions: total > 0, updatedDate: "5 May" };
+};
 
 })();
 // ── Profit & Loss page ───────────────────────────────────────────────────────
@@ -22964,6 +23085,10 @@ function ProfitAndLossPage(props) {
   var _prepareAccount = useState(null);
   var prepareAccount = _prepareAccount[0];
   var setPrepareAccount = _prepareAccount[1];
+  // Counter to force re-render when prepare flow closes (picks up suggestion changes)
+  var _plRefresh = useState(0);
+  var plRefreshKey = _plRefresh[0];
+  var setPlRefreshKey = _plRefresh[1];
 
   // Review statuses per account: { [code]: { status, reviewer, date } }
   var _plReviewStatuses = useState(function() { return {}; });
@@ -23060,10 +23185,52 @@ function ProfitAndLossPage(props) {
     key: "prepare", label: "Prepare for review", width: "184px",
     render: function(v, row, ri) {
       if (ri === -1 || !row || !row.code) return null;
+      var status = window.PlGetFlowStatus && window.PlGetFlowStatus(row.code);
+      if (status && status.complete) {
+        if (status.markedCompleted) {
+          return React.createElement(AdjWorkflowCard, {
+            label: "Completed",
+            color: T.colorInfo,
+            subtitle: status.updatedDate,
+            hideIcon: true,
+            width: "100%",
+            onClick: function() { setPrepareAccount(row.code); },
+          });
+        }
+        var unresolved = status.unresolvedCount;
+        if (!status.hasSuggestions && !status.markedCompleted) {
+          return React.createElement(AdjWorkflowCard, {
+            label: "Awaiting action",
+            color: T.colorWarning,
+            subtitle: status.updatedDate,
+            width: "100%",
+            onClick: function() { setPrepareAccount(row.code); },
+          });
+        }
+        if (unresolved === 0 && !status.markedCompleted) {
+          return React.createElement(AdjWorkflowCard, {
+            label: "Prepared",
+            color: T.colorBrandPrimary,
+            subtitle: status.updatedDate,
+            hideIcon: true,
+            width: "100%",
+            onClick: function() { setPrepareAccount(row.code); },
+          });
+        }
+        return React.createElement(AdjWorkflowCard, {
+          label: unresolved + " suggestion" + (unresolved !== 1 ? "s" : ""),
+          color: T.colorError,
+          subtitle: status.updatedDate,
+          width: "100%",
+          onClick: function() { setPrepareAccount(row.code); },
+        });
+      }
       return React.createElement(AdjWorkflowCard, {
         label: "Prepare",
         icon: React.createElement(PlayCircleIcon, { color: T.colorTextPrimary, size: 16 }),
-        onClick: row.code === "4000" ? function() { setPrepareAccount(row.code); } : undefined,
+        width: "100%",
+        style: { justifyContent: "space-between" },
+        onClick: function() { setPrepareAccount(row.code); },
       });
     },
   };
@@ -23088,7 +23255,7 @@ function ProfitAndLossPage(props) {
         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12 } },
           React.createElement("h1", { style: { fontSize: 32, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "40px", letterSpacing: "-1px", margin: 0 } }, "Profit and Loss"),
           plState === "disabled"
-            ? React.createElement(StatusBadge, { variant: "neutral" }, "Not started")
+            ? React.createElement(StatusBadge, { variant: "warning" }, "Preparing")
             : plState === "preparing"
               ? React.createElement(StatusBadge, { variant: "info" }, "Preparing")
               : React.createElement(StatusBadge, { variant: "success" }, "Prepared")
@@ -23217,7 +23384,8 @@ function ProfitAndLossPage(props) {
     prepareAccount && React.createElement(PlPrepareFlow, {
       accountCode: prepareAccount,
       selectedPeriod: "April 2026",
-      onClose: function() { setPrepareAccount(null); },
+      onClose: function() { setPrepareAccount(null); setPlRefreshKey(function(k) { return k + 1; }); },
+      onNavigate: function(code) { setPrepareAccount(code); },
     })
   );
 }

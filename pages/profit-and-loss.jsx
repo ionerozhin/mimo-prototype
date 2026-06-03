@@ -757,6 +757,10 @@ function ProfitAndLossPage(props) {
   var _prepareAccount = useState(null);
   var prepareAccount = _prepareAccount[0];
   var setPrepareAccount = _prepareAccount[1];
+  // Counter to force re-render when prepare flow closes (picks up suggestion changes)
+  var _plRefresh = useState(0);
+  var plRefreshKey = _plRefresh[0];
+  var setPlRefreshKey = _plRefresh[1];
 
   // Review statuses per account: { [code]: { status, reviewer, date } }
   var _plReviewStatuses = useState(function() { return {}; });
@@ -853,10 +857,52 @@ function ProfitAndLossPage(props) {
     key: "prepare", label: "Prepare for review", width: "184px",
     render: function(v, row, ri) {
       if (ri === -1 || !row || !row.code) return null;
+      var status = window.PlGetFlowStatus && window.PlGetFlowStatus(row.code);
+      if (status && status.complete) {
+        if (status.markedCompleted) {
+          return React.createElement(AdjWorkflowCard, {
+            label: "Completed",
+            color: T.colorInfo,
+            subtitle: status.updatedDate,
+            hideIcon: true,
+            width: "100%",
+            onClick: function() { setPrepareAccount(row.code); },
+          });
+        }
+        var unresolved = status.unresolvedCount;
+        if (!status.hasSuggestions && !status.markedCompleted) {
+          return React.createElement(AdjWorkflowCard, {
+            label: "Awaiting action",
+            color: T.colorWarning,
+            subtitle: status.updatedDate,
+            width: "100%",
+            onClick: function() { setPrepareAccount(row.code); },
+          });
+        }
+        if (unresolved === 0 && !status.markedCompleted) {
+          return React.createElement(AdjWorkflowCard, {
+            label: "Prepared",
+            color: T.colorBrandPrimary,
+            subtitle: status.updatedDate,
+            hideIcon: true,
+            width: "100%",
+            onClick: function() { setPrepareAccount(row.code); },
+          });
+        }
+        return React.createElement(AdjWorkflowCard, {
+          label: unresolved + " suggestion" + (unresolved !== 1 ? "s" : ""),
+          color: T.colorError,
+          subtitle: status.updatedDate,
+          width: "100%",
+          onClick: function() { setPrepareAccount(row.code); },
+        });
+      }
       return React.createElement(AdjWorkflowCard, {
         label: "Prepare",
         icon: React.createElement(PlayCircleIcon, { color: T.colorTextPrimary, size: 16 }),
-        onClick: row.code === "4000" ? function() { setPrepareAccount(row.code); } : undefined,
+        width: "100%",
+        style: { justifyContent: "space-between" },
+        onClick: function() { setPrepareAccount(row.code); },
       });
     },
   };
@@ -881,7 +927,7 @@ function ProfitAndLossPage(props) {
         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12 } },
           React.createElement("h1", { style: { fontSize: 32, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "40px", letterSpacing: "-1px", margin: 0 } }, "Profit and Loss"),
           plState === "disabled"
-            ? React.createElement(StatusBadge, { variant: "neutral" }, "Not started")
+            ? React.createElement(StatusBadge, { variant: "warning" }, "Preparing")
             : plState === "preparing"
               ? React.createElement(StatusBadge, { variant: "info" }, "Preparing")
               : React.createElement(StatusBadge, { variant: "success" }, "Prepared")
@@ -1010,7 +1056,8 @@ function ProfitAndLossPage(props) {
     prepareAccount && React.createElement(PlPrepareFlow, {
       accountCode: prepareAccount,
       selectedPeriod: "April 2026",
-      onClose: function() { setPrepareAccount(null); },
+      onClose: function() { setPrepareAccount(null); setPlRefreshKey(function(k) { return k + 1; }); },
+      onNavigate: function(code) { setPrepareAccount(code); },
     })
   );
 }
