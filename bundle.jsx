@@ -22471,7 +22471,8 @@ var PL_COLUMNS = [
     width: "1fr",
     render: function(v, row) {
       if (!row || !row.code) return React.createElement("span", null, v);
-      var hasContext = CONTEXT_AVAILABLE[row.code];
+      var st = window.PlGetFlowStatus && window.PlGetFlowStatus(row.code);
+      var hasContext = st && st.complete && st.hasSuggestions;
       return React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-start" } },
         React.createElement("span", null, v),
         hasContext && React.createElement(StatusBadge, { variant: "success", size: "mini" },
@@ -22658,35 +22659,79 @@ var PL_TRANSACTIONS = {
 var PL_CONTEXT = {
   "4000": {
     title: "Wholesale Volumes Trending Up",
-    text: "Revenue of £312,450 is 3.5% above March, driven by increased wholesale orders ahead of the summer season. Tesco and Sainsbury's accounted for nearly half of total sales. This is consistent with the seasonal pattern seen in prior years and no adjustments are needed.",
+    text: "Revenue of £312,450 is 3.5% above March, driven by increased wholesale orders ahead of the summer season. Sainsbury's volume uplift of 18.2% exceeds seasonal norms and an unposted credit note of £1,250 may overstate revenue.",
+  },
+  "4100": {
+    title: "Pallet Credit Classification Query",
+    text: "Other income increased 27.1% to £5,400, driven by pallet return credits. In prior periods these were netted against Cost of sales — the reclassification should be verified.",
+  },
+  "5000": {
+    title: "Purchase Cut-Off Check Required",
+    text: "Raw materials at £142,380 are 2.5% above March. Two supplier invoices totalling £2,840 from Meadow Fresh Dairy near the period boundary need cut-off review.",
+  },
+  "5010": {
+    title: "Overtime Variance Flagged",
+    text: "Direct labour is 5.2% above March (£1,200 increase). Overtime in the final week was 40% above average — may relate to the Sainsbury's order uplift.",
   },
   "5020": {
     title: "Fuel Surcharge Driving Freight Increase",
-    text: "Freight costs rose 16.2% month-on-month to £11,850, primarily due to a fuel surcharge increase from XPO Logistics. The surcharge was applied mid-month and affects all outbound deliveries. Consider reviewing the carrier contract terms ahead of renewal in Q3.",
+    text: "Freight costs rose 16.2% to £11,850, driven by a fuel surcharge increase from DHL effective 1 April. Confirm whether this is a permanent rate change or one-off catch-up.",
   },
   "5030": {
-    title: "Stock Write-Off Within Normal Range",
-    text: "Stock adjustments of £3,420 are down 7.1% from March, reflecting fewer expired items this period. The write-off of £2,100 relates to short-dated product pulled from the chilled warehouse. This ties to the BS 1200 stock balance and no further action is required.",
+    title: "Stock Write-Off Reversal Needs Verification",
+    text: "Stock adjustments are £260 below March following a partial reversal of a prior-month write-off. Confirm the reversal is supported by a recount or quality inspection.",
+  },
+  "6000": {
+    title: "Missing Rent Items Identified",
+    text: "Two items flagged: the Regus hot desk prepayment release of £195 was missed during April close, and the WeWork rent accrual of £3,200 has not been posted despite a consistent 11-month trend.",
+  },
+  "6020": {
+    title: "Duplicate Electricity Accrual",
+    text: "Two identical British Gas accrual entries of £1,450 exist for April, doubling the electricity accrual. One should be reversed.",
+  },
+  "6030": {
+    title: "Insurance Premium Not Spread",
+    text: "The £14,400 Aviva PI renewal was posted in full to Insurance in November 2025. No prepayment schedule has been set up — the full amount sits in a single month rather than being spread at £1,200/month.",
+  },
+  "6040": {
+    title: "Capitalisation Query and Stale Prepayment",
+    text: "A £1,320 conveyor belt service may meet the capitalisation threshold. Separately, the ISS cleaning prepayment has a stale £145.20 balance that needs writing off.",
   },
   "6200": {
-    title: "Year-End Audit Accrual Posted",
-    text: "Professional fees jumped to £6,800 from £2,400 in March due to a £4,800 audit fee accrual from Grant Thornton. The monthly retainer to Clifton & Harrow remains unchanged at £2,000. The audit accrual should be reviewed to confirm it aligns with the engagement letter.",
+    title: "Audit Accrual and Fee Classification",
+    text: "Professional fees jumped to £6,800 due to a £4,500 Grant Thornton audit accrual for Q1. A £200 Walker & Co legal fee may be misclassified and should be reviewed.",
+  },
+  "6220": {
+    title: "Subscription Prepayment and Duplicate",
+    text: "HubSpot's £7,200 annual licence was posted in full and should be prepaid. Additionally, two identical Microsoft 365 schedules are doubling the monthly expense by £400.",
+  },
+  "6230": {
+    title: "Stale Vodafone Accrual",
+    text: "A £780 Vodafone accrual from January was never reversed after the actual invoice of £764.50 was posted in February. The stale accrual remains on the balance sheet.",
+  },
+  "6250": {
+    title: "Trade Show Receipts Required",
+    text: "£330 of additional travel costs relate to the FoodTech Expo. Hotel and mileage claims for two attendees need receipt verification.",
   },
   "6420": {
-    title: "Barclays Card Miscodings Suspected",
-    text: "General expenses increased 92.5% to £3,850, flagged for review. £1,850 of unallocated Barclays card transactions appear to include personal purchases that may need reclassifying. The remaining £2,000 covers Amazon Business supplies and petty cash, both within expected ranges.",
+    title: "Barclays Card Miscodings and Reclassifications",
+    text: "General expenses increased 92.5% to £3,850. Barclays card auto-coded transactions (£1,850), Amazon purchases (£420), and a standing desk (£750) all need reclassifying to correct accounts.",
   },
   "7000": {
     title: "Pay Review Uplift Now Reflected",
-    text: "Wages increased 6.2% to £32,400 following the annual pay review effective 1 April. The increase is in line with the 6% average uplift approved by the board. No further variance is expected in coming months unless headcount changes.",
+    text: "Wages increased 6.2% to £32,400 following the annual pay review effective 1 April. Cross-reference the payroll summary to confirm all uplifts match approved rates.",
   },
   "8000": {
-    title: "Depreciation Charge Unchanged",
-    text: "The monthly depreciation charge of £6,012 is unchanged from prior months and matches the fixed asset register schedule. No new capital additions or disposals occurred in April. This ties to BS accounts 0020–0040.",
+    title: "Multiple Missing Depreciation Charges",
+    text: "Three items flagged: plant & machinery (£2,180 April charge unposted), computer equipment (£1,740 March charge missing), and motor vehicles (£5,200 two-month variance).",
+  },
+  "8010": {
+    title: "Missing Leasehold Amortisation",
+    text: "The March amortisation charge of £3,200 for the office fit-out has not been posted. The register shows £51,200 accumulated vs Xero's £48,000.",
   },
   "8100": {
     title: "New Bad Debt Provision Required",
-    text: "A provision of £1,240 has been raised against Carter & Sons, whose invoice is now 120 days overdue with no response to collection attempts. This is the first bad debt provision in the current year. Consider escalating to the credit control team for formal write-off approval.",
+    text: "A provision of £1,240 has been raised against a Waitrose invoice (90+ days overdue). This is the first bad debt provision in the current year. Confirm methodology and check for credit insurance recovery.",
   },
 };
 
@@ -22812,8 +22857,9 @@ var PLExpandedRow = function(props) {
   var onToggleReview = props.onToggleReview;
   var isReviewed = reviewData && reviewData.status === "Reviewed";
   var txns = PL_TRANSACTIONS[row.code] || [];
-  var hasContext = CONTEXT_AVAILABLE[row.code];
-  var contextData = PL_CONTEXT[row.code];
+  var _flowSt = window.PlGetFlowStatus && window.PlGetFlowStatus(row.code);
+  var hasContext = _flowSt && _flowSt.complete && _flowSt.hasSuggestions;
+  var contextData = hasContext ? PL_CONTEXT[row.code] : null;
   // Deterministic "total" based on code digits — always more than shown highlights
   var codeNum = parseInt(row.code, 10) || 0;
   var totalCount = txns.length + (codeNum % 7) + 5;
@@ -23107,6 +23153,11 @@ function ProfitAndLossPage(props) {
   var plRefreshKey = _plRefresh[0];
   var setPlRefreshKey = _plRefresh[1];
 
+  // Send for review modal
+  var _showSendModal = useState(false);
+  var showSendModal = _showSendModal[0];
+  var setShowSendModal = _showSendModal[1];
+
   // Review statuses per account: { [code]: { status, reviewer, date } }
   var _plReviewStatuses = useState(function() { return {}; });
   var plReviewStatuses = _plReviewStatuses[0];
@@ -23128,6 +23179,30 @@ function ProfitAndLossPage(props) {
       next[code] = { status: "Reviewed", reviewer: "Laura Bennett", date: dateStr };
       return next;
     });
+  };
+
+  // Count completed accounts for the send-for-review flow
+  var _plAllCodes = [];
+  PL_SECTIONS.forEach(function(sec) { sec.rows.forEach(function(r) { _plAllCodes.push(r.code); }); });
+  var _plTotalAccounts = _plAllCodes.length;
+  var _plCompletedCount = 0;
+  _plAllCodes.forEach(function(code) {
+    var st = window.PlGetFlowStatus && window.PlGetFlowStatus(code);
+    if (st && st.markedCompleted) _plCompletedCount++;
+  });
+  var _plUnpreparedCount = _plTotalAccounts - _plCompletedCount;
+
+  var handleSendForReview = function() {
+    if (_plUnpreparedCount > 0) {
+      setShowSendModal(true);
+    } else {
+      setPlState("reviewing");
+    }
+  };
+
+  var confirmSendForReview = function() {
+    setShowSendModal(false);
+    setPlState("reviewing");
   };
 
   var resolveSuggestion = function(key, actionLabel) {
@@ -23172,7 +23247,26 @@ function ProfitAndLossPage(props) {
   // Build columns based on state
   var accountColumnDisabled = {
     key: "account", label: "Account", width: "minmax(320px, 1fr)",
-    render: function(v) { return React.createElement("span", null, v); },
+    render: function(v, row) {
+      if (!row || !row.code) return React.createElement("span", null, v);
+      var st = window.PlGetFlowStatus && window.PlGetFlowStatus(row.code);
+      var hasContext = st && st.complete && st.hasSuggestions;
+      return React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-start" } },
+        React.createElement("span", null, v),
+        hasContext && React.createElement(StatusBadge, { variant: "success", size: "mini" },
+          React.createElement("span", { style: { display: "inline-flex", alignItems: "center", gap: 3 } },
+            React.createElement("svg", { width: 12, height: 12, viewBox: "0 0 20 20", fill: "none", style: { flexShrink: 0 } },
+              React.createElement("path", {
+                d: "M10 1.5L11.5 7L17 8.5L11.5 10L10 15.5L8.5 10L3 8.5L8.5 7L10 1.5Z",
+                fill: T.colorSuccess, stroke: T.colorSuccess, strokeWidth: 1.5,
+                strokeLinejoin: "round", paintOrder: "stroke",
+              })
+            ),
+            "Context available"
+          )
+        )
+      );
+    },
   };
   var reviewColumn = {
     key: "pctDiff",
@@ -23271,16 +23365,17 @@ function ProfitAndLossPage(props) {
       React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between" } },
         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12 } },
           React.createElement("h1", { style: { fontSize: 32, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "40px", letterSpacing: "-1px", margin: 0 } }, "Profit and Loss"),
-          plState === "disabled"
-            ? React.createElement(StatusBadge, { variant: "warning" }, "Preparing")
-            : plState === "preparing"
-              ? React.createElement(StatusBadge, { variant: "info" }, "Preparing")
-              : React.createElement(StatusBadge, { variant: "success" }, "Prepared")
+          plState === "reviewing"
+            ? React.createElement(StatusBadge, { variant: "info" }, "Reviewing")
+            : React.createElement(StatusBadge, { variant: "warning" }, "Preparing")
         ),
         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
-          plState === "disabled"
-            ? React.createElement(PrimaryButton, { style: { height: 40, padding: "0 16px" } }, "Send to review")
-            : React.createElement(PrimaryButton, { style: { height: 40, padding: "0 16px" } }, "Mark as prepared")
+          plState === "reviewing"
+            ? React.createElement(React.Fragment, null,
+                React.createElement(PrimaryButton, { style: { height: 40, padding: "0 16px" } }, "Mark as reviewed"),
+                React.createElement(SecondaryButton, { style: { height: 40, padding: "0 16px" }, onClick: function() { setPlState("disabled"); } }, "Send back to preparer")
+              )
+            : React.createElement(PrimaryButton, { style: { height: 40, padding: "0 16px" }, onClick: handleSendForReview }, "Send for review")
         )
       ),
 
@@ -23396,6 +23491,31 @@ function ProfitAndLossPage(props) {
       // Bottom spacing
       React.createElement("div", { style: { height: 48 } })
     ),
+
+    // ── Warning modal ──
+    React.createElement(Modal, {
+      open: showSendModal,
+      onClose: function() { setShowSendModal(false); },
+      width: 480,
+      title: "Some accounts haven't been prepared",
+      text: _plUnpreparedCount + " of " + _plTotalAccounts + " accounts still need preparing. You can send the P&L for review now, or go back and finish preparing them first.",
+      showDivider: true,
+      footer: React.createElement("div", { style: { display: "flex", gap: 12, width: "100%" } },
+        React.createElement("button", {
+          onClick: function() { setShowSendModal(false); },
+          style: { flex: 1, height: 48, border: "1px solid " + T.colorBorderDark, borderRadius: 10, background: T.colorSurfacePrimary, fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, cursor: "pointer", fontFamily: T.fontFamily },
+          onMouseEnter: function(e) { e.currentTarget.style.background = T.colorSurfaceSecondary; },
+          onMouseLeave: function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; },
+        }, "Go back"),
+        React.createElement("button", {
+          onClick: confirmSendForReview,
+          style: { flex: 1, height: 48, border: "none", borderRadius: 10, background: T.colorErrorBg, fontSize: 14, fontWeight: 500, color: T.colorError, cursor: "pointer", fontFamily: T.fontFamily },
+          onMouseEnter: function(e) { e.currentTarget.style.opacity = "0.85"; },
+          onMouseLeave: function(e) { e.currentTarget.style.opacity = "1"; },
+        }, "Send for review")
+      ),
+      footerAlign: "stretch",
+    }),
 
     // ── Prepare flow overlay ──
     prepareAccount && React.createElement(PlPrepareFlow, {
