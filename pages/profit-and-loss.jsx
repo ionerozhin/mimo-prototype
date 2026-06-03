@@ -32,7 +32,7 @@ var PL_SECTIONS = [
       { code: "4100", account: "4100 – Other income",                context: "Includes pallet return credits",              actual: "£5,400.00",   ref: "£4,250.00",   variance: "£1,150.00",   pctDiff: "+27.1%", pctStatus: null },
       { code: "4200", account: "4200 – Rental income",               context: "Sublease of warehouse unit B",                actual: "£1,950.00",   ref: "£1,950.00",   variance: "£0.00",       pctDiff: "0.0%",   pctStatus: null },
     ],
-    footer: "Total Revenue: £348,720.00",
+    footer: { label: "Total Revenue", actual: "£348,720.00", ref: "£336,100.00", variance: "£12,620.00", pctDiff: "+3.8%" },
   },
   {
     heading: "Cost of Sales",
@@ -44,7 +44,7 @@ var PL_SECTIONS = [
       { code: "5030", account: "5030 – Stock adjustments",           context: "Ties to BS 1200 – Stock",                    actual: "£3,420.00",   ref: "£3,680.00",   variance: "-£260.00",    pctDiff: "-7.1%",  pctStatus: null },
       { code: "5040", account: "5040 – Production overheads",        context: "No big variances or suggestions",            actual: "£3,230.00",   ref: "£3,150.00",   variance: "£80.00",      pctDiff: "+2.5%",  pctStatus: null },
     ],
-    footer: "Total Cost of Sales: £203,640.00  |  Gross Profit: £145,080.00",
+    footer: { label: "Total Cost of Sales", actual: "£203,640.00", ref: "£196,830.00", variance: "£6,810.00", pctDiff: "+3.5%" },
   },
   {
     heading: "Operating Expenses",
@@ -70,7 +70,7 @@ var PL_SECTIONS = [
       { code: "8010", account: "8010 – Amortisation",                context: "Ties to BS 0050 – Goodwill",                 actual: "£2,000.00",   ref: "£2,000.00",   variance: "£0.00",       pctDiff: "0.0%",   pctStatus: null },
       { code: "8100", account: "8100 – Bad debts",                   context: "Provision increase for overdue debtor",      actual: "£1,240.00",   ref: "£0.00",       variance: "£1,240.00",   pctDiff: null,     pctStatus: "review" },
     ],
-    footer: "Total Operating Expenses: £96,805.00  |  Operating Profit (EBIT): £48,275.00",
+    footer: { label: "Total Operating Expenses", actual: "£96,805.00", ref: "£84,305.00", variance: "£12,500.00", pctDiff: "+14.8%" },
   },
 ];
 
@@ -123,8 +123,9 @@ var PL_COLUMNS = [
   {
     key: "account",
     label: "Account",
-    width: "minmax(320px, 1fr)",
+    width: "1fr",
     render: function(v, row) {
+      if (!row || !row.code) return React.createElement("span", null, v);
       var hasContext = CONTEXT_AVAILABLE[row.code];
       return React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-start" } },
         React.createElement("span", null, v),
@@ -143,20 +144,21 @@ var PL_COLUMNS = [
       );
     },
   },
-  { key: "actual",    label: "Actual (Apr)",    width: "150px", align: "right",
+  { key: "actual",    label: "Actual (Apr)",    width: "1fr", align: "right",
     render: function(v) { return React.createElement("span", { style: { fontWeight: T.fontWeightMedium } }, v); },
   },
-  { key: "ref",       label: "Ref. (Mar)",      width: "140px", align: "right" },
-  { key: "variance",  label: "Variance",       width: "140px", align: "right",
+  { key: "ref",       label: "Ref. (Mar)",      width: "1fr", align: "right" },
+  { key: "variance",  label: "Variance",       width: "1fr", align: "right",
     render: function(v, row) {
+      if (v == null) return null;
       var displayVal = v;
-      if (v && v !== "£0.00" && v.charAt(0) !== "-" && v.charAt(0) !== "+") {
+      if (typeof v === "string" && v !== "£0.00" && v.charAt(0) !== "-" && v.charAt(0) !== "+") {
         displayVal = "+" + v;
       }
-      var showPct = row.pctDiff && row.pctDiff !== "0.0%";
+      var showPct = row && row.pctDiff && row.pctDiff !== "0.0%";
       var badgeVariant = "neutral";
       if (showPct) {
-        var pctNum = parseFloat(row.pctDiff.replace("+", "").replace("%", ""));
+        var pctNum = parseFloat(String(row.pctDiff).replace("+", "").replace("%", ""));
         var absPct = Math.abs(pctNum);
         if (absPct >= 15) badgeVariant = "error";
         else if (absPct >= 10) badgeVariant = "warning";
@@ -751,6 +753,11 @@ function ProfitAndLossPage(props) {
   var sugActions = _sugActions[0];
   var setSugActions = _sugActions[1];
 
+  // Prepare flow: which account is open (null = closed)
+  var _prepareAccount = useState(null);
+  var prepareAccount = _prepareAccount[0];
+  var setPrepareAccount = _prepareAccount[1];
+
   // Review statuses per account: { [code]: { status, reviewer, date } }
   var _plReviewStatuses = useState(function() { return {}; });
   var plReviewStatuses = _plReviewStatuses[0];
@@ -842,10 +849,22 @@ function ProfitAndLossPage(props) {
       return React.createElement(StatusBadge, { variant: "neutral", size: "mini" }, "Not reviewed");
     },
   };
+  var prepareColumn = {
+    key: "prepare", label: "Prepare for review", width: "184px",
+    render: function(v, row, ri) {
+      if (ri === -1 || !row || !row.code) return null;
+      return React.createElement(AdjWorkflowCard, {
+        label: "Prepare",
+        icon: React.createElement(PlayCircleIcon, { color: T.colorTextPrimary, size: 16 }),
+        onClick: row.code === "4000" ? function() { setPrepareAccount(row.code); } : undefined,
+      });
+    },
+  };
   var plColumns = (function() {
     var cols = plState === "disabled"
       ? [accountColumnDisabled].concat(PL_COLUMNS.slice(1))
       : PL_COLUMNS.slice();
+    cols.push(prepareColumn);
     if (plState === "reviewing") cols.push(reviewColumn);
     return cols;
   })();
@@ -869,56 +888,72 @@ function ProfitAndLossPage(props) {
         ),
         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
           plState === "disabled"
-            ? React.createElement(PrimaryButton, { style: { height: 40, padding: "0 16px", display: "inline-flex", alignItems: "center", gap: 6 } },
-                React.createElement(PlayCircleIcon, { color: "#FFFFFF", size: 16 }),
-                "Start preparing"
-              )
+            ? React.createElement(PrimaryButton, { style: { height: 40, padding: "0 16px" } }, "Send to review")
             : React.createElement(PrimaryButton, { style: { height: 40, padding: "0 16px" } }, "Mark as prepared")
         )
       ),
 
-      // ── To do section ─────────────────────────────────────────────────────
-      React.createElement("div", { style: { marginTop: 48 } },
-        React.createElement("h2", { style: { fontSize: 22, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-0.5px", margin: "0 0 16px" } }, "To do"),
+      // ── Summary + Overall Performance cards ──────────────────────────────
+      React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 32, alignItems: "start" } },
 
-        // Prepare P&L accordion
-        React.createElement(PlTodoAccordion, {
-          title: "Prepare P&L",
-          subtitle: plState === "disabled" ? "Not started" : "Started by Mark Smith, 3 Apr 2026",
-          rightContent: plState === "disabled"
-            ? React.createElement(AdjWorkflowCard, { label: "Start preparing" })
-            : React.createElement(AdjWorkflowCard, {
-                label: sugCount + " suggestion" + (sugCount !== 1 ? "s" : ""),
-                color: T.colorError,
-                subtitle: "3 Apr",
-              }),
-          comments: todoComments.prepare,
-          onAddComment: function(text) { addTodoComment("prepare", text); },
-        }),
+        // Summary card (empty state)
+        React.createElement("div", { style: {
+          background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12,
+          padding: "16px", display: "flex", flexDirection: "column", gap: 16, minHeight: 320,
+        } },
+          React.createElement("h2", { style: { fontSize: 18, fontWeight: 500, color: T.colorTextPrimary, margin: 0 } }, "Summary"),
+          React.createElement("div", { style: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center" } },
+            React.createElement("p", { style: { fontSize: 14, lineHeight: "22px", color: T.colorTextSecondary, textAlign: "center", margin: 0 } },
+              "The P&L summary will appear here once the P&L is prepared and sent to review."
+            )
+          )
+        ),
 
-        // Review P&L accordion
-        React.createElement("div", { style: { marginTop: 16 } },
-          React.createElement(PlTodoAccordion, {
-            title: "Review P&L",
-            subtitle: "Available after preparation is complete",
-            rightContent: React.createElement("div", { style: {
-              display: "inline-flex", alignItems: "center", gap: 6,
-              padding: "6px 12px", height: 44, boxSizing: "border-box",
-              border: "1px solid " + T.colorBorderDark, borderRadius: T.radius6,
-              background: T.colorSurfaceSecondary,
-              fontSize: 14, fontWeight: 500, fontFamily: T.fontFamily,
-              color: T.colorTextSecondary, lineHeight: "22px", letterSpacing: "0.15px",
-              whiteSpace: "nowrap", cursor: "default",
-            } },
-              "Review",
-              React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" },
-                React.createElement("rect", { x: 3.75, y: 8.75, width: 12.5, height: 8.75, rx: 1.5, stroke: T.colorTextSecondary, strokeWidth: 1.25 }),
-                React.createElement("path", { d: "M6.25 8.75V6.25C6.25 4.17893 7.92893 2.5 10 2.5C12.0711 2.5 13.75 4.17893 13.75 6.25V8.75", stroke: T.colorTextSecondary, strokeWidth: 1.25, strokeLinecap: "round" })
+        // Overall Performance card
+        React.createElement("div", { style: {
+          background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12,
+          padding: "16px", display: "flex", flexDirection: "column", gap: 0,
+        } },
+          // Card header with Compare to
+          React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 } },
+            React.createElement("h2", { style: { fontSize: 18, fontWeight: 500, color: T.colorTextPrimary, margin: 0 } }, "Overall Performance"),
+            React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+              React.createElement("span", { style: { fontSize: 13, color: T.colorTextSecondary } }, "Compare to"),
+              React.createElement(Dropdown, {
+                value: compareTo,
+                onChange: setCompareTo,
+                options: COMPARE_OPTIONS,
+                width: 150,
+                size: "sm",
+              })
+            )
+          ),
+          // Column headers
+          React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 0, padding: "0 12px 8px" } },
+            React.createElement("span", { style: { width: 120, textAlign: "right", fontSize: 12, fontWeight: 500, color: T.colorTextSecondary } }, "Actual (Apr)"),
+            React.createElement("span", { style: { width: 100, textAlign: "right", fontSize: 12, fontWeight: 500, color: T.colorTextSecondary } }, "vs. Last month")
+          ),
+          // Performance rows
+          PERFORMANCE_ROWS.map(function(row, i) {
+            var isZebra = i % 2 === 0;
+            return React.createElement("div", {
+              key: row.label,
+              style: {
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "12px 12px",
+                background: isZebra ? T.colorSurfaceSecondary : T.colorSurfacePrimary,
+                borderRadius: 6,
+              },
+            },
+              React.createElement("span", { style: { fontSize: 14, fontWeight: 500, color: T.colorTextPrimary } }, row.label),
+              React.createElement("div", { style: { display: "flex", gap: 0 } },
+                React.createElement("span", { style: { width: 120, textAlign: "right", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary } }, row.actual),
+                React.createElement("span", { style: {
+                  width: 100, textAlign: "right", fontSize: 14, fontWeight: 500,
+                  color: T.colorTextPrimary,
+                } }, row.change)
               )
-            ),
-            comments: todoComments.review,
-            onAddComment: function(text) { addTodoComment("review", text); },
-            disabled: true,
+            );
           })
         )
       ),
@@ -926,77 +961,30 @@ function ProfitAndLossPage(props) {
       // ── Spacing + Divider ───────────────────────────────────────────────────
       React.createElement("div", { style: { width: "100%", height: 0, borderTop: "1px solid " + T.colorBorderDark, marginTop: 40, marginBottom: 40 } }),
 
-      // ── P&L Overview section title + Compare to ───────────────────────────
+      // ── P&L Overview section title + Prepare all ────────────────────────
       React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between" } },
         React.createElement("h2", { style: { fontSize: 22, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-0.5px", margin: 0 } }, "Profit and Loss overview"),
-        React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, opacity: plState === "disabled" ? 0.4 : 1, pointerEvents: plState === "disabled" ? "none" : "auto" } },
-          React.createElement("span", { style: { fontSize: 13, color: T.colorTextSecondary } }, "Compare to"),
-          React.createElement(Dropdown, {
-            value: compareTo,
-            onChange: setCompareTo,
-            options: COMPARE_OPTIONS,
-            width: 150,
-            size: "sm",
-          })
-        )
-      ),
-
-      // ── Info banner (disabled state only) ────────────────────────────────
-      plState === "disabled" && React.createElement("div", { style: { marginTop: 16 } },
-        React.createElement(Banner, { variant: "info" },
-          "Click Start preparing to see this period’s variance commentary, unusual movements, and suggested accruals."
-        )
-      ),
-
-      // ── Overall Performance accordion ────────────────────────────────────
-      React.createElement("div", { style: { marginTop: 24, opacity: plState === "disabled" ? 0.4 : 1, pointerEvents: plState === "disabled" ? "none" : "auto" } },
-        React.createElement(Accordion, {
-          title: "Overall Performance",
-          defaultExpanded: false,
-        },
-          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 0, padding: "8px 0 0" } },
-            // Column headers
-            React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 0, padding: "0 12px 8px" } },
-              React.createElement("span", { style: { width: 120, textAlign: "right", fontSize: 12, fontWeight: 500, color: T.colorTextSecondary } }, "Actual (Apr)"),
-              React.createElement("span", { style: { width: 100, textAlign: "right", fontSize: 12, fontWeight: 500, color: T.colorTextSecondary } }, "vs. Last month")
-            ),
-            // Performance rows
-            PERFORMANCE_ROWS.map(function(row, i) {
-              var isZebra = i % 2 === 0;
-              return React.createElement("div", {
-                key: row.label,
-                style: {
-                  display: "flex", alignItems: "center", justifyContent: "space-between",
-                  padding: "12px 12px",
-                  background: isZebra ? T.colorSurfaceSecondary : T.colorSurfacePrimary,
-                  borderRadius: 6,
-                },
-              },
-                React.createElement("span", { style: { fontSize: 14, fontWeight: 500, color: T.colorTextPrimary } }, row.label),
-                React.createElement("div", { style: { display: "flex", gap: 0 } },
-                  React.createElement("span", { style: { width: 120, textAlign: "right", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary } }, row.actual),
-                  React.createElement("span", { style: {
-                    width: 100, textAlign: "right", fontSize: 14, fontWeight: 500,
-                    color: T.colorTextPrimary,
-                  } }, row.change)
-                )
-              );
-            })
-          )
-        )
+        React.createElement(SecondaryButton, { style: { height: 40, padding: "0 16px" } }, "Prepare all accounts")
       ),
 
       // ── P&L Data Sections ────────────────────────────────────────────────
       PL_SECTIONS.map(function(section, si) {
-        return React.createElement("div", { key: si, style: { marginTop: 24 } },
-          React.createElement("div", { style: plState === "disabled" ? { opacity: 0.4, pointerEvents: "none" } : null },
+        var ft = section.footer;
+        return React.createElement("div", { key: si, style: { marginTop: si === 0 ? 28 : 32 } },
+          React.createElement("div", null,
             React.createElement(DataTable, {
               title: section.heading,
               columns: plColumns,
               rows: section.rows,
-              footerLabel: section.footer,
+              footerRow: ft ? {
+                account: ft.label,
+                actual: ft.actual,
+                ref: ft.ref,
+                variance: ft.variance,
+                pctDiff: ft.pctDiff,
+              } : undefined,
               showExpandColumn: true,
-              renderExpanded: plState !== "disabled" ? function(row) {
+              renderExpanded: function(row) {
                 var rc = ctx.store.rowComments || {};
                 return React.createElement(PLExpandedRow, {
                   row: row,
@@ -1005,10 +993,10 @@ function ProfitAndLossPage(props) {
                   reviewData: plReviewStatuses[row.code],
                   onToggleReview: plState === "reviewing" ? handleTogglePlReview : null,
                 });
-              } : undefined,
+              },
               showCommentColumn: true,
               rowComments: ctx.store.rowComments || {},
-              minWidth: 1000,
+              minWidth: 1160,
             })
           )
         );
@@ -1016,7 +1004,14 @@ function ProfitAndLossPage(props) {
 
       // Bottom spacing
       React.createElement("div", { style: { height: 48 } })
-    )
+    ),
+
+    // ── Prepare flow overlay ──
+    prepareAccount && React.createElement(PlPrepareFlow, {
+      accountCode: prepareAccount,
+      selectedPeriod: "April 2026",
+      onClose: function() { setPrepareAccount(null); },
+    })
   );
 }
 
