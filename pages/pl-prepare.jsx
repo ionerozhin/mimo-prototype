@@ -357,6 +357,7 @@ function PlPrepareFlow(_ref) {
   var selectedPeriod = _ref.selectedPeriod || "April 2026";
   var onClose = _ref.onClose;
   var onNavigate = _ref.onNavigate;
+  var plState = _ref.plState || "disabled";
 
   var config = PL_PREPARE_CONFIG[accountCode];
   if (!config) {
@@ -387,6 +388,43 @@ function PlPrepareFlow(_ref) {
 
   // ── Per-account cards ──
   var _plCards = PL_ACCOUNT_CARDS[accountCode] || [];
+  var _isReviewState = plState === "reviewing" || plState === "reviewed";
+
+  // ── Reviewing/reviewed but flow never ran — show info message ──
+  var _preCache = _plGetCache(accountCode);
+  if (_isReviewState && !_preCache.flowComplete) {
+    return React.createElement("div", {
+      style: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast },
+    },
+      React.createElement("div", {
+        style: { height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" },
+      },
+        React.createElement("span", { style: { fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-1px", flexShrink: 0 } }, "Prepare Profit and Loss"),
+        React.createElement(Dropdown, {
+          value: accountCode,
+          onChange: function(code) { if (onNavigate && code !== accountCode) onNavigate(code); },
+          options: PL_ACCOUNT_LIST.map(function(a) { return { value: a.code, label: a.code + " – " + a.name }; }),
+          searchable: true, searchPlaceholder: "Search accounts…", width: "auto", size: "lg",
+        }),
+        React.createElement("div", { style: { flex: 1 } }),
+        React.createElement("button", { onClick: onClose, style: { border: "none", background: "none", cursor: "pointer", padding: 0 } },
+          React.createElement("svg", { width: 30, height: 30, viewBox: "0 0 30 30", fill: "none" },
+            React.createElement("rect", { width: 30, height: 30, rx: 15, fill: "#F5F5F5" }),
+            React.createElement("path", { d: "M20 10L10 20M10 10L20 20", stroke: "#2A2A2A", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" })
+          )
+        )
+      ),
+      React.createElement("div", {
+        style: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 48px" },
+      },
+        React.createElement("div", { style: { maxWidth: 480, textAlign: "center" } },
+          React.createElement("p", { style: { fontSize: 15, lineHeight: "24px", color: T.colorTextSecondary, margin: 0 } },
+            "This account wasn't prepared during the preparing stage. You can review the figures as they are or send the P&L back to the preparer to run preparation."
+          )
+        )
+      )
+    );
+  }
 
   // ── Persistent state (survives close/reopen) ──
   var cache = _plGetCache(accountCode);
@@ -635,45 +673,57 @@ function PlPrepareFlow(_ref) {
           )
         ),
 
-        // ── Chat input box (matches adjustments) ──
-        summaryVisible && React.createElement("div", {
-          style: { padding: "60px 12px 16px", flexShrink: 0, background: "linear-gradient(to bottom, rgba(251,251,251,0) 0%, rgba(251,251,251,1) 60px)", marginTop: -60 },
-        },
-          React.createElement("div", { style: { maxWidth: 680, margin: "0 auto" } },
-            React.createElement("div", {
-              style: { borderRadius: 8, padding: "14px 14px 12px", background: T.colorSurfacePrimary, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04), 0 0 0 1px " + T.colorBorderDark },
+        // ── Chat input or closed message ──
+        summaryVisible && (_isReviewState
+          ? React.createElement("div", {
+              style: { padding: "24px 12px 16px", flexShrink: 0, background: T.colorSurfaceContrast },
             },
-              React.createElement("textarea", {
-                value: inputValue,
-                onChange: function(e) { setInputValue(e.target.value); },
-                placeholder: "Ask for changes or information...",
-                rows: 3,
-                style: { width: "100%", border: "none", outline: "none", resize: "none", fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px", background: "transparent", fontFamily: "'Inter', sans-serif", display: "block" },
-              }),
-              React.createElement("div", { style: { display: "flex", alignItems: "center", marginTop: 8 } },
-                // Attachment button
-                React.createElement("button", {
-                  style: { width: 32, height: 32, border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 6, color: T.colorTextSecondary, padding: 0 },
-                  onMouseEnter: function(e) { e.currentTarget.style.background = T.colorBorderLight; },
-                  onMouseLeave: function(e) { e.currentTarget.style.background = "none"; },
+              React.createElement("div", { style: { maxWidth: 680, margin: "0 auto" } },
+                React.createElement("div", {
+                  style: { borderRadius: 8, padding: "24px 20px", background: T.colorSurfaceSecondary, textAlign: "center" },
                 },
-                  React.createElement("svg", { width: 18, height: 18, viewBox: "0 0 18 18", fill: "none" },
-                    React.createElement("path", { d: "M15.5 8.5L8.5 15.5C7.12 16.88 4.88 16.88 3.5 15.5C2.12 14.12 2.12 11.88 3.5 10.5L10.5 3.5C11.33 2.67 12.67 2.67 13.5 3.5C14.33 4.33 14.33 5.67 13.5 6.5L6.5 13.5C6.08 13.92 5.42 13.92 5 13.5C4.58 13.08 4.58 12.42 5 12L11.5 5.5", stroke: "currentColor", strokeWidth: "1.25", strokeLinecap: "round", strokeLinejoin: "round" })
-                  )
-                ),
-                // Spacer
-                React.createElement("div", { style: { flex: 1 } }),
-                // Send button
-                React.createElement("button", {
-                  style: { width: 36, height: 36, marginLeft: 6, border: "1px solid " + T.colorBorderDark, borderRadius: 10, background: inputValue.trim() ? T.colorBrandPrimary : T.colorSurfaceSecondary, cursor: inputValue.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.15s", padding: 0 },
-                },
-                  React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" },
-                    React.createElement("path", { d: "M9.99984 15.8346V4.16797M9.99984 4.16797L4.1665 10.0013M9.99984 4.16797L15.8332 10.0013", stroke: inputValue.trim() ? "#FFFFFF" : "#8C8C8B", strokeWidth: "1.25", strokeLinecap: "round", strokeLinejoin: "round" })
+                  React.createElement("p", { style: { fontSize: 14, lineHeight: "22px", color: T.colorTextSecondary, margin: 0 } },
+                    "Chat is closed now that the P&L is prepared. You can still comment on the results or send the P&L back to the preparer."
                   )
                 )
               )
             )
-          )
+          : React.createElement("div", {
+              style: { padding: "60px 12px 16px", flexShrink: 0, background: "linear-gradient(to bottom, rgba(251,251,251,0) 0%, rgba(251,251,251,1) 60px)", marginTop: -60 },
+            },
+              React.createElement("div", { style: { maxWidth: 680, margin: "0 auto" } },
+                React.createElement("div", {
+                  style: { borderRadius: 8, padding: "14px 14px 12px", background: T.colorSurfacePrimary, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04), 0 0 0 1px " + T.colorBorderDark },
+                },
+                  React.createElement("textarea", {
+                    value: inputValue,
+                    onChange: function(e) { setInputValue(e.target.value); },
+                    placeholder: "Ask for changes or information...",
+                    rows: 3,
+                    style: { width: "100%", border: "none", outline: "none", resize: "none", fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px", background: "transparent", fontFamily: "'Inter', sans-serif", display: "block" },
+                  }),
+                  React.createElement("div", { style: { display: "flex", alignItems: "center", marginTop: 8 } },
+                    React.createElement("button", {
+                      style: { width: 32, height: 32, border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 6, color: T.colorTextSecondary, padding: 0 },
+                      onMouseEnter: function(e) { e.currentTarget.style.background = T.colorBorderLight; },
+                      onMouseLeave: function(e) { e.currentTarget.style.background = "none"; },
+                    },
+                      React.createElement("svg", { width: 18, height: 18, viewBox: "0 0 18 18", fill: "none" },
+                        React.createElement("path", { d: "M15.5 8.5L8.5 15.5C7.12 16.88 4.88 16.88 3.5 15.5C2.12 14.12 2.12 11.88 3.5 10.5L10.5 3.5C11.33 2.67 12.67 2.67 13.5 3.5C14.33 4.33 14.33 5.67 13.5 6.5L6.5 13.5C6.08 13.92 5.42 13.92 5 13.5C4.58 13.08 4.58 12.42 5 12L11.5 5.5", stroke: "currentColor", strokeWidth: "1.25", strokeLinecap: "round", strokeLinejoin: "round" })
+                      )
+                    ),
+                    React.createElement("div", { style: { flex: 1 } }),
+                    React.createElement("button", {
+                      style: { width: 36, height: 36, marginLeft: 6, border: "1px solid " + T.colorBorderDark, borderRadius: 10, background: inputValue.trim() ? T.colorBrandPrimary : T.colorSurfaceSecondary, cursor: inputValue.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.15s", padding: 0 },
+                    },
+                      React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" },
+                        React.createElement("path", { d: "M9.99984 15.8346V4.16797M9.99984 4.16797L4.1665 10.0013M9.99984 4.16797L15.8332 10.0013", stroke: inputValue.trim() ? "#FFFFFF" : "#8C8C8B", strokeWidth: "1.25", strokeLinecap: "round", strokeLinejoin: "round" })
+                      )
+                    )
+                  )
+                )
+              )
+            )
         )
       ),
 
@@ -820,6 +870,14 @@ function PlPrepareFlow(_ref) {
 
 // Make PlPrepareFlow globally available (called from profit-and-loss.jsx)
 window.PlPrepareFlow = PlPrepareFlow;
+
+// Simulate completing a flow from outside (used by "Prepare all accounts")
+window.PlCompleteFlow = function(code) {
+  var cache = _plGetCache(code);
+  if (cache.flowComplete) return; // already done
+  cache.flowComplete = true;
+  // Leave resolvedCards/ignoredCards/cardActions empty — user hasn't acted on suggestions yet
+};
 
 // Expose flow status for the P&L table WorkflowCard
 // Returns { complete, totalSuggestions, unresolvedCount, updatedDate } or null

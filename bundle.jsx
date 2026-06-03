@@ -21864,6 +21864,7 @@ function PlPrepareFlow(_ref) {
   var selectedPeriod = _ref.selectedPeriod || "April 2026";
   var onClose = _ref.onClose;
   var onNavigate = _ref.onNavigate;
+  var plState = _ref.plState || "disabled";
 
   var config = PL_PREPARE_CONFIG[accountCode];
   if (!config) {
@@ -21894,6 +21895,43 @@ function PlPrepareFlow(_ref) {
 
   // ── Per-account cards ──
   var _plCards = PL_ACCOUNT_CARDS[accountCode] || [];
+  var _isReviewState = plState === "reviewing" || plState === "reviewed";
+
+  // ── Reviewing/reviewed but flow never ran — show info message ──
+  var _preCache = _plGetCache(accountCode);
+  if (_isReviewState && !_preCache.flowComplete) {
+    return React.createElement("div", {
+      style: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast },
+    },
+      React.createElement("div", {
+        style: { height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" },
+      },
+        React.createElement("span", { style: { fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-1px", flexShrink: 0 } }, "Prepare Profit and Loss"),
+        React.createElement(Dropdown, {
+          value: accountCode,
+          onChange: function(code) { if (onNavigate && code !== accountCode) onNavigate(code); },
+          options: PL_ACCOUNT_LIST.map(function(a) { return { value: a.code, label: a.code + " – " + a.name }; }),
+          searchable: true, searchPlaceholder: "Search accounts…", width: "auto", size: "lg",
+        }),
+        React.createElement("div", { style: { flex: 1 } }),
+        React.createElement("button", { onClick: onClose, style: { border: "none", background: "none", cursor: "pointer", padding: 0 } },
+          React.createElement("svg", { width: 30, height: 30, viewBox: "0 0 30 30", fill: "none" },
+            React.createElement("rect", { width: 30, height: 30, rx: 15, fill: "#F5F5F5" }),
+            React.createElement("path", { d: "M20 10L10 20M10 10L20 20", stroke: "#2A2A2A", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" })
+          )
+        )
+      ),
+      React.createElement("div", {
+        style: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 48px" },
+      },
+        React.createElement("div", { style: { maxWidth: 480, textAlign: "center" } },
+          React.createElement("p", { style: { fontSize: 15, lineHeight: "24px", color: T.colorTextSecondary, margin: 0 } },
+            "This account wasn't prepared during the preparing stage. You can review the figures as they are or send the P&L back to the preparer to run preparation."
+          )
+        )
+      )
+    );
+  }
 
   // ── Persistent state (survives close/reopen) ──
   var cache = _plGetCache(accountCode);
@@ -22142,45 +22180,57 @@ function PlPrepareFlow(_ref) {
           )
         ),
 
-        // ── Chat input box (matches adjustments) ──
-        summaryVisible && React.createElement("div", {
-          style: { padding: "60px 12px 16px", flexShrink: 0, background: "linear-gradient(to bottom, rgba(251,251,251,0) 0%, rgba(251,251,251,1) 60px)", marginTop: -60 },
-        },
-          React.createElement("div", { style: { maxWidth: 680, margin: "0 auto" } },
-            React.createElement("div", {
-              style: { borderRadius: 8, padding: "14px 14px 12px", background: T.colorSurfacePrimary, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04), 0 0 0 1px " + T.colorBorderDark },
+        // ── Chat input or closed message ──
+        summaryVisible && (_isReviewState
+          ? React.createElement("div", {
+              style: { padding: "24px 12px 16px", flexShrink: 0, background: T.colorSurfaceContrast },
             },
-              React.createElement("textarea", {
-                value: inputValue,
-                onChange: function(e) { setInputValue(e.target.value); },
-                placeholder: "Ask for changes or information...",
-                rows: 3,
-                style: { width: "100%", border: "none", outline: "none", resize: "none", fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px", background: "transparent", fontFamily: "'Inter', sans-serif", display: "block" },
-              }),
-              React.createElement("div", { style: { display: "flex", alignItems: "center", marginTop: 8 } },
-                // Attachment button
-                React.createElement("button", {
-                  style: { width: 32, height: 32, border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 6, color: T.colorTextSecondary, padding: 0 },
-                  onMouseEnter: function(e) { e.currentTarget.style.background = T.colorBorderLight; },
-                  onMouseLeave: function(e) { e.currentTarget.style.background = "none"; },
+              React.createElement("div", { style: { maxWidth: 680, margin: "0 auto" } },
+                React.createElement("div", {
+                  style: { borderRadius: 8, padding: "24px 20px", background: T.colorSurfaceSecondary, textAlign: "center" },
                 },
-                  React.createElement("svg", { width: 18, height: 18, viewBox: "0 0 18 18", fill: "none" },
-                    React.createElement("path", { d: "M15.5 8.5L8.5 15.5C7.12 16.88 4.88 16.88 3.5 15.5C2.12 14.12 2.12 11.88 3.5 10.5L10.5 3.5C11.33 2.67 12.67 2.67 13.5 3.5C14.33 4.33 14.33 5.67 13.5 6.5L6.5 13.5C6.08 13.92 5.42 13.92 5 13.5C4.58 13.08 4.58 12.42 5 12L11.5 5.5", stroke: "currentColor", strokeWidth: "1.25", strokeLinecap: "round", strokeLinejoin: "round" })
-                  )
-                ),
-                // Spacer
-                React.createElement("div", { style: { flex: 1 } }),
-                // Send button
-                React.createElement("button", {
-                  style: { width: 36, height: 36, marginLeft: 6, border: "1px solid " + T.colorBorderDark, borderRadius: 10, background: inputValue.trim() ? T.colorBrandPrimary : T.colorSurfaceSecondary, cursor: inputValue.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.15s", padding: 0 },
-                },
-                  React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" },
-                    React.createElement("path", { d: "M9.99984 15.8346V4.16797M9.99984 4.16797L4.1665 10.0013M9.99984 4.16797L15.8332 10.0013", stroke: inputValue.trim() ? "#FFFFFF" : "#8C8C8B", strokeWidth: "1.25", strokeLinecap: "round", strokeLinejoin: "round" })
+                  React.createElement("p", { style: { fontSize: 14, lineHeight: "22px", color: T.colorTextSecondary, margin: 0 } },
+                    "Chat is closed now that the P&L is prepared. You can still comment on the results or send the P&L back to the preparer."
                   )
                 )
               )
             )
-          )
+          : React.createElement("div", {
+              style: { padding: "60px 12px 16px", flexShrink: 0, background: "linear-gradient(to bottom, rgba(251,251,251,0) 0%, rgba(251,251,251,1) 60px)", marginTop: -60 },
+            },
+              React.createElement("div", { style: { maxWidth: 680, margin: "0 auto" } },
+                React.createElement("div", {
+                  style: { borderRadius: 8, padding: "14px 14px 12px", background: T.colorSurfacePrimary, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04), 0 0 0 1px " + T.colorBorderDark },
+                },
+                  React.createElement("textarea", {
+                    value: inputValue,
+                    onChange: function(e) { setInputValue(e.target.value); },
+                    placeholder: "Ask for changes or information...",
+                    rows: 3,
+                    style: { width: "100%", border: "none", outline: "none", resize: "none", fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px", background: "transparent", fontFamily: "'Inter', sans-serif", display: "block" },
+                  }),
+                  React.createElement("div", { style: { display: "flex", alignItems: "center", marginTop: 8 } },
+                    React.createElement("button", {
+                      style: { width: 32, height: 32, border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 6, color: T.colorTextSecondary, padding: 0 },
+                      onMouseEnter: function(e) { e.currentTarget.style.background = T.colorBorderLight; },
+                      onMouseLeave: function(e) { e.currentTarget.style.background = "none"; },
+                    },
+                      React.createElement("svg", { width: 18, height: 18, viewBox: "0 0 18 18", fill: "none" },
+                        React.createElement("path", { d: "M15.5 8.5L8.5 15.5C7.12 16.88 4.88 16.88 3.5 15.5C2.12 14.12 2.12 11.88 3.5 10.5L10.5 3.5C11.33 2.67 12.67 2.67 13.5 3.5C14.33 4.33 14.33 5.67 13.5 6.5L6.5 13.5C6.08 13.92 5.42 13.92 5 13.5C4.58 13.08 4.58 12.42 5 12L11.5 5.5", stroke: "currentColor", strokeWidth: "1.25", strokeLinecap: "round", strokeLinejoin: "round" })
+                      )
+                    ),
+                    React.createElement("div", { style: { flex: 1 } }),
+                    React.createElement("button", {
+                      style: { width: 36, height: 36, marginLeft: 6, border: "1px solid " + T.colorBorderDark, borderRadius: 10, background: inputValue.trim() ? T.colorBrandPrimary : T.colorSurfaceSecondary, cursor: inputValue.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.15s", padding: 0 },
+                    },
+                      React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" },
+                        React.createElement("path", { d: "M9.99984 15.8346V4.16797M9.99984 4.16797L4.1665 10.0013M9.99984 4.16797L15.8332 10.0013", stroke: inputValue.trim() ? "#FFFFFF" : "#8C8C8B", strokeWidth: "1.25", strokeLinecap: "round", strokeLinejoin: "round" })
+                      )
+                    )
+                  )
+                )
+              )
+            )
         )
       ),
 
@@ -22327,6 +22377,14 @@ function PlPrepareFlow(_ref) {
 
 // Make PlPrepareFlow globally available (called from profit-and-loss.jsx)
 window.PlPrepareFlow = PlPrepareFlow;
+
+// Simulate completing a flow from outside (used by "Prepare all accounts")
+window.PlCompleteFlow = function(code) {
+  var cache = _plGetCache(code);
+  if (cache.flowComplete) return; // already done
+  cache.flowComplete = true;
+  // Leave resolvedCards/ignoredCards/cardActions empty — user hasn't acted on suggestions yet
+};
 
 // Expose flow status for the P&L table WorkflowCard
 // Returns { complete, totalSuggestions, unresolvedCount, updatedDate } or null
@@ -23205,6 +23263,30 @@ function ProfitAndLossPage(props) {
     setPlState("reviewing");
   };
 
+  // Count reviewed accounts
+  var _plReviewedCount = 0;
+  _plAllCodes.forEach(function(code) { if (plReviewStatuses[code] && plReviewStatuses[code].status === "Reviewed") _plReviewedCount++; });
+  var _plUnreviewedCount = _plTotalAccounts - _plReviewedCount;
+
+  var handleMarkAsReviewed = function() {
+    if (_plUnreviewedCount > 0) {
+      setShowReviewModal(true);
+    } else {
+      confirmMarkAsReviewed();
+    }
+  };
+
+  var confirmMarkAsReviewed = function() {
+    setShowReviewModal(false);
+    var now = new Date();
+    var day = now.getDate();
+    var monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    var dateStr = day + " " + monthNames[now.getMonth()] + " " + now.getFullYear();
+    var timeStr = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    setReviewedMeta({ reviewer: "Laura Bennett", date: dateStr, time: timeStr });
+    setPlState("reviewed");
+  };
+
   var resolveSuggestion = function(key, actionLabel) {
     setResolvedSug(function(prev) {
       var next = new Set(prev);
@@ -23236,13 +23318,64 @@ function ProfitAndLossPage(props) {
     });
   };
 
-  // P&L page state: "disabled" | "preparing" | "reviewing"
-  // disabled  = no expansion, no context badges, no review column
-  // preparing = expandable, context badges, no review column, no review toggle
-  // reviewing = expandable, context badges, review column, review toggle
+  // P&L page state: "disabled" | "reviewing" | "reviewed"
+  // disabled  = preparing state (no review column)
+  // reviewing = review column visible, toggles active
+  // reviewed  = completed, export/reopen buttons
   var _plState = useState("disabled");
   var plState = _plState[0];
   var setPlState = _plState[1];
+  var _showReviewModal = useState(false);
+  var showReviewModal = _showReviewModal[0];
+  var setShowReviewModal = _showReviewModal[1];
+  var _reviewedMeta = useState(null);
+  var reviewedMeta = _reviewedMeta[0];
+  var setReviewedMeta = _reviewedMeta[1];
+
+  // Batch prepare state
+  var _batchRunning = useState(false);
+  var batchRunning = _batchRunning[0];
+  var setBatchRunning = _batchRunning[1];
+  var _batchProcessing = useState(function() { return new Set(); });
+  var batchProcessing = _batchProcessing[0];
+  var setBatchProcessing = _batchProcessing[1];
+  var _batchCompleted = useState(0);
+  var batchCompleted = _batchCompleted[0];
+  var setBatchCompleted = _batchCompleted[1];
+
+  var handlePrepareAll = function() {
+    if (batchRunning) return;
+    // Collect accounts not yet completed
+    var pending = [];
+    _plAllCodes.forEach(function(code) {
+      var st = window.PlGetFlowStatus && window.PlGetFlowStatus(code);
+      if (!st || !st.complete) pending.push(code);
+    });
+    if (pending.length === 0) return;
+    setBatchRunning(true);
+    setBatchCompleted(0);
+    setBatchProcessing(new Set(pending));
+    // Shuffle and assign random completion times over ~30s
+    var shuffled = pending.slice();
+    for (var i = shuffled.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = shuffled[i]; shuffled[i] = shuffled[j]; shuffled[j] = tmp;
+    }
+    var interval = 30000 / shuffled.length;
+    shuffled.forEach(function(code, idx) {
+      var delay = (idx + 1) * interval + (Math.random() - 0.5) * interval * 0.6;
+      setTimeout(function() {
+        if (window.PlCompleteFlow) window.PlCompleteFlow(code);
+        setBatchProcessing(function(prev) { var n = new Set(prev); n.delete(code); return n; });
+        setBatchCompleted(function(prev) { return prev + 1; });
+        setPlRefreshKey(function(k) { return k + 1; });
+        // Check if last
+        if (idx === shuffled.length - 1) {
+          setTimeout(function() { setBatchRunning(false); }, 500);
+        }
+      }, delay);
+    });
+  };
 
   // Build columns based on state
   var accountColumnDisabled = {
@@ -23336,6 +23469,17 @@ function ProfitAndLossPage(props) {
           onClick: function() { setPrepareAccount(row.code); },
         });
       }
+      // Show spinner if batch-processing this account
+      if (batchProcessing.has(row.code)) {
+        return React.createElement(AdjWorkflowCard, {
+          label: "Preparing…",
+          icon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none", style: { animation: "spin 0.75s linear infinite", flexShrink: 0 } },
+            React.createElement("path", { d: "M8 1.5A6.5 6.5 0 1 1 1.5 8", stroke: T.colorBrandPrimary, strokeWidth: 2, strokeLinecap: "round" })
+          ),
+          width: "100%",
+          style: { justifyContent: "space-between" },
+        });
+      }
       return React.createElement(AdjWorkflowCard, {
         label: "Prepare",
         icon: React.createElement(PlayCircleIcon, { color: T.colorTextPrimary, size: 16 }),
@@ -23350,7 +23494,7 @@ function ProfitAndLossPage(props) {
       ? [accountColumnDisabled].concat(PL_COLUMNS.slice(1))
       : PL_COLUMNS.slice();
     cols.push(prepareColumn);
-    if (plState === "reviewing") cols.push(reviewColumn);
+    if (plState === "reviewing" || plState === "reviewed") cols.push(reviewColumn);
     return cols;
   })();
 
@@ -23365,34 +23509,58 @@ function ProfitAndLossPage(props) {
       React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between" } },
         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12 } },
           React.createElement("h1", { style: { fontSize: 32, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "40px", letterSpacing: "-1px", margin: 0 } }, "Profit and Loss"),
-          plState === "reviewing"
-            ? React.createElement(StatusBadge, { variant: "info" }, "Reviewing")
-            : React.createElement(StatusBadge, { variant: "warning" }, "Preparing")
+          plState === "reviewed"
+            ? React.createElement(Tooltip, { text: reviewedMeta ? "Marked as reviewed by " + reviewedMeta.reviewer + " on " + reviewedMeta.date + " at " + reviewedMeta.time : "" },
+                React.createElement(StatusBadge, { variant: "success" }, "Reviewed")
+              )
+            : plState === "reviewing"
+              ? React.createElement(StatusBadge, { variant: "info" }, "Reviewing")
+              : React.createElement(StatusBadge, { variant: "warning" }, "Preparing")
         ),
         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
-          plState === "reviewing"
+          plState === "reviewed"
             ? React.createElement(React.Fragment, null,
-                React.createElement(PrimaryButton, { style: { height: 40, padding: "0 16px" } }, "Mark as reviewed"),
-                React.createElement(SecondaryButton, { style: { height: 40, padding: "0 16px" }, onClick: function() { setPlState("disabled"); } }, "Send back to preparer")
+                React.createElement(PrimaryButton, { style: { height: 40, padding: "0 16px" } }, "Export report"),
+                React.createElement(SecondaryButton, { style: { height: 40, padding: "0 16px" }, onClick: function() { setReviewedMeta(null); setPlState("reviewing"); } }, "Reopen")
               )
-            : React.createElement(PrimaryButton, { style: { height: 40, padding: "0 16px" }, onClick: handleSendForReview }, "Send for review")
+            : plState === "reviewing"
+              ? React.createElement(React.Fragment, null,
+                  React.createElement(PrimaryButton, { style: { height: 40, padding: "0 16px" }, onClick: handleMarkAsReviewed }, "Mark as reviewed"),
+                  React.createElement(SecondaryButton, { style: { height: 40, padding: "0 16px" }, onClick: function() { setPlState("disabled"); } }, "Send back to preparer")
+                )
+              : React.createElement(PrimaryButton, { style: { height: 40, padding: "0 16px" }, onClick: handleSendForReview }, "Send for review")
         )
       ),
 
       // ── Summary + Overall Performance cards ──────────────────────────────
       React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 32, alignItems: "start" } },
 
-        // Summary card (empty state)
+        // Summary card
         React.createElement("div", { style: {
           background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12,
           padding: "16px", display: "flex", flexDirection: "column", gap: 16, minHeight: 320,
         } },
           React.createElement("h2", { style: { fontSize: 18, fontWeight: 500, color: T.colorTextPrimary, margin: 0 } }, "Summary"),
-          React.createElement("div", { style: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center" } },
-            React.createElement("p", { style: { fontSize: 14, lineHeight: "22px", color: T.colorTextSecondary, textAlign: "center", margin: 0 } },
-              "The P&L summary will appear here once the P&L is prepared and sent to review."
-            )
-          )
+          (plState === "reviewing" || plState === "reviewed")
+            ? React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } },
+                React.createElement("p", { style: { fontSize: 14, lineHeight: "22px", color: T.colorTextPrimary, margin: 0 } },
+                  "Total revenue of £348,720.00 is 3.8% above March (£336,150.00), driven by wholesale volume increases from Tesco and Sainsbury's ahead of the summer season. Online & direct sales remain consistent at £28,920.00."
+                ),
+                React.createElement("p", { style: { fontSize: 14, lineHeight: "22px", color: T.colorTextPrimary, margin: 0 } },
+                  "Cost of sales at £203,640.00 represents a gross margin of 41.6%, in line with the prior month (41.3%). The main cost variance is a 16.2% increase in freight driven by a DHL fuel surcharge."
+                ),
+                React.createElement("p", { style: { fontSize: 14, lineHeight: "22px", color: T.colorTextPrimary, margin: 0 } },
+                  "Overheads of £42,530.00 include a £4,400 spike in professional fees (Grant Thornton audit accrual) and a 92.5% increase in general expenses (Barclays card miscodings). Multiple adjustment suggestions have been raised across prepayments, accruals, and depreciation."
+                ),
+                React.createElement("p", { style: { fontSize: 14, lineHeight: "22px", color: T.colorTextPrimary, margin: 0 } },
+                  "Staff costs of £46,783.00 reflect the annual pay review effective 1 April (+6.2%). Depreciation and amortisation are unchanged except for three missing charges totalling £9,120.00 flagged in the depreciation review."
+                )
+              )
+            : React.createElement("div", { style: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center" } },
+                React.createElement("p", { style: { fontSize: 14, lineHeight: "22px", color: T.colorTextSecondary, textAlign: "center", margin: 0 } },
+                  "The P&L summary will appear here once the P&L is prepared and sent for review."
+                )
+              )
         ),
 
         // Overall Performance card
@@ -23450,7 +23618,18 @@ function ProfitAndLossPage(props) {
       // ── P&L Overview section title + Prepare all ────────────────────────
       React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between" } },
         React.createElement("h2", { style: { fontSize: 22, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-0.5px", margin: 0 } }, "Profit and Loss overview"),
-        React.createElement(SecondaryButton, { style: { height: 40, padding: "0 16px" } }, "Prepare all accounts")
+        (plState === "reviewing" || plState === "reviewed")
+          ? React.createElement(Tooltip, { text: "Available during preparing" },
+              React.createElement(SecondaryButton, { style: { height: 40, padding: "0 16px", opacity: 0.5, cursor: "not-allowed" } }, "Prepare all accounts")
+            )
+          : batchRunning
+            ? React.createElement(SecondaryButton, {
+                style: { height: 40, padding: "0 16px", opacity: 0.7, cursor: "default", gap: 8 },
+                icon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none", style: { animation: "spin 0.75s linear infinite", flexShrink: 0 } },
+                  React.createElement("path", { d: "M8 1.5A6.5 6.5 0 1 1 1.5 8", stroke: T.colorBrandPrimary, strokeWidth: 2, strokeLinecap: "round" })
+                ),
+              }, batchCompleted + " of " + _plTotalAccounts + " accounts completed")
+            : React.createElement(SecondaryButton, { style: { height: 40, padding: "0 16px" }, onClick: handlePrepareAll }, "Prepare all accounts")
       ),
 
       // ── P&L Data Sections ────────────────────────────────────────────────
@@ -23517,10 +23696,36 @@ function ProfitAndLossPage(props) {
       footerAlign: "stretch",
     }),
 
+    // ── Review warning modal ──
+    React.createElement(Modal, {
+      open: showReviewModal,
+      onClose: function() { setShowReviewModal(false); },
+      width: 480,
+      title: "Some accounts aren't reviewed",
+      text: _plUnreviewedCount + " of " + _plTotalAccounts + " accounts haven't been reviewed individually. Marking the P&L as reviewed won't update their status.",
+      showDivider: true,
+      footer: React.createElement("div", { style: { display: "flex", gap: 12, width: "100%" } },
+        React.createElement("button", {
+          onClick: function() { setShowReviewModal(false); },
+          style: { flex: 1, height: 48, border: "1px solid " + T.colorBorderDark, borderRadius: 10, background: T.colorSurfacePrimary, fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, cursor: "pointer", fontFamily: T.fontFamily },
+          onMouseEnter: function(e) { e.currentTarget.style.background = T.colorSurfaceSecondary; },
+          onMouseLeave: function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; },
+        }, "Go back"),
+        React.createElement("button", {
+          onClick: confirmMarkAsReviewed,
+          style: { flex: 1, height: 48, border: "none", borderRadius: 10, background: T.colorErrorBg, fontSize: 14, fontWeight: 500, color: T.colorError, cursor: "pointer", fontFamily: T.fontFamily },
+          onMouseEnter: function(e) { e.currentTarget.style.opacity = "0.85"; },
+          onMouseLeave: function(e) { e.currentTarget.style.opacity = "1"; },
+        }, "Mark as reviewed")
+      ),
+      footerAlign: "stretch",
+    }),
+
     // ── Prepare flow overlay ──
     prepareAccount && React.createElement(PlPrepareFlow, {
       accountCode: prepareAccount,
       selectedPeriod: "April 2026",
+      plState: plState,
       onClose: function() { setPrepareAccount(null); setPlRefreshKey(function(k) { return k + 1; }); },
       onNavigate: function(code) { setPrepareAccount(code); },
     })
