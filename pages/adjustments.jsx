@@ -126,31 +126,73 @@ var _SCHEDULE_TYPES = [
 ];
 
 function _ScheduleTopBar(_ref) {
-  var activeType = _ref.activeType, onTypeChange = _ref.onTypeChange, onClose = _ref.onClose, suggestionsCount = _ref.suggestionsCount, onSuggestionsClick = _ref.onSuggestionsClick, sugPanelOpen = _ref.sugPanelOpen;
+  var activeType = _ref.activeType, onTypeChange = _ref.onTypeChange, onClose = _ref.onClose, suggestionsCount = _ref.suggestionsCount, onSuggestionsClick = _ref.onSuggestionsClick, sugPanelOpen = _ref.sugPanelOpen, viewMode = _ref.viewMode, onToggleMode = _ref.onToggleMode, aiProgress = _ref.aiProgress;
 
   var _stIconBtn = { display: "flex", alignItems: "center", justifyContent: "center", width: 44, height: 44, border: "1px solid " + T.colorBorderMedium, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", flexShrink: 0, transition: "border-color 0.15s, background 0.15s" };
   var _stIconHover = function(e) { e.currentTarget.style.borderColor = "#A5A5A5"; e.currentTarget.style.background = T.colorSurfaceSecondary; };
   var _stIconLeave = function(e) { e.currentTarget.style.borderColor = T.colorBorderMedium; e.currentTarget.style.background = T.colorSurfacePrimary; };
 
-  var sugLabel = suggestionsCount != null
-    ? suggestionsCount + " suggestion" + (suggestionsCount !== 1 ? "s" : "")
-    : "No suggestions";
+  var _sugBadge = null;
+  if (suggestionsCount !== null && suggestionsCount !== undefined) {
+    if (suggestionsCount > 0) {
+      _sugBadge = React.createElement("span", { style: { display: "inline-flex", alignItems: "center", justifyContent: "center", minWidth: 20, height: 20, padding: "0 5px", borderRadius: 6, background: T.colorErrorBg, color: T.colorError, fontSize: 12, fontWeight: 600, lineHeight: "20px", letterSpacing: "0.1px" } }, suggestionsCount);
+    } else {
+      _sugBadge = React.createElement("span", { style: { display: "inline-flex", alignItems: "center", justifyContent: "center", minWidth: 20, height: 20, padding: "0 5px", borderRadius: 6, background: T.colorInfoBg, color: T.colorInfo, fontSize: 12, fontWeight: 600, lineHeight: "20px", letterSpacing: "0.1px" } }, "0");
+    }
+  }
 
   return (
     <div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
       <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-1px", flexShrink: 0 }}>Adjustments</span>
       <Dropdown value={activeType} onChange={onTypeChange} options={_SCHEDULE_TYPES} size="lg" width={200} />
+      {onToggleMode && (
+        <button onClick={onToggleMode} style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 44, padding: "0 14px", border: "1px solid " + T.colorBorderMedium, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap", flexShrink: 0, transition: "border-color 0.15s, background 0.15s" }}
+          onMouseEnter={function(e) { e.currentTarget.style.borderColor = "#A5A5A5"; e.currentTarget.style.background = T.colorSurfaceSecondary; }}
+          onMouseLeave={function(e) { e.currentTarget.style.borderColor = T.colorBorderMedium; e.currentTarget.style.background = T.colorSurfacePrimary; }}>
+          {viewMode === "ai"
+            ? <LayoutGridIcon color="currentColor" size={16} />
+            : <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}><path d="M8 1.5L9.3 6.2L14 7.5L9.3 8.8L8 13.5L6.7 8.8L2 7.5L6.7 6.2L8 1.5Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill="none"/></svg>
+          }
+          {viewMode === "ai" ? "View schedule" : "View AI mode"}
+        </button>
+      )}
       <div style={{ flex: 1 }} />
 
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        {/* Suggestions counter */}
-        <button onClick={onSuggestionsClick} style={{ display: "flex", alignItems: "center", gap: 8, height: 44, padding: "0 14px", border: "1px solid " + (sugPanelOpen ? T.colorTextPrimary : T.colorBorderMedium), borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap", flexShrink: 0, transition: "border-color 0.15s, background 0.15s" }}
-          onMouseEnter={function(e) { if (!sugPanelOpen) _stIconHover(e); }} onMouseLeave={function(e) { if (!sugPanelOpen) _stIconLeave(e); }}>
-          {sugLabel}
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-            <path d="M15 21L15 3M16.2 21H7.8C6.12 21 5.28 21 4.64 20.673C4.07 20.385 3.61 19.927 3.33 19.362C3 18.72 3 17.88 3 16.2V7.8C3 6.12 3 5.28 3.33 4.638C3.61 4.074 4.07 3.615 4.64 3.327C5.28 3 6.12 3 7.8 3H16.2C17.88 3 18.72 3 19.362 3.327C19.927 3.615 20.385 4.074 20.673 4.638C21 5.28 21 6.12 21 7.8V16.2C21 17.88 21 18.72 20.673 19.362C20.385 19.927 19.927 20.385 19.362 20.673C18.72 21 17.88 21 16.2 21Z" stroke={T.colorTextPrimary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
+      {(viewMode !== "ai" || aiProgress) && (<div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        {/* Review suggestions / AI progress button */}
+        {(viewMode === "ai" && aiProgress) ? (
+          /* Progress counter (bank-rec style) — shown in AI mode when results exist */
+          <button onClick={onSuggestionsClick}
+            style={{ display: "flex", alignItems: "center", gap: 0, cursor: "pointer", fontFamily: "inherit", border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, height: 44, minWidth: 44, padding: sugPanelOpen ? 0 : "0 12px 0 0", overflow: "hidden", justifyContent: "center", flexShrink: 0, transition: "padding 0.35s cubic-bezier(0.16,1,0.3,1), background 0.15s" }}
+            onMouseEnter={function(e) { e.currentTarget.style.background = T.colorSurfaceSecondary; }}
+            onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; }}>
+            <div style={{ maxWidth: sugPanelOpen ? 0 : 200, opacity: sugPanelOpen ? 0 : 1, overflow: "hidden", transition: "max-width 0.35s cubic-bezier(0.16,1,0.3,1), opacity 0.2s", display: "flex", flexDirection: "column", gap: 4, paddingLeft: sugPanelOpen ? 0 : 12, paddingRight: sugPanelOpen ? 0 : 10 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <span style={{ fontSize: 14, fontWeight: 500, color: T.colorTextThird, whiteSpace: "nowrap" }}>Suggestions</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{aiProgress.resolved}/{aiProgress.total}</span>
+              </div>
+              <div style={{ height: 2, background: T.colorBorderDark, borderRadius: 1, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: Math.round((aiProgress.resolved / aiProgress.total) * 100) + "%", background: aiProgress.resolved >= aiProgress.total ? T.colorInfo : T.colorBrandPrimary, borderRadius: 1, transition: "width 0.4s ease" }} />
+              </div>
+            </div>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+              <path d="M15 21L15 3M16.2 21H7.8C6.12 21 5.28 21 4.64 20.673C4.07 20.385 3.61 19.927 3.33 19.362C3 18.72 3 17.88 3 16.2V7.8C3 6.12 3 5.28 3.33 4.638C3.61 4.074 4.07 3.615 4.64 3.327C5.28 3 6.12 3 7.8 3H16.2C17.88 3 18.72 3 19.362 3.327C19.927 3.615 20.385 4.074 20.673 4.638C21 5.28 21 6.12 21 7.8V16.2C21 17.88 21 18.72 20.673 19.362C20.385 19.927 19.927 20.385 19.362 20.673C18.72 21 17.88 21 16.2 21Z" stroke={T.colorTextPrimary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        ) : (
+          /* Regular "Review suggestions" button — schedule mode or AI mode without results */
+          <button onClick={onSuggestionsClick} style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 44, padding: "8px 16px 8px 12px", border: "1px solid " + (sugPanelOpen ? T.colorTextPrimary : T.colorBorderMedium), borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap", flexShrink: 0, transition: "border-color 0.15s, background 0.15s" }}
+            onMouseEnter={function(e) { e.currentTarget.style.borderColor = T.colorBorderHover; e.currentTarget.style.background = T.colorSurfaceSecondary; }}
+            onMouseLeave={function(e) { e.currentTarget.style.borderColor = sugPanelOpen ? T.colorTextPrimary : T.colorBorderMedium; e.currentTarget.style.background = T.colorSurfacePrimary; }}>
+            {sugPanelOpen ? "Hide suggestions" : (
+              <Fragment>
+                <PlayCircleIcon color="currentColor" size={20} />
+                Review suggestions
+                {_sugBadge}
+              </Fragment>
+            )}
+          </button>
+        )}
 
         {/* Comment */}
         <button style={_stIconBtn} onMouseEnter={_stIconHover} onMouseLeave={_stIconLeave}>
@@ -165,7 +207,7 @@ function _ScheduleTopBar(_ref) {
             <path d={_MM_PATHS.download} stroke={T.colorTextPrimary} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
-      </div>
+      </div>)}
 
       {/* Close */}
       <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", padding: 0 }}>
@@ -217,7 +259,7 @@ function _buildSugEntries(periodStr, totalAmount, entryKey) {
 
 // ── Prepayment Schedule ────────────────────────────────────────────────────
 function PrepaymentSchedulePage(_ref) {
-  var open = _ref.open, onClose = _ref.onClose, activeScheduleType = _ref.activeScheduleType, onScheduleTypeChange = _ref.onScheduleTypeChange, suggestionsCount = _ref.suggestionsCount, sugCards = _ref.sugCards, reviewState = _ref.reviewState, onReviewStateChange = _ref.onReviewStateChange, reviewTitle = _ref.reviewTitle, addLabel = _ref.addLabel, onRunReview = _ref.onRunReview;
+  var open = _ref.open, onClose = _ref.onClose, activeScheduleType = _ref.activeScheduleType, onScheduleTypeChange = _ref.onScheduleTypeChange, suggestionsCount = _ref.suggestionsCount, sugCards = _ref.sugCards, reviewState = _ref.reviewState, onReviewStateChange = _ref.onReviewStateChange, reviewTitle = _ref.reviewTitle, addLabel = _ref.addLabel, onRunReview = _ref.onRunReview, viewMode = _ref.viewMode, onToggleMode = _ref.onToggleMode;
   if (!open) return null;
 
   var _spSt = useState(false); var _sugPanelOpen = _spSt[0], _setSugPanelOpen = _spSt[1];
@@ -625,9 +667,11 @@ function PrepaymentSchedulePage(_ref) {
 
   return (
     <div style={overlayStyle}>
-      <_ScheduleTopBar activeType={activeScheduleType} onTypeChange={onScheduleTypeChange} onClose={onClose} suggestionsCount={suggestionsCount} onSuggestionsClick={function() { _setSugPanelOpen(function(p) { return !p; }); }} sugPanelOpen={_sugPanelOpen} />
+      <_ScheduleTopBar activeType={activeScheduleType} onTypeChange={onScheduleTypeChange} onClose={onClose} suggestionsCount={suggestionsCount} onSuggestionsClick={function() { _setSugPanelOpen(function(p) { return !p; }); }} sugPanelOpen={_sugPanelOpen} viewMode={viewMode} onToggleMode={function() { _setSugPanelOpen(false); if (onToggleMode) onToggleMode(); }} aiProgress={viewMode === "ai" && reviewState && reviewState.hasResults ? { resolved: reviewState.resolved, total: reviewState.total } : null} />
 
-      <div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}>
+      {viewMode === "ai" ? (
+        <PrepaymentReviewFlow embedded={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={_sugPanelOpen} />
+      ) : (<div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}>
       <div style={{ display: "flex", flexDirection: "column", flex: "1 1 auto", minWidth: 0, overflow: "hidden", transition: "flex 0.3s ease" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 32px", flexShrink: 0, flexWrap: "wrap", borderBottom: "1px solid " + _psBorderClr }}>
           {_sugPanelOpen ? (
@@ -744,69 +788,24 @@ function PrepaymentSchedulePage(_ref) {
       </div>
       {(function() {
         var _hasResults = reviewState && reviewState.hasResults;
-        var _remaining = _hasResults ? reviewState.total - reviewState.resolved : 0;
-        var _sugText = _hasResults
-          ? _remaining + " suggestion" + (_remaining !== 1 ? "s" : "")
-          : "Not started";
-        var _sugColor = _hasResults
-          ? (_remaining > 0 ? T.colorInfoAlt : T.colorInfo)
-          : T.colorTextMuted;
         return (
-        <div style={{ width: _sugPanelOpen ? 420 : 0, flexShrink: 0, background: T.colorSurfaceSecondary, borderLeft: _sugPanelOpen ? "1px solid " + T.colorBorderDark : "none", display: "flex", flexDirection: "column", overflow: "hidden", transition: "width 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
-          <div style={{ minWidth: 420, padding: "24px 24px 16px", flexShrink: 0 }}>
-            <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-0.5px" }}>Suggestions</span>
-          </div>
-          <div style={{ minWidth: 420, flex: "1 1 auto", overflowY: "auto", padding: "0 24px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
-            <div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ fontSize: 15, fontWeight: 500, color: T.colorTextPrimary }}>{reviewTitle || "Review"}</span>
-                <span style={{ fontSize: 13, fontWeight: 400, color: _sugColor }}>
-                  {_sugText}
-                  {_hasResults && (
-                    <Fragment>
-                      <span style={{ display: "inline-block", width: 3, height: 3, borderRadius: "50%", background: T.colorTextSecondary, verticalAlign: "middle", margin: "0 6px" }} />
-                      <span style={{ color: T.colorTextSecondary }}>5 May, 12:23</span>
-                    </Fragment>
-                  )}
-                </span>
-              </div>
-              <SecondaryButton onClick={onRunReview} style={{ height: 36, padding: "6px 12px", fontSize: 13, gap: 6, whiteSpace: "nowrap", flexShrink: 0 }}>
-                Run
-                <PlayCircleIcon color="currentColor" size={16} />
-              </SecondaryButton>
+        <div style={{ width: _sugPanelOpen ? 600 : 0, flexShrink: 0, borderLeft: _sugPanelOpen ? "1px solid " + T.colorBorderDark : "none", display: "flex", flexDirection: "column", overflow: "hidden", transition: "width 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
+          {_hasResults ? (
+            <PrepaymentReviewFlow key={"ps-panel-" + (reviewState ? reviewState.resolved : 0)} embedded={true} hideChat={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={false} />
+          ) : (
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "80px 24px 48px", gap: 12, background: T.colorSurfacePrimary }}>
+              <span style={{ fontSize: 15, fontWeight: 600, color: T.colorTextPrimary }}>No suggestions to show</span>
+              <span style={{ ...T.textMd, fontWeight: 400, color: T.colorTextSecondary, maxWidth: 260, lineHeight: "22px" }}>
+                {"Start " + (reviewTitle ? reviewTitle.toLowerCase() : "review") + " to get suggestions"}
+              </span>
+              <button onClick={function() { _setSugPanelOpen(false); if (onToggleMode) onToggleMode(); }} style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 44, padding: "8px 16px 8px 12px", border: "1px solid " + T.colorBorderMedium, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, fontFamily: T.fontFamily, whiteSpace: "nowrap", marginTop: 4, transition: "border-color 0.15s, background 0.15s" }}
+                onMouseEnter={function(e) { e.currentTarget.style.borderColor = T.colorBorderHover; e.currentTarget.style.background = T.colorSurfaceSecondary; }}
+                onMouseLeave={function(e) { e.currentTarget.style.borderColor = T.colorBorderMedium; e.currentTarget.style.background = T.colorSurfacePrimary; }}>
+                <PlayCircleIcon color="currentColor" size={20} />
+                {"Review " + (reviewTitle ? reviewTitle.replace(/ review$/i, "").toLowerCase() : "")}
+              </button>
             </div>
-            {_hasResults ? sugCards.map(function(card, ci) {
-              var rs = reviewState || {};
-              var isResolved = rs.resolvedArray && rs.resolvedArray.indexOf(card.idx) !== -1;
-              var isIgnored = rs.ignoredArray && rs.ignoredArray.indexOf(card.idx) !== -1;
-              var actionLabel = rs.cardActions ? rs.cardActions[card.idx] : undefined;
-              var statusLabel = isResolved ? (actionLabel || "Added to schedule") : isIgnored ? (actionLabel || "Ignored") : "Unresolved";
-              var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
-              return React.createElement(RecommendationCard, {
-                key: card.key || ci,
-                title: card.title,
-                description: card.description,
-                tableRow: card.tableRow,
-                verticalTable: true,
-                tableColumns: [{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }, { key: "invoice", label: "Invoice", width: "0.8fr" }],
-                primaryLabel: card.primaryLabel,
-                secondaryLabel: card.secondaryLabel,
-                collapsed: isResolved || isIgnored,
-                isIgnored: isIgnored,
-                hideMore: true,
-                statusLabel: statusLabel,
-                statusStyle: statusStyle,
-                onPrimaryAction: function() { _psSetDrawerCard(card); },
-                onIgnore: function() { _psUpdateReviewState("ignore", card.idx); },
-                onSecondaryAction: function() { _psUpdateReviewState("resolve", card.idx); },
-              });
-            }) : (
-              <div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, height: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", textAlign: "center" }}>
-                <span style={{ ...T.textMd, fontWeight: 500, color: T.colorTextPrimary }}>No suggestions yet</span>
-                <span style={{ ...T.textMd, fontWeight: 400, color: T.colorTextSecondary, marginTop: 8 }}>{"Run " + (reviewTitle ? reviewTitle.replace(" review", "").toLowerCase() : "") + " review to check for suggestions."}</span>
-              </div>
-            )}
-          </div>
+          )}
         </div>
         );
       })()}
@@ -893,14 +892,14 @@ function PrepaymentSchedulePage(_ref) {
           )
         )
       )}
-      </div>
+      </div>)}
     </div>
   );
 }
 
 
 // ── Accrual Schedule ───────────────────────────────────────────────────────
-function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview, onReviewStateChange }) {
+function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview, onReviewStateChange, viewMode, onToggleMode }) {
   if (!open) return null;
 
   const [_sugPanelOpen, _setSugPanelOpen] = useState(false);
@@ -1007,8 +1006,10 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
 
   return (
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: T.colorSurfacePrimary, zIndex: 310, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: T.fontFamily }}>
-      <_ScheduleTopBar activeType={activeScheduleType} onTypeChange={onScheduleTypeChange} onClose={onClose} suggestionsCount={suggestionsCount} onSuggestionsClick={() => { _setSugPanelOpen(p => !p); }} sugPanelOpen={_sugPanelOpen} />
-      <div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}>
+      <_ScheduleTopBar activeType={activeScheduleType} onTypeChange={onScheduleTypeChange} onClose={onClose} suggestionsCount={suggestionsCount} onSuggestionsClick={() => { _setSugPanelOpen(p => !p); }} sugPanelOpen={_sugPanelOpen} viewMode={viewMode} onToggleMode={function() { _setSugPanelOpen(false); if (onToggleMode) onToggleMode(); }} aiProgress={viewMode === "ai" && reviewState && reviewState.hasResults ? { resolved: reviewState.resolved, total: reviewState.total } : null} />
+      {viewMode === "ai" ? (
+        <AccrualReviewFlow embedded={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={_sugPanelOpen} />
+      ) : (<div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}>
       <div style={{ display: "flex", flexDirection: "column", flex: "1 1 auto", minWidth: 0, overflow: "hidden", transition: "flex 0.3s ease" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 32px", flexShrink: 0, flexWrap: "wrap", borderBottom: "1px solid " + _asBorderClr }}>
           {_sugPanelOpen ? (
@@ -1059,69 +1060,22 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
       </div>
       {(function() {
         var _hasResults = reviewState && reviewState.hasResults;
-        var _remaining = _hasResults ? reviewState.total - reviewState.resolved : 0;
-        var _sugText = _hasResults
-          ? _remaining + " suggestion" + (_remaining !== 1 ? "s" : "")
-          : "Not started";
-        var _sugColor = _hasResults
-          ? (_remaining > 0 ? T.colorInfoAlt : T.colorInfo)
-          : T.colorTextMuted;
         return (
-        <div style={{ width: _sugPanelOpen ? 420 : 0, flexShrink: 0, background: T.colorSurfaceSecondary, borderLeft: _sugPanelOpen ? "1px solid " + T.colorBorderDark : "none", display: "flex", flexDirection: "column", overflow: "hidden", transition: "width 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
-          <div style={{ minWidth: 420, padding: "24px 24px 16px", flexShrink: 0 }}>
-            <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-0.5px" }}>Suggestions</span>
-          </div>
-          <div style={{ minWidth: 420, flex: "1 1 auto", overflowY: "auto", padding: "0 24px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
-            <div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ fontSize: 15, fontWeight: 500, color: T.colorTextPrimary }}>{reviewTitle || "Review"}</span>
-                <span style={{ fontSize: 13, fontWeight: 400, color: _sugColor }}>
-                  {_sugText}
-                  {_hasResults && (
-                    <Fragment>
-                      <span style={{ display: "inline-block", width: 3, height: 3, borderRadius: "50%", background: T.colorTextSecondary, verticalAlign: "middle", margin: "0 6px" }} />
-                      <span style={{ color: T.colorTextSecondary }}>5 May, 12:23</span>
-                    </Fragment>
-                  )}
-                </span>
-              </div>
-              <SecondaryButton onClick={onRunReview} style={{ height: 36, padding: "6px 12px", fontSize: 13, gap: 6, whiteSpace: "nowrap", flexShrink: 0 }}>
-                Run
-                <PlayCircleIcon color="currentColor" size={16} />
-              </SecondaryButton>
+        <div style={{ width: _sugPanelOpen ? 600 : 0, flexShrink: 0, borderLeft: _sugPanelOpen ? "1px solid " + T.colorBorderDark : "none", display: "flex", flexDirection: "column", overflow: "hidden", transition: "width 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
+          {_hasResults ? (
+            <AccrualReviewFlow key={"as-panel-" + (reviewState ? reviewState.resolved : 0)} embedded={true} hideChat={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={false} />
+          ) : (
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "80px 24px 48px", gap: 12, background: T.colorSurfacePrimary }}>
+              <span style={{ fontSize: 15, fontWeight: 600, color: T.colorTextPrimary }}>No suggestions to show</span>
+              <span style={{ ...T.textMd, fontWeight: 400, color: T.colorTextSecondary, maxWidth: 260, lineHeight: "22px" }}>{"Start " + (reviewTitle ? reviewTitle.toLowerCase() : "review") + " to get suggestions"}</span>
+              <button onClick={function() { _setSugPanelOpen(false); if (onToggleMode) onToggleMode(); }} style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 44, padding: "8px 16px 8px 12px", border: "1px solid " + T.colorBorderMedium, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, fontFamily: T.fontFamily, whiteSpace: "nowrap", marginTop: 4, transition: "border-color 0.15s, background 0.15s" }}
+                onMouseEnter={function(e) { e.currentTarget.style.borderColor = T.colorBorderHover; e.currentTarget.style.background = T.colorSurfaceSecondary; }}
+                onMouseLeave={function(e) { e.currentTarget.style.borderColor = T.colorBorderMedium; e.currentTarget.style.background = T.colorSurfacePrimary; }}>
+                <PlayCircleIcon color="currentColor" size={20} />
+                {"Review " + (reviewTitle ? reviewTitle.replace(/ review$/i, "").toLowerCase() : "")}
+              </button>
             </div>
-            {_hasResults ? sugCards.map(function(card, ci) {
-              var rs = reviewState || {};
-              var isResolved = rs.resolvedArray && rs.resolvedArray.indexOf(card.idx) !== -1;
-              var isIgnored = rs.ignoredArray && rs.ignoredArray.indexOf(card.idx) !== -1;
-              var actionLabel = rs.cardActions ? rs.cardActions[card.idx] : undefined;
-              var statusLabel = isResolved ? (actionLabel || "Added to schedule") : isIgnored ? (actionLabel || "Ignored") : "Unresolved";
-              var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
-              return React.createElement(RecommendationCard, {
-                key: card.key || ci,
-                title: card.title,
-                description: card.description,
-                tableRow: card.tableRow,
-                verticalTable: true,
-                tableColumns: [{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }, { key: "invoice", label: "Invoice", width: "0.8fr" }],
-                primaryLabel: card.primaryLabel,
-                secondaryLabel: card.secondaryLabel,
-                collapsed: isResolved || isIgnored,
-                isIgnored: isIgnored,
-                hideMore: true,
-                statusLabel: statusLabel,
-                statusStyle: statusStyle,
-                onPrimaryAction: function() { _asSetDrawerCard(card); },
-                onIgnore: function() { _asUpdateReviewState("ignore", card.idx); },
-                onSecondaryAction: function() { _asUpdateReviewState("resolve", card.idx); },
-              });
-            }) : (
-              <div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, height: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", textAlign: "center" }}>
-                <span style={{ ...T.textMd, fontWeight: 500, color: T.colorTextPrimary }}>No suggestions yet</span>
-                <span style={{ ...T.textMd, fontWeight: 400, color: T.colorTextSecondary, marginTop: 8 }}>{"Run " + (reviewTitle ? reviewTitle.replace(" review", "").toLowerCase() : "") + " review to check for suggestions."}</span>
-              </div>
-            )}
-          </div>
+          )}
         </div>
         );
       })()}
@@ -1155,14 +1109,14 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
           React.createElement(Banner, { variant: "info" }, "You can leave the reversal date empty and choose it later when ready.")
         )
       )}
-      </div>
+      </div>)}
     </div>
   );
 }
 
 
 // ── Deferred Revenue Schedule ──────────────────────────────────────────────
-function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview, onReviewStateChange }) {
+function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview, onReviewStateChange, viewMode, onToggleMode }) {
   if (!open) return null;
 
   const [_sugPanelOpen, _setSugPanelOpen] = useState(false);
@@ -1261,8 +1215,10 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
 
   return (
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: T.colorSurfacePrimary, zIndex: 310, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: T.fontFamily }}>
-      <_ScheduleTopBar activeType={activeScheduleType} onTypeChange={onScheduleTypeChange} onClose={onClose} suggestionsCount={suggestionsCount} onSuggestionsClick={() => { _setSugPanelOpen(p => !p); }} sugPanelOpen={_sugPanelOpen} />
-      <div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}>
+      <_ScheduleTopBar activeType={activeScheduleType} onTypeChange={onScheduleTypeChange} onClose={onClose} suggestionsCount={suggestionsCount} onSuggestionsClick={() => { _setSugPanelOpen(p => !p); }} sugPanelOpen={_sugPanelOpen} viewMode={viewMode} onToggleMode={function() { _setSugPanelOpen(false); if (onToggleMode) onToggleMode(); }} aiProgress={viewMode === "ai" && reviewState && reviewState.hasResults ? { resolved: reviewState.resolved, total: reviewState.total } : null} />
+      {viewMode === "ai" ? (
+        <DeferredRevenueReviewFlow embedded={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={_sugPanelOpen} />
+      ) : (<div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}>
       <div style={{ display: "flex", flexDirection: "column", flex: "1 1 auto", minWidth: 0, overflow: "hidden", transition: "flex 0.3s ease" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 32px", flexShrink: 0, flexWrap: "wrap", borderBottom: "1px solid " + _drBorderClr }}>
           {_sugPanelOpen ? (
@@ -1313,69 +1269,21 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
       </div>
       {(function() {
         var _hasResults = reviewState && reviewState.hasResults;
-        var _remaining = _hasResults ? reviewState.total - reviewState.resolved : 0;
-        var _sugText = _hasResults
-          ? _remaining + " suggestion" + (_remaining !== 1 ? "s" : "")
-          : "Not started";
-        var _sugColor = _hasResults
-          ? (_remaining > 0 ? T.colorInfoAlt : T.colorInfo)
-          : T.colorTextMuted;
         return (
-        <div style={{ width: _sugPanelOpen ? 420 : 0, flexShrink: 0, background: T.colorSurfaceSecondary, borderLeft: _sugPanelOpen ? "1px solid " + T.colorBorderDark : "none", display: "flex", flexDirection: "column", overflow: "hidden", transition: "width 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
-          <div style={{ minWidth: 420, padding: "24px 24px 16px", flexShrink: 0 }}>
-            <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-0.5px" }}>Suggestions</span>
-          </div>
-          <div style={{ minWidth: 420, flex: "1 1 auto", overflowY: "auto", padding: "0 24px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
-            <div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ fontSize: 15, fontWeight: 500, color: T.colorTextPrimary }}>{reviewTitle || "Review"}</span>
-                <span style={{ fontSize: 13, fontWeight: 400, color: _sugColor }}>
-                  {_sugText}
-                  {_hasResults && (
-                    <Fragment>
-                      <span style={{ display: "inline-block", width: 3, height: 3, borderRadius: "50%", background: T.colorTextSecondary, verticalAlign: "middle", margin: "0 6px" }} />
-                      <span style={{ color: T.colorTextSecondary }}>5 May, 12:23</span>
-                    </Fragment>
-                  )}
-                </span>
-              </div>
-              <SecondaryButton onClick={onRunReview} style={{ height: 36, padding: "6px 12px", fontSize: 13, gap: 6, whiteSpace: "nowrap", flexShrink: 0 }}>
-                Run
-                <PlayCircleIcon color="currentColor" size={16} />
-              </SecondaryButton>
+        <div style={{ width: _sugPanelOpen ? 600 : 0, flexShrink: 0, borderLeft: _sugPanelOpen ? "1px solid " + T.colorBorderDark : "none", display: "flex", flexDirection: "column", overflow: "hidden", transition: "width 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
+          {_hasResults ? (
+            <DeferredRevenueReviewFlow key={"dr-panel-" + (reviewState ? reviewState.resolved : 0)} embedded={true} hideChat={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={false} />
+          ) : (
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "80px 24px 48px", gap: 12, background: T.colorSurfacePrimary }}>
+              <span style={{ fontSize: 15, fontWeight: 600, color: T.colorTextPrimary }}>No suggestions to show</span>
+              <button onClick={function() { _setSugPanelOpen(false); if (onToggleMode) onToggleMode(); }} style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 44, padding: "8px 16px 8px 12px", border: "1px solid " + T.colorBorderMedium, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, fontFamily: T.fontFamily, whiteSpace: "nowrap", marginTop: 4 }}
+                onMouseEnter={function(e) { e.currentTarget.style.borderColor = T.colorBorderHover; e.currentTarget.style.background = T.colorSurfaceSecondary; }}
+                onMouseLeave={function(e) { e.currentTarget.style.borderColor = T.colorBorderMedium; e.currentTarget.style.background = T.colorSurfacePrimary; }}>
+                <PlayCircleIcon color="currentColor" size={20} />
+                {"Review " + (reviewTitle ? reviewTitle.replace(/ review$/i, "").toLowerCase() : "")}
+              </button>
             </div>
-            {_hasResults ? sugCards.map(function(card, ci) {
-              var rs = reviewState || {};
-              var isResolved = rs.resolvedArray && rs.resolvedArray.indexOf(card.idx) !== -1;
-              var isIgnored = rs.ignoredArray && rs.ignoredArray.indexOf(card.idx) !== -1;
-              var actionLabel = rs.cardActions ? rs.cardActions[card.idx] : undefined;
-              var statusLabel = isResolved ? (actionLabel || "Added to schedule") : isIgnored ? (actionLabel || "Ignored") : "Unresolved";
-              var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
-              return React.createElement(RecommendationCard, {
-                key: card.key || ci,
-                title: card.title,
-                description: card.description,
-                tableRow: card.tableRow,
-                verticalTable: true,
-                tableColumns: [{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }, { key: "invoice", label: "Invoice", width: "0.8fr" }],
-                primaryLabel: card.primaryLabel,
-                secondaryLabel: card.secondaryLabel,
-                collapsed: isResolved || isIgnored,
-                isIgnored: isIgnored,
-                hideMore: true,
-                statusLabel: statusLabel,
-                statusStyle: statusStyle,
-                onPrimaryAction: function() { _drSetDrawerCard(card); },
-                onIgnore: function() { _drUpdateReviewState("ignore", card.idx); },
-                onSecondaryAction: function() { _drUpdateReviewState("resolve", card.idx); },
-              });
-            }) : (
-              <div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, height: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", textAlign: "center" }}>
-                <span style={{ ...T.textMd, fontWeight: 500, color: T.colorTextPrimary }}>No suggestions yet</span>
-                <span style={{ ...T.textMd, fontWeight: 400, color: T.colorTextSecondary, marginTop: 8 }}>{"Run " + (reviewTitle ? reviewTitle.replace(" review", "").toLowerCase() : "") + " review to check for suggestions."}</span>
-              </div>
-            )}
-          </div>
+          )}
         </div>
         );
       })()}
@@ -1468,14 +1376,14 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
           )
         )
       )}
-      </div>
+      </div>)}
     </div>
   );
 }
 
 
 // ── Accrued Income Schedule ────────────────────────────────────────────────
-function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview, onReviewStateChange }) {
+function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview, onReviewStateChange, viewMode, onToggleMode }) {
   if (!open) return null;
 
   const [_sugPanelOpen, _setSugPanelOpen] = useState(false);
@@ -1574,8 +1482,10 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
 
   return (
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: T.colorSurfacePrimary, zIndex: 310, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: T.fontFamily }}>
-      <_ScheduleTopBar activeType={activeScheduleType} onTypeChange={onScheduleTypeChange} onClose={onClose} suggestionsCount={suggestionsCount} onSuggestionsClick={() => { _setSugPanelOpen(p => !p); }} sugPanelOpen={_sugPanelOpen} />
-      <div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}>
+      <_ScheduleTopBar activeType={activeScheduleType} onTypeChange={onScheduleTypeChange} onClose={onClose} suggestionsCount={suggestionsCount} onSuggestionsClick={() => { _setSugPanelOpen(p => !p); }} sugPanelOpen={_sugPanelOpen} viewMode={viewMode} onToggleMode={function() { _setSugPanelOpen(false); if (onToggleMode) onToggleMode(); }} aiProgress={viewMode === "ai" && reviewState && reviewState.hasResults ? { resolved: reviewState.resolved, total: reviewState.total } : null} />
+      {viewMode === "ai" ? (
+        <AccruedIncomeReviewFlow embedded={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={_sugPanelOpen} />
+      ) : (<div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}>
       <div style={{ display: "flex", flexDirection: "column", flex: "1 1 auto", minWidth: 0, overflow: "hidden", transition: "flex 0.3s ease" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 32px", flexShrink: 0, flexWrap: "wrap", borderBottom: "1px solid " + _aiBorderClr }}>
           {_sugPanelOpen ? (
@@ -1626,69 +1536,21 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
       </div>
       {(function() {
         var _hasResults = reviewState && reviewState.hasResults;
-        var _remaining = _hasResults ? reviewState.total - reviewState.resolved : 0;
-        var _sugText = _hasResults
-          ? _remaining + " suggestion" + (_remaining !== 1 ? "s" : "")
-          : "Not started";
-        var _sugColor = _hasResults
-          ? (_remaining > 0 ? T.colorInfoAlt : T.colorInfo)
-          : T.colorTextMuted;
         return (
-        <div style={{ width: _sugPanelOpen ? 420 : 0, flexShrink: 0, background: T.colorSurfaceSecondary, borderLeft: _sugPanelOpen ? "1px solid " + T.colorBorderDark : "none", display: "flex", flexDirection: "column", overflow: "hidden", transition: "width 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
-          <div style={{ minWidth: 420, padding: "24px 24px 16px", flexShrink: 0 }}>
-            <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-0.5px" }}>Suggestions</span>
-          </div>
-          <div style={{ minWidth: 420, flex: "1 1 auto", overflowY: "auto", padding: "0 24px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
-            <div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ fontSize: 15, fontWeight: 500, color: T.colorTextPrimary }}>{reviewTitle || "Review"}</span>
-                <span style={{ fontSize: 13, fontWeight: 400, color: _sugColor }}>
-                  {_sugText}
-                  {_hasResults && (
-                    <Fragment>
-                      <span style={{ display: "inline-block", width: 3, height: 3, borderRadius: "50%", background: T.colorTextSecondary, verticalAlign: "middle", margin: "0 6px" }} />
-                      <span style={{ color: T.colorTextSecondary }}>5 May, 12:23</span>
-                    </Fragment>
-                  )}
-                </span>
-              </div>
-              <SecondaryButton onClick={onRunReview} style={{ height: 36, padding: "6px 12px", fontSize: 13, gap: 6, whiteSpace: "nowrap", flexShrink: 0 }}>
-                Run
-                <PlayCircleIcon color="currentColor" size={16} />
-              </SecondaryButton>
+        <div style={{ width: _sugPanelOpen ? 600 : 0, flexShrink: 0, borderLeft: _sugPanelOpen ? "1px solid " + T.colorBorderDark : "none", display: "flex", flexDirection: "column", overflow: "hidden", transition: "width 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
+          {_hasResults ? (
+            <AccruedIncomeReviewFlow key={"ai-panel-" + (reviewState ? reviewState.resolved : 0)} embedded={true} hideChat={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={false} />
+          ) : (
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "80px 24px 48px", gap: 12, background: T.colorSurfacePrimary }}>
+              <span style={{ fontSize: 15, fontWeight: 600, color: T.colorTextPrimary }}>No suggestions to show</span>
+              <button onClick={function() { _setSugPanelOpen(false); if (onToggleMode) onToggleMode(); }} style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 44, padding: "8px 16px 8px 12px", border: "1px solid " + T.colorBorderMedium, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, fontFamily: T.fontFamily, whiteSpace: "nowrap", marginTop: 4 }}
+                onMouseEnter={function(e) { e.currentTarget.style.borderColor = T.colorBorderHover; e.currentTarget.style.background = T.colorSurfaceSecondary; }}
+                onMouseLeave={function(e) { e.currentTarget.style.borderColor = T.colorBorderMedium; e.currentTarget.style.background = T.colorSurfacePrimary; }}>
+                <PlayCircleIcon color="currentColor" size={20} />
+                {"Review " + (reviewTitle ? reviewTitle.replace(/ review$/i, "").toLowerCase() : "")}
+              </button>
             </div>
-            {_hasResults ? sugCards.map(function(card, ci) {
-              var rs = reviewState || {};
-              var isResolved = rs.resolvedArray && rs.resolvedArray.indexOf(card.idx) !== -1;
-              var isIgnored = rs.ignoredArray && rs.ignoredArray.indexOf(card.idx) !== -1;
-              var actionLabel = rs.cardActions ? rs.cardActions[card.idx] : undefined;
-              var statusLabel = isResolved ? (actionLabel || "Added to schedule") : isIgnored ? (actionLabel || "Ignored") : "Unresolved";
-              var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
-              return React.createElement(RecommendationCard, {
-                key: card.key || ci,
-                title: card.title,
-                description: card.description,
-                tableRow: card.tableRow,
-                verticalTable: true,
-                tableColumns: [{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }, { key: "invoice", label: "Invoice", width: "0.8fr" }],
-                primaryLabel: card.primaryLabel,
-                secondaryLabel: card.secondaryLabel,
-                collapsed: isResolved || isIgnored,
-                isIgnored: isIgnored,
-                hideMore: true,
-                statusLabel: statusLabel,
-                statusStyle: statusStyle,
-                onPrimaryAction: function() { _aiSetDrawerCard(card); },
-                onIgnore: function() { _aiUpdateReviewState("ignore", card.idx); },
-                onSecondaryAction: function() { _aiUpdateReviewState("resolve", card.idx); },
-              });
-            }) : (
-              <div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 12, height: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", textAlign: "center" }}>
-                <span style={{ ...T.textMd, fontWeight: 500, color: T.colorTextPrimary }}>No suggestions yet</span>
-                <span style={{ ...T.textMd, fontWeight: 400, color: T.colorTextSecondary, marginTop: 8 }}>{"Run " + (reviewTitle ? reviewTitle.replace(" review", "").toLowerCase() : "") + " review to check for suggestions."}</span>
-              </div>
-            )}
-          </div>
+          )}
         </div>
         );
       })()}
@@ -1722,7 +1584,7 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
           React.createElement(Banner, { variant: "info" }, "You can leave the reversal date empty and choose it later when ready.")
         )
       )}
-      </div>
+      </div>)}
     </div>
   );
 }
@@ -1761,7 +1623,7 @@ var _PR_NAV_CATS = [
 // ── Prepayment Review Flow ────────────────────────────────────────────────
 
 function PrepaymentReviewFlow(_ref) {
-  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment;
+  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment, embedded = _ref.embedded, externalBoxesOpen = _ref.externalBoxesOpen, hideChat = _ref.hideChat;
   var _prOcUI = _adjUseCommentUI();
   var _prInitResume = !!(savedState && savedState.hasResults);
   var _prIsResume = useState(_prInitResume), _prSetIsResume = _prIsResume[1]; _prIsResume = _prIsResume[0];
@@ -1770,9 +1632,10 @@ function PrepaymentReviewFlow(_ref) {
   _s = useState(_prInitResume ? _PR_STEPS.length : 0); var _prVisibleSteps = _s[0], _prSetVisibleSteps = _s[1];
   _s = useState(_prInitResume); var _prStepsPopulated = _s[0], _prSetStepsPopulated = _s[1];
   _s = useState(_prInitResume); var _prStepsCollapsed = _s[0], _prSetStepsCollapsed = _s[1];
-  _s = useState(_prInitResume); var _prResultsVisible = _s[0], _prSetResultsVisible = _s[1];
+  _s = useState(_prInitResume && (!embedded || hideChat)); var _prResultsVisible = _s[0], _prSetResultsVisible = _s[1];
   _s = useState(_prInitResume); var _prCanvasReady = _s[0], _prSetCanvasReady = _s[1];
   _s = useState(false); var _prBoxesOpen = _s[0], _prSetBoxesOpen = _s[1];
+  var _prEffBoxesOpen = (embedded && externalBoxesOpen !== undefined) ? (externalBoxesOpen && _prCanvasReady) : _prBoxesOpen;
   _s = useState(400); var _prChatWidth = _s[0], _prSetChatWidth = _s[1];
   _s = useState(false); var _prIsDragging = _s[0], _prSetIsDragging = _s[1];
   _s = useState(true); var _prIsAtBottom = _s[0], _prSetIsAtBottom = _s[1];
@@ -1872,6 +1735,13 @@ function PrepaymentReviewFlow(_ref) {
     return function() { window.removeEventListener("keydown", onKey); };
   }, []);
 
+  // Entrance animation: slide chat+canvas when switching to AI mode (embedded, resume state)
+  useEffect(function() {
+    if (!embedded || hideChat || !_prInitResume) return;
+    var t = setTimeout(function() { _prSetResultsVisible(true); }, 50);
+    return function() { clearTimeout(t); };
+  }, []);
+
   var _prHandleDragStart = function(e) {
     e.preventDefault(); _prSetIsDragging(true);
     var startX = e.clientX, startW = _prChatWidth;
@@ -1892,11 +1762,11 @@ function PrepaymentReviewFlow(_ref) {
   };
 
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
+    <div style={embedded ? { display: "flex", flex: 1, flexDirection: "column", overflow: "hidden", background: T.colorSurfaceContrast } : { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
       <style>{`@keyframes _prFadeIn{from{opacity:0}to{opacity:1}} @keyframes _prStepReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes _prStepPop{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}} @keyframes _prTextShimmer{0%{background-position:200% center}100%{background-position:-200% center}}`}</style>
 
       {/* Top bar */}
-      <div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: `1px solid ${T.colorButtonSecondary}`, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
+      {!embedded && (<div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: `1px solid ${T.colorButtonSecondary}`, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
         <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-1px", flexShrink: 0 }}>Prepayments review</span>
         <div ref={_prPeriodDropRef} style={{ position: "relative" }}>
           <button onClick={function() { _prSetPeriodDropOpen(function(o) { return !o; }); }} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 12px", height: 48, border: `1px solid ${T.colorBorderDark}`, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap" }}>
@@ -1946,12 +1816,12 @@ function PrepaymentReviewFlow(_ref) {
         <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", padding: 0 }}>
           <svg width="30" height="30" viewBox="0 0 30 30" fill="none"><rect width="30" height="30" rx="15" fill="#F5F5F5"/><path d="M20 10L10 20M10 10L20 20" stroke="#2A2A2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
-      </div>
+      </div>)}
 
       {/* Content */}
       <div style={{ display: "flex", flex: 1, overflow: "hidden", position: "relative", padding: 16 }}>
         {/* Left chat panel */}
-        <div style={{ display: "flex", flexDirection: "column", width: _prResultsVisible ? _prChatWidth : "100%", flexShrink: 0, transition: _prIsDragging ? "none" : "width 0.72s cubic-bezier(0.16,1,0.3,1)", overflow: "hidden", willChange: "width", position: "relative", zIndex: 1 }}>
+        {!hideChat && (<div style={{ display: "flex", flexDirection: "column", width: _prResultsVisible ? _prChatWidth : "100%", flexShrink: 0, transition: _prIsDragging ? "none" : "width 0.72s cubic-bezier(0.16,1,0.3,1)", overflow: "hidden", willChange: "width", position: "relative", zIndex: 1 }}>
           {_prResultsVisible && (
             <button onClick={function() { _prChatScrollRef.current && _prChatScrollRef.current.scrollTo({ top: _prChatScrollRef.current.scrollHeight, behavior: "smooth" }); }}
               style={{ position: "absolute", bottom: 218, left: "50%", transform: "translateX(-50%)", zIndex: 10, width: 32, height: 32, borderRadius: "50%", background: T.colorSurfacePrimary, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)", opacity: _prIsAtBottom ? 0 : 1, pointerEvents: _prIsAtBottom ? "none" : "auto", transition: "opacity 0.35s ease" }}
@@ -2063,13 +1933,13 @@ function PrepaymentReviewFlow(_ref) {
               </div>
             </div>
           )}
-        </div>
-        {_prResultsVisible && (
+        </div>)}
+        {_prResultsVisible && !hideChat && (
           <div onMouseDown={_prHandleDragStart} style={{ position: "absolute", top: 0, bottom: 0, left: _prChatWidth + 16, width: 16, cursor: "col-resize", zIndex: 5, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ width: 4, height: 40, borderRadius: 2, background: _prIsDragging ? T.colorBorderHover : "transparent", transition: "background 0.15s" }} />
           </div>
         )}
-        <div style={{ position: "absolute", top: 16, bottom: 16, left: _prChatWidth + 32, right: _prBoxesOpen ? 432 : 16, background: T.colorSurfacePrimary, borderRadius: 8, border: "1px solid " + T.colorButtonSecondary, overflow: "hidden", zIndex: 2, transform: _prResultsVisible ? "none" : "translateX(calc(100% + 32px))", transition: _prIsDragging ? "none" : "transform 0.72s cubic-bezier(0.16,1,0.3,1), right 0.35s cubic-bezier(0.16,1,0.3,1)", willChange: _prResultsVisible ? "auto" : "transform" }}>
+        <div style={{ position: "absolute", top: 16, bottom: 16, left: hideChat ? 16 : _prChatWidth + 32, right: _prEffBoxesOpen ? 432 : 16, background: T.colorSurfacePrimary, borderRadius: 8, border: "1px solid " + T.colorButtonSecondary, overflow: "hidden", zIndex: 2, transform: _prResultsVisible ? "none" : "translateX(calc(100% + 32px))", transition: _prIsDragging ? "none" : "transform 0.72s cubic-bezier(0.16,1,0.3,1), right 0.35s cubic-bezier(0.16,1,0.3,1)", willChange: _prResultsVisible ? "auto" : "transform" }}>
           {_prCanvasReady ? (
             <div style={{ animation: "_prFadeIn 0.4s ease 0.1s both", height: "100%", overflowY: "auto" }}>
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
@@ -2149,7 +2019,7 @@ function PrepaymentReviewFlow(_ref) {
           ) : _prResultsVisible ? <CanvasLoader /> : null}
         </div>
         {_prCanvasReady && (
-          <div style={{ position: "absolute", top: 16, bottom: 16, right: 16, width: 400, zIndex: 3, transform: _prBoxesOpen ? "translateX(0)" : "translateX(calc(100% + 32px))", transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1)", pointerEvents: _prBoxesOpen ? "auto" : "none", display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ position: "absolute", top: 16, bottom: 16, right: 16, width: 400, zIndex: 3, transform: _prEffBoxesOpen ? "translateX(0)" : "translateX(calc(100% + 32px))", transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1)", pointerEvents: _prEffBoxesOpen ? "auto" : "none", display: "flex", flexDirection: "column", gap: 16 }}>
             <div style={{ background: T.colorSurfacePrimary, borderRadius: 8, border: "1px solid " + T.colorButtonSecondary, overflow: "hidden", flexShrink: 0 }}>
               <div style={{ padding: "18px 20px" }}><span style={{ fontSize: 16, fontWeight: 500, color: T.colorTextPrimary }}>Linked sources</span></div>
               <div style={{ borderTop: "1px solid " + T.colorSurfaceActive, padding: "12px 10px 16px" }}>
@@ -2289,7 +2159,7 @@ var _AR_NAV_CATS = [
 ];
 
 function AccrualReviewFlow(_ref) {
-  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment;
+  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment, embedded = _ref.embedded, externalBoxesOpen = _ref.externalBoxesOpen, hideChat = _ref.hideChat;
   var _arOcUI = _adjUseCommentUI();
   var _arInitResume = !!(savedState && savedState.hasResults);
   var _s = useState(_arInitResume); var _arIsResume = _s[0], _arSetIsResume = _s[1];
@@ -2298,9 +2168,10 @@ function AccrualReviewFlow(_ref) {
   _s = useState(_arInitResume ? _AR_STEPS.length : 0); var _arVisibleSteps = _s[0], _arSetVisibleSteps = _s[1];
   _s = useState(_arInitResume); var _arStepsPopulated = _s[0], _arSetStepsPopulated = _s[1];
   _s = useState(_arInitResume); var _arStepsCollapsed = _s[0], _arSetStepsCollapsed = _s[1];
-  _s = useState(_arInitResume); var _arResultsVisible = _s[0], _arSetResultsVisible = _s[1];
+  _s = useState(_arInitResume && (!embedded || hideChat)); var _arResultsVisible = _s[0], _arSetResultsVisible = _s[1];
   _s = useState(_arInitResume); var _arCanvasReady = _s[0], _arSetCanvasReady = _s[1];
   _s = useState(false); var _arBoxesOpen = _s[0], _arSetBoxesOpen = _s[1];
+  var _arEffBoxesOpen = (embedded && externalBoxesOpen !== undefined) ? (externalBoxesOpen && _arCanvasReady) : _arBoxesOpen;
   _s = useState(400); var _arChatWidth = _s[0], _arSetChatWidth = _s[1];
   _s = useState(false); var _arIsDragging = _s[0], _arSetIsDragging = _s[1];
   _s = useState(true); var _arIsAtBottom = _s[0], _arSetIsAtBottom = _s[1];
@@ -2365,6 +2236,7 @@ function AccrualReviewFlow(_ref) {
   useEffect(function() { if (_arChatEndRef.current) _arChatEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" }); }, [_arLine1Done, _arStepsComplete, _arCanvasReady]);
   useEffect(function() { var el = _arChatScrollRef.current; if (!el) return; var onScroll = function() { _arSetIsAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 40); }; el.addEventListener("scroll", onScroll); return function() { el.removeEventListener("scroll", onScroll); }; }, []);
   useEffect(function() { var onKey = function(e) { if (e.key === "Escape") onClose(); }; window.addEventListener("keydown", onKey); return function() { window.removeEventListener("keydown", onKey); }; }, []);
+  useEffect(function() { if (!embedded || hideChat || !_arInitResume) return; var t = setTimeout(function() { _arSetResultsVisible(true); }, 50); return function() { clearTimeout(t); }; }, []);
 
   var _arHandleDragStart = function(e) {
     e.preventDefault(); _arSetIsDragging(true);
@@ -2386,9 +2258,9 @@ function AccrualReviewFlow(_ref) {
   };
 
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
+    <div style={embedded ? { display: "flex", flex: 1, flexDirection: "column", overflow: "hidden", background: T.colorSurfaceContrast } : { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
       <style>{`@keyframes _arFadeIn{from{opacity:0}to{opacity:1}} @keyframes _arStepReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes _arStepPop{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}} @keyframes _arTextShimmer{0%{background-position:200% center}100%{background-position:-200% center}}`}</style>
-      <div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
+      {!embedded && (<div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
         <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-1px", flexShrink: 0 }}>Accruals review</span>
         <div ref={_arPeriodDropRef} style={{ position: "relative" }}>
           <button onClick={function() { _arSetPeriodDropOpen(function(o) { return !o; }); }} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 12px", height: 48, border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap" }}>
@@ -2432,9 +2304,9 @@ function AccrualReviewFlow(_ref) {
           </button>
         )}
         <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", padding: 0 }}><svg width="30" height="30" viewBox="0 0 30 30" fill="none"><rect width="30" height="30" rx="15" fill="#F5F5F5"/><path d="M20 10L10 20M10 10L20 20" stroke="#2A2A2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
-      </div>
+      </div>)}
       <div style={{ display: "flex", flex: 1, overflow: "hidden", position: "relative", padding: 16 }}>
-        <div style={{ display: "flex", flexDirection: "column", width: _arResultsVisible ? _arChatWidth : "100%", flexShrink: 0, transition: _arIsDragging ? "none" : "width 0.72s cubic-bezier(0.16,1,0.3,1)", overflow: "hidden", willChange: "width", position: "relative", zIndex: 1 }}>
+        {!hideChat && (<div style={{ display: "flex", flexDirection: "column", width: _arResultsVisible ? _arChatWidth : "100%", flexShrink: 0, transition: _arIsDragging ? "none" : "width 0.72s cubic-bezier(0.16,1,0.3,1)", overflow: "hidden", willChange: "width", position: "relative", zIndex: 1 }}>
           {_arResultsVisible && (
             <button onClick={function() { _arChatScrollRef.current && _arChatScrollRef.current.scrollTo({ top: _arChatScrollRef.current.scrollHeight, behavior: "smooth" }); }}
               style={{ position: "absolute", bottom: 218, left: "50%", transform: "translateX(-50%)", zIndex: 10, width: 32, height: 32, borderRadius: "50%", background: T.colorSurfacePrimary, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)", opacity: _arIsAtBottom ? 0 : 1, pointerEvents: _arIsAtBottom ? "none" : "auto", transition: "opacity 0.35s ease" }}
@@ -2534,9 +2406,9 @@ function AccrualReviewFlow(_ref) {
               </div>
             </div>
           )}
-        </div>
-        {_arResultsVisible && (<div onMouseDown={_arHandleDragStart} style={{ position: "absolute", top: 0, bottom: 0, left: _arChatWidth + 16, width: 16, cursor: "col-resize", zIndex: 5, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ width: 4, height: 40, borderRadius: 2, background: _arIsDragging ? T.colorBorderHover : "transparent", transition: "background 0.15s" }} /></div>)}
-        <div style={{ position: "absolute", top: 16, bottom: 16, left: _arChatWidth + 32, right: _arBoxesOpen ? 432 : 16, background: T.colorSurfacePrimary, borderRadius: 8, border: "1px solid " + T.colorButtonSecondary, overflow: "hidden", zIndex: 2, transform: _arResultsVisible ? "none" : "translateX(calc(100% + 32px))", transition: _arIsDragging ? "none" : "transform 0.72s cubic-bezier(0.16,1,0.3,1), right 0.35s cubic-bezier(0.16,1,0.3,1)", willChange: _arResultsVisible ? "auto" : "transform" }}>
+        </div>)}
+        {_arResultsVisible && !hideChat && (<div onMouseDown={_arHandleDragStart} style={{ position: "absolute", top: 0, bottom: 0, left: _arChatWidth + 16, width: 16, cursor: "col-resize", zIndex: 5, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ width: 4, height: 40, borderRadius: 2, background: _arIsDragging ? T.colorBorderHover : "transparent", transition: "background 0.15s" }} /></div>)}
+        <div style={{ position: "absolute", top: 16, bottom: 16, left: hideChat ? 16 : _arChatWidth + 32, right: _arEffBoxesOpen ? 432 : 16, background: T.colorSurfacePrimary, borderRadius: 8, border: "1px solid " + T.colorButtonSecondary, overflow: "hidden", zIndex: 2, transform: _arResultsVisible ? "none" : "translateX(calc(100% + 32px))", transition: _arIsDragging ? "none" : "transform 0.72s cubic-bezier(0.16,1,0.3,1), right 0.35s cubic-bezier(0.16,1,0.3,1)", willChange: _arResultsVisible ? "auto" : "transform" }}>
           {_arCanvasReady ? (
             <div style={{ animation: "_arFadeIn 0.4s ease 0.1s both", height: "100%", overflowY: "auto" }}>
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
@@ -2614,7 +2486,7 @@ function AccrualReviewFlow(_ref) {
           ) : _arResultsVisible ? <CanvasLoader /> : null}
         </div>
         {_arCanvasReady && (
-          <div style={{ position: "absolute", top: 16, bottom: 16, right: 16, width: 400, zIndex: 3, transform: _arBoxesOpen ? "translateX(0)" : "translateX(calc(100% + 32px))", transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1)", pointerEvents: _arBoxesOpen ? "auto" : "none", display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ position: "absolute", top: 16, bottom: 16, right: 16, width: 400, zIndex: 3, transform: _arEffBoxesOpen ? "translateX(0)" : "translateX(calc(100% + 32px))", transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1)", pointerEvents: _arEffBoxesOpen ? "auto" : "none", display: "flex", flexDirection: "column", gap: 16 }}>
             <div style={{ background: T.colorSurfacePrimary, borderRadius: 8, border: "1px solid " + T.colorButtonSecondary, overflow: "hidden", flexShrink: 0 }}>
               <div style={{ padding: "18px 20px" }}><span style={{ fontSize: 16, fontWeight: 500, color: T.colorTextPrimary }}>Linked sources</span></div>
               <div style={{ borderTop: "1px solid " + T.colorSurfaceActive, padding: "12px 10px 16px" }}>
@@ -2698,7 +2570,7 @@ var _DRR_NAV_CATS = [
 ];
 
 function DeferredRevenueReviewFlow(_ref) {
-  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment;
+  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment, embedded = _ref.embedded, externalBoxesOpen = _ref.externalBoxesOpen, hideChat = _ref.hideChat;
   var _drOcUI = _adjUseCommentUI();
   var _drInitResume = !!(savedState && savedState.hasResults);
   var _s = useState(_drInitResume); var _drIsResume = _s[0], _drSetIsResume = _s[1];
@@ -2707,9 +2579,10 @@ function DeferredRevenueReviewFlow(_ref) {
   _s = useState(_drInitResume ? _DRR_STEPS.length : 0); var _drVisibleSteps = _s[0], _drSetVisibleSteps = _s[1];
   _s = useState(_drInitResume); var _drStepsPopulated = _s[0], _drSetStepsPopulated = _s[1];
   _s = useState(_drInitResume); var _drStepsCollapsed = _s[0], _drSetStepsCollapsed = _s[1];
-  _s = useState(_drInitResume); var _drResultsVisible = _s[0], _drSetResultsVisible = _s[1];
+  _s = useState(_drInitResume && (!embedded || hideChat)); var _drResultsVisible = _s[0], _drSetResultsVisible = _s[1];
   _s = useState(_drInitResume); var _drCanvasReady = _s[0], _drSetCanvasReady = _s[1];
   _s = useState(false); var _drBoxesOpen = _s[0], _drSetBoxesOpen = _s[1];
+  var _drEffBoxesOpen = (embedded && externalBoxesOpen !== undefined) ? (externalBoxesOpen && _drCanvasReady) : _drBoxesOpen;
   _s = useState(400); var _drChatWidth = _s[0], _drSetChatWidth = _s[1];
   _s = useState(false); var _drIsDragging = _s[0], _drSetIsDragging = _s[1];
   _s = useState(true); var _drIsAtBottom = _s[0], _drSetIsAtBottom = _s[1];
@@ -2762,15 +2635,16 @@ function DeferredRevenueReviewFlow(_ref) {
   useEffect(function() { if (_drChatEndRef.current) _drChatEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" }); }, [_drLine1Done, _drStepsComplete, _drCanvasReady]);
   useEffect(function() { var el = _drChatScrollRef.current; if (!el) return; var onScroll = function() { _drSetIsAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 40); }; el.addEventListener("scroll", onScroll); return function() { el.removeEventListener("scroll", onScroll); }; }, []);
   useEffect(function() { var onKey = function(e) { if (e.key === "Escape") onClose(); }; window.addEventListener("keydown", onKey); return function() { window.removeEventListener("keydown", onKey); }; }, []);
+  useEffect(function() { if (!embedded || hideChat || !_drInitResume) return; var t = setTimeout(function() { _drSetResultsVisible(true); }, 50); return function() { clearTimeout(t); }; }, []);
 
   var _drHandleDragStart = function(e) { e.preventDefault(); _drSetIsDragging(true); var startX = e.clientX, startW = _drChatWidth; var onMove = function(ev) { _drSetChatWidth(Math.max(280, Math.min(700, startW + (ev.clientX - startX)))); }; var onUp = function() { _drSetIsDragging(false); document.removeEventListener("mousemove", onMove); document.removeEventListener("mouseup", onUp); document.body.style.cursor = ""; document.body.style.userSelect = ""; }; document.body.style.cursor = "col-resize"; document.body.style.userSelect = "none"; document.addEventListener("mousemove", onMove); document.addEventListener("mouseup", onUp); };
 
   var _drHandleRestart = function() { _drSetStepStatuses([]); _drSetStepSubtexts([]); _drSetVisibleSteps(0); _drSetStepsPopulated(false); _drSetStepsCollapsed(false); _drSetResultsVisible(false); _drSetCanvasReady(false); _drSetBoxesOpen(false); _drSetResolvedCards(new Set()); _drSetIgnoredCards(new Set()); _drSetCardActions({}); _drSetAnalysisOpen(false); _drSetIsResume(false); _drSetRestartKey(function(k) { return k + 1; }); if (onStateChange) onStateChange(null); };
 
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
+    <div style={embedded ? { display: "flex", flex: 1, flexDirection: "column", overflow: "hidden", background: T.colorSurfaceContrast } : { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
       <style>{`@keyframes _drFadeIn{from{opacity:0}to{opacity:1}} @keyframes _drStepReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes _drStepPop{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}} @keyframes _drTextShimmer{0%{background-position:200% center}100%{background-position:-200% center}}`}</style>
-      <div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
+      {!embedded && (<div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
         <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-1px", flexShrink: 0 }}>Deferred revenue review</span>
         <div ref={_drPeriodDropRef} style={{ position: "relative" }}>
           <button onClick={function() { _drSetPeriodDropOpen(function(o) { return !o; }); }} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 12px", height: 48, border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap" }}>
@@ -2789,9 +2663,9 @@ function DeferredRevenueReviewFlow(_ref) {
         <div style={{ flex: 1 }} />
         {_drCanvasReady && (<button onClick={function() { _drSetBoxesOpen(function(o) { return !o; }); }} style={{ display: "flex", alignItems: "center", gap: 0, marginRight: 8, cursor: "pointer", fontFamily: "inherit", border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, height: 48, minWidth: 48, padding: _drBoxesOpen ? 0 : "0 12px 0 0", overflow: "hidden", justifyContent: "center", flexShrink: 0, transition: "padding 0.35s cubic-bezier(0.16,1,0.3,1), background 0.15s" }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorSurfaceTertiary; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; }}><div style={{ maxWidth: _drBoxesOpen ? 0 : 200, opacity: _drBoxesOpen ? 0 : 1, overflow: "hidden", transition: "max-width 0.35s cubic-bezier(0.16,1,0.3,1), opacity 0.2s", display: "flex", flexDirection: "column", gap: 4, paddingLeft: _drBoxesOpen ? 0 : 12, paddingRight: _drBoxesOpen ? 0 : 10 }}><div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}><span style={{ fontSize: 14, fontWeight: 500, color: T.colorTextThird, whiteSpace: "nowrap" }}>Suggestions</span><span style={{ fontSize: 14, fontWeight: 600, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{_drResolvedCount}/{_drTotalSuggestions}</span></div><div style={{ height: 2, background: T.colorBorderDark, borderRadius: 1, overflow: "hidden" }}><div style={{ height: "100%", width: Math.round((_drResolvedCount / _drTotalSuggestions) * 100) + "%", background: T.colorBrandPrimary, borderRadius: 1, transition: "width 0.4s ease" }} /></div></div>{_drBoxesOpen ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M21 21V3M3 12H17M17 12L10 5M17 12L10 19" stroke={T.colorTextHeading} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg> : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M15 21L15 3M16.2 21H7.8C6.12 21 5.28 21 4.64 20.673C4.07 20.385 3.61 19.927 3.33 19.362C3 18.72 3 17.88 3 16.2V7.8C3 6.12 3 5.28 3.33 4.638C3.61 4.074 4.07 3.615 4.64 3.327C5.28 3 6.12 3 7.8 3H16.2C17.88 3 18.72 3 19.362 3.327C19.927 3.615 20.385 4.074 20.673 4.638C21 5.28 21 6.12 21 7.8V16.2C21 17.88 21 18.72 20.673 19.362C20.385 19.927 19.927 20.385 19.362 20.673C18.72 21 17.88 21 16.2 21Z" stroke={T.colorTextHeading} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}</button>)}
         <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", padding: 0 }}><svg width="30" height="30" viewBox="0 0 30 30" fill="none"><rect width="30" height="30" rx="15" fill="#F5F5F5"/><path d="M20 10L10 20M10 10L20 20" stroke="#2A2A2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
-      </div>
+      </div>)}
       <div style={{ display: "flex", flex: 1, overflow: "hidden", position: "relative", padding: 16 }}>
-        <div style={{ display: "flex", flexDirection: "column", width: _drResultsVisible ? _drChatWidth : "100%", flexShrink: 0, transition: _drIsDragging ? "none" : "width 0.72s cubic-bezier(0.16,1,0.3,1)", overflow: "hidden", willChange: "width", position: "relative", zIndex: 1 }}>
+        {!hideChat && (<div style={{ display: "flex", flexDirection: "column", width: _drResultsVisible ? _drChatWidth : "100%", flexShrink: 0, transition: _drIsDragging ? "none" : "width 0.72s cubic-bezier(0.16,1,0.3,1)", overflow: "hidden", willChange: "width", position: "relative", zIndex: 1 }}>
           {_drResultsVisible && (<button onClick={function() { _drChatScrollRef.current && _drChatScrollRef.current.scrollTo({ top: _drChatScrollRef.current.scrollHeight, behavior: "smooth" }); }} style={{ position: "absolute", bottom: 218, left: "50%", transform: "translateX(-50%)", zIndex: 10, width: 32, height: 32, borderRadius: "50%", background: T.colorSurfacePrimary, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)", opacity: _drIsAtBottom ? 0 : 1, pointerEvents: _drIsAtBottom ? "none" : "auto", transition: "opacity 0.35s ease" }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorBorderLight; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; }}><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 5V19M12 19L19 12M12 19L5 12" stroke="#1F2024" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></button>)}
           <div style={{ flex: 1, overflow: "hidden", position: "relative", display: "flex", flexDirection: "column" }}>
             <div ref={_drChatScrollRef} style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", scrollBehavior: "smooth" }}>
@@ -2817,10 +2691,10 @@ function DeferredRevenueReviewFlow(_ref) {
             </div>
           </div>
           {!_drStepsComplete && _drLine1Done && !_drIsResume && (<div style={{ padding: "0 24px 20px", flexShrink: 0 }}><div style={{ maxWidth: 680, margin: "0 auto" }}><div style={{ borderRadius: 8, padding: "14px 14px 12px", background: T.colorSurfacePrimary, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04), 0 0 0 1px " + T.colorBorderDark }}><div style={{ display: "flex", alignItems: "center" }}><div style={{ fontSize: 14, lineHeight: "22px", flex: 1 }}><span style={{ background: "linear-gradient(90deg, #9D9D9E 0%, #9D9D9E 30%, #2A2A2A 50%, #9D9D9E 70%, " + T.colorTextDisabled + " 100%)", backgroundSize: "200% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", animation: "_drTextShimmer 2s linear infinite", display: "inline-block" }}>Reviewing deferred revenue...</span></div><button style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 36, padding: "0 10px", border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 13, fontWeight: 500, color: T.colorTextPrimary, flexShrink: 0, boxSizing: "border-box", fontFamily: "'Inter', sans-serif" }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorBorderLight; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; }}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="10" height="10" rx="1.5" stroke="#080908" strokeWidth="1.25" /></svg>Stop</button></div></div></div></div>)}
-          {_drCanvasReady && (<div style={{ padding: "60px 12px 16px", flexShrink: 0, background: "linear-gradient(to bottom, rgba(251,251,251,0) 0%, rgba(251,251,251,1) 60px)", marginTop: -60 }}><div style={{ maxWidth: 680, margin: "0 auto" }}><button onClick={_drHandleRestart} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10, height: 40, padding: "0 16px", marginBottom: 10, border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04)", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.style.borderColor = T.colorBorderHover; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; e.currentTarget.style.borderColor = T.colorBorderDark; }}><PlayCircleIcon color={T.colorTextPrimary} size={20} />Restart review</button><div style={{ borderRadius: 8, padding: "14px 14px 12px", background: T.colorSurfacePrimary, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04), 0 0 0 1px " + T.colorBorderDark }}><textarea value={_drInputValue} onChange={function(e) { _drSetInputValue(e.target.value); }} placeholder="Ask for changes or information..." rows={3} style={{ width: "100%", border: "none", outline: "none", resize: "none", fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px", background: "transparent", fontFamily: "'Inter', sans-serif", display: "block" }} /><div style={{ display: "flex", alignItems: "center", marginTop: 8 }}><button style={{ width: 32, height: 32, border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 6, color: T.colorTextSecondary, padding: 0 }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorBorderLight; }} onMouseLeave={function(e) { e.currentTarget.style.background = "none"; }}><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15.5 8.5L8.5 15.5C7.12 16.88 4.88 16.88 3.5 15.5C2.12 14.12 2.12 11.88 3.5 10.5L10.5 3.5C11.33 2.67 12.67 2.67 13.5 3.5C14.33 4.33 14.33 5.67 13.5 6.5L6.5 13.5C6.08 13.92 5.42 13.92 5 13.5C4.58 13.08 4.58 12.42 5 12L11.5 5.5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></button><div style={{ flex: 1 }} /><button style={{ width: 36, height: 36, marginLeft: 6, border: "1px solid " + T.colorBorderDark, borderRadius: 10, background: _drInputValue.trim() ? T.colorBrandPrimary : T.colorSurfaceSecondary, cursor: _drInputValue.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.15s", padding: 0 }}><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M9.99984 15.8346V4.16797M9.99984 4.16797L4.1665 10.0013M9.99984 4.16797L15.8332 10.0013" stroke={_drInputValue.trim() ? "#FFFFFF" : "#8C8C8B"} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></button></div></div></div></div>)}
-        </div>
-        {_drResultsVisible && (<div onMouseDown={_drHandleDragStart} style={{ position: "absolute", top: 0, bottom: 0, left: _drChatWidth + 16, width: 16, cursor: "col-resize", zIndex: 5, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ width: 4, height: 40, borderRadius: 2, background: _drIsDragging ? T.colorBorderHover : "transparent", transition: "background 0.15s" }} /></div>)}
-        <div style={{ position: "absolute", top: 16, bottom: 16, left: _drChatWidth + 32, right: _drBoxesOpen ? 432 : 16, background: T.colorSurfacePrimary, borderRadius: 8, border: "1px solid " + T.colorButtonSecondary, overflow: "hidden", zIndex: 2, transform: _drResultsVisible ? "none" : "translateX(calc(100% + 32px))", transition: _drIsDragging ? "none" : "transform 0.72s cubic-bezier(0.16,1,0.3,1), right 0.35s cubic-bezier(0.16,1,0.3,1)", willChange: _drResultsVisible ? "auto" : "transform" }}>
+          {_drCanvasReady && !hideChat && (<div style={{ padding: "60px 12px 16px", flexShrink: 0, background: "linear-gradient(to bottom, rgba(251,251,251,0) 0%, rgba(251,251,251,1) 60px)", marginTop: -60 }}><div style={{ maxWidth: 680, margin: "0 auto" }}><button onClick={_drHandleRestart} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10, height: 40, padding: "0 16px", marginBottom: 10, border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04)", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.style.borderColor = T.colorBorderHover; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; e.currentTarget.style.borderColor = T.colorBorderDark; }}><PlayCircleIcon color={T.colorTextPrimary} size={20} />Restart review</button><div style={{ borderRadius: 8, padding: "14px 14px 12px", background: T.colorSurfacePrimary, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04), 0 0 0 1px " + T.colorBorderDark }}><textarea value={_drInputValue} onChange={function(e) { _drSetInputValue(e.target.value); }} placeholder="Ask for changes or information..." rows={3} style={{ width: "100%", border: "none", outline: "none", resize: "none", fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px", background: "transparent", fontFamily: "'Inter', sans-serif", display: "block" }} /><div style={{ display: "flex", alignItems: "center", marginTop: 8 }}><button style={{ width: 32, height: 32, border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 6, color: T.colorTextSecondary, padding: 0 }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorBorderLight; }} onMouseLeave={function(e) { e.currentTarget.style.background = "none"; }}><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15.5 8.5L8.5 15.5C7.12 16.88 4.88 16.88 3.5 15.5C2.12 14.12 2.12 11.88 3.5 10.5L10.5 3.5C11.33 2.67 12.67 2.67 13.5 3.5C14.33 4.33 14.33 5.67 13.5 6.5L6.5 13.5C6.08 13.92 5.42 13.92 5 13.5C4.58 13.08 4.58 12.42 5 12L11.5 5.5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></button><div style={{ flex: 1 }} /><button style={{ width: 36, height: 36, marginLeft: 6, border: "1px solid " + T.colorBorderDark, borderRadius: 10, background: _drInputValue.trim() ? T.colorBrandPrimary : T.colorSurfaceSecondary, cursor: _drInputValue.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.15s", padding: 0 }}><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M9.99984 15.8346V4.16797M9.99984 4.16797L4.1665 10.0013M9.99984 4.16797L15.8332 10.0013" stroke={_drInputValue.trim() ? "#FFFFFF" : "#8C8C8B"} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></button></div></div></div></div>)}
+        </div>)}
+        {_drResultsVisible && !hideChat && (<div onMouseDown={_drHandleDragStart} style={{ position: "absolute", top: 0, bottom: 0, left: _drChatWidth + 16, width: 16, cursor: "col-resize", zIndex: 5, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ width: 4, height: 40, borderRadius: 2, background: _drIsDragging ? T.colorBorderHover : "transparent", transition: "background 0.15s" }} /></div>)}
+        <div style={{ position: "absolute", top: 16, bottom: 16, left: hideChat ? 16 : _drChatWidth + 32, right: _drEffBoxesOpen ? 432 : 16, background: T.colorSurfacePrimary, borderRadius: 8, border: "1px solid " + T.colorButtonSecondary, overflow: "hidden", zIndex: 2, transform: _drResultsVisible ? "none" : "translateX(calc(100% + 32px))", transition: _drIsDragging ? "none" : "transform 0.72s cubic-bezier(0.16,1,0.3,1), right 0.35s cubic-bezier(0.16,1,0.3,1)", willChange: _drResultsVisible ? "auto" : "transform" }}>
           {_drCanvasReady ? (
             <div style={{ animation: "_drFadeIn 0.4s ease 0.1s both", height: "100%", overflowY: "auto" }}>
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
@@ -2883,7 +2757,7 @@ function DeferredRevenueReviewFlow(_ref) {
           ) : _drResultsVisible ? <CanvasLoader /> : null}
         </div>
         {_drCanvasReady && (
-          <div style={{ position: "absolute", top: 16, bottom: 16, right: 16, width: 400, zIndex: 3, transform: _drBoxesOpen ? "translateX(0)" : "translateX(calc(100% + 32px))", transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1)", pointerEvents: _drBoxesOpen ? "auto" : "none", display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ position: "absolute", top: 16, bottom: 16, right: 16, width: 400, zIndex: 3, transform: _drEffBoxesOpen ? "translateX(0)" : "translateX(calc(100% + 32px))", transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1)", pointerEvents: _drEffBoxesOpen ? "auto" : "none", display: "flex", flexDirection: "column", gap: 16 }}>
             <div style={{ background: T.colorSurfacePrimary, borderRadius: 8, border: "1px solid " + T.colorButtonSecondary, overflow: "hidden", flexShrink: 0 }}>
               <div style={{ padding: "18px 20px" }}><span style={{ fontSize: 16, fontWeight: 500, color: T.colorTextPrimary }}>Linked sources</span></div>
               <div style={{ borderTop: "1px solid " + T.colorSurfaceActive, padding: "12px 10px 16px" }}>
@@ -3024,7 +2898,7 @@ var _AIR_NAV_CATS = [
 ];
 
 function AccruedIncomeReviewFlow(_ref) {
-  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment;
+  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment, embedded = _ref.embedded, externalBoxesOpen = _ref.externalBoxesOpen, hideChat = _ref.hideChat;
   var _aiOcUI = _adjUseCommentUI();
   var _aiInitResume = !!(savedState && savedState.hasResults);
   var _s = useState(_aiInitResume); var _aiIsResume = _s[0], _aiSetIsResume = _s[1];
@@ -3033,9 +2907,10 @@ function AccruedIncomeReviewFlow(_ref) {
   _s = useState(_aiInitResume ? _AIR_STEPS.length : 0); var _aiVisibleSteps = _s[0], _aiSetVisibleSteps = _s[1];
   _s = useState(_aiInitResume); var _aiStepsPopulated = _s[0], _aiSetStepsPopulated = _s[1];
   _s = useState(_aiInitResume); var _aiStepsCollapsed = _s[0], _aiSetStepsCollapsed = _s[1];
-  _s = useState(_aiInitResume); var _aiResultsVisible = _s[0], _aiSetResultsVisible = _s[1];
+  _s = useState(_aiInitResume && (!embedded || hideChat)); var _aiResultsVisible = _s[0], _aiSetResultsVisible = _s[1];
   _s = useState(_aiInitResume); var _aiCanvasReady = _s[0], _aiSetCanvasReady = _s[1];
   _s = useState(false); var _aiBoxesOpen = _s[0], _aiSetBoxesOpen = _s[1];
+  var _aiEffBoxesOpen = (embedded && externalBoxesOpen !== undefined) ? (externalBoxesOpen && _aiCanvasReady) : _aiBoxesOpen;
   _s = useState(400); var _aiChatWidth = _s[0], _aiSetChatWidth = _s[1];
   _s = useState(false); var _aiIsDragging = _s[0], _aiSetIsDragging = _s[1];
   _s = useState(true); var _aiIsAtBottom = _s[0], _aiSetIsAtBottom = _s[1];
@@ -3088,15 +2963,16 @@ function AccruedIncomeReviewFlow(_ref) {
   useEffect(function() { if (_aiChatEndRef.current) _aiChatEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" }); }, [_aiLine1Done, _aiStepsComplete, _aiCanvasReady]);
   useEffect(function() { var el = _aiChatScrollRef.current; if (!el) return; var onScroll = function() { _aiSetIsAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 40); }; el.addEventListener("scroll", onScroll); return function() { el.removeEventListener("scroll", onScroll); }; }, []);
   useEffect(function() { var onKey = function(e) { if (e.key === "Escape") onClose(); }; window.addEventListener("keydown", onKey); return function() { window.removeEventListener("keydown", onKey); }; }, []);
+  useEffect(function() { if (!embedded || hideChat || !_aiInitResume) return; var t = setTimeout(function() { _aiSetResultsVisible(true); }, 50); return function() { clearTimeout(t); }; }, []);
 
   var _aiHandleDragStart = function(e) { e.preventDefault(); _aiSetIsDragging(true); var startX = e.clientX, startW = _aiChatWidth; var onMove = function(ev) { _aiSetChatWidth(Math.max(280, Math.min(700, startW + (ev.clientX - startX)))); }; var onUp = function() { _aiSetIsDragging(false); document.removeEventListener("mousemove", onMove); document.removeEventListener("mouseup", onUp); document.body.style.cursor = ""; document.body.style.userSelect = ""; }; document.body.style.cursor = "col-resize"; document.body.style.userSelect = "none"; document.addEventListener("mousemove", onMove); document.addEventListener("mouseup", onUp); };
 
   var _aiHandleRestart = function() { _aiSetStepStatuses([]); _aiSetStepSubtexts([]); _aiSetVisibleSteps(0); _aiSetStepsPopulated(false); _aiSetStepsCollapsed(false); _aiSetResultsVisible(false); _aiSetCanvasReady(false); _aiSetBoxesOpen(false); _aiSetResolvedCards(new Set()); _aiSetIgnoredCards(new Set()); _aiSetCardActions({}); _aiSetAnalysisOpen(false); _aiSetIsResume(false); _aiSetRestartKey(function(k) { return k + 1; }); if (onStateChange) onStateChange(null); };
 
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
+    <div style={embedded ? { display: "flex", flex: 1, flexDirection: "column", overflow: "hidden", background: T.colorSurfaceContrast } : { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
       <style>{`@keyframes _aiFadeIn{from{opacity:0}to{opacity:1}} @keyframes _aiStepReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes _aiStepPop{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}} @keyframes _aiTextShimmer{0%{background-position:200% center}100%{background-position:-200% center}}`}</style>
-      <div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
+      {!embedded && (<div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
         <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-1px", flexShrink: 0 }}>Accrued income review</span>
         <div ref={_aiPeriodDropRef} style={{ position: "relative" }}>
           <button onClick={function() { _aiSetPeriodDropOpen(function(o) { return !o; }); }} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 12px", height: 48, border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap" }}>
@@ -3115,9 +2991,9 @@ function AccruedIncomeReviewFlow(_ref) {
         <div style={{ flex: 1 }} />
         {_aiCanvasReady && (<button onClick={function() { _aiSetBoxesOpen(function(o) { return !o; }); }} style={{ display: "flex", alignItems: "center", gap: 0, marginRight: 8, cursor: "pointer", fontFamily: "inherit", border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, height: 48, minWidth: 48, padding: _aiBoxesOpen ? 0 : "0 12px 0 0", overflow: "hidden", justifyContent: "center", flexShrink: 0, transition: "padding 0.35s cubic-bezier(0.16,1,0.3,1), background 0.15s" }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorSurfaceTertiary; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; }}><div style={{ maxWidth: _aiBoxesOpen ? 0 : 200, opacity: _aiBoxesOpen ? 0 : 1, overflow: "hidden", transition: "max-width 0.35s cubic-bezier(0.16,1,0.3,1), opacity 0.2s", display: "flex", flexDirection: "column", gap: 4, paddingLeft: _aiBoxesOpen ? 0 : 12, paddingRight: _aiBoxesOpen ? 0 : 10 }}><div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}><span style={{ fontSize: 14, fontWeight: 500, color: T.colorTextThird, whiteSpace: "nowrap" }}>Suggestions</span><span style={{ fontSize: 14, fontWeight: 600, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{_aiResolvedCount}/{_aiTotalSuggestions}</span></div><div style={{ height: 2, background: T.colorBorderDark, borderRadius: 1, overflow: "hidden" }}><div style={{ height: "100%", width: Math.round((_aiResolvedCount / _aiTotalSuggestions) * 100) + "%", background: T.colorBrandPrimary, borderRadius: 1, transition: "width 0.4s ease" }} /></div></div>{_aiBoxesOpen ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M21 21V3M3 12H17M17 12L10 5M17 12L10 19" stroke={T.colorTextHeading} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg> : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M15 21L15 3M16.2 21H7.8C6.12 21 5.28 21 4.64 20.673C4.07 20.385 3.61 19.927 3.33 19.362C3 18.72 3 17.88 3 16.2V7.8C3 6.12 3 5.28 3.33 4.638C3.61 4.074 4.07 3.615 4.64 3.327C5.28 3 6.12 3 7.8 3H16.2C17.88 3 18.72 3 19.362 3.327C19.927 3.615 20.385 4.074 20.673 4.638C21 5.28 21 6.12 21 7.8V16.2C21 17.88 21 18.72 20.673 19.362C20.385 19.927 19.927 20.385 19.362 20.673C18.72 21 17.88 21 16.2 21Z" stroke={T.colorTextHeading} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}</button>)}
         <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", padding: 0 }}><svg width="30" height="30" viewBox="0 0 30 30" fill="none"><rect width="30" height="30" rx="15" fill="#F5F5F5"/><path d="M20 10L10 20M10 10L20 20" stroke="#2A2A2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
-      </div>
+      </div>)}
       <div style={{ display: "flex", flex: 1, overflow: "hidden", position: "relative", padding: 16 }}>
-        <div style={{ display: "flex", flexDirection: "column", width: _aiResultsVisible ? _aiChatWidth : "100%", flexShrink: 0, transition: _aiIsDragging ? "none" : "width 0.72s cubic-bezier(0.16,1,0.3,1)", overflow: "hidden", willChange: "width", position: "relative", zIndex: 1 }}>
+        {!hideChat && (<div style={{ display: "flex", flexDirection: "column", width: _aiResultsVisible ? _aiChatWidth : "100%", flexShrink: 0, transition: _aiIsDragging ? "none" : "width 0.72s cubic-bezier(0.16,1,0.3,1)", overflow: "hidden", willChange: "width", position: "relative", zIndex: 1 }}>
           {_aiResultsVisible && (<button onClick={function() { _aiChatScrollRef.current && _aiChatScrollRef.current.scrollTo({ top: _aiChatScrollRef.current.scrollHeight, behavior: "smooth" }); }} style={{ position: "absolute", bottom: 218, left: "50%", transform: "translateX(-50%)", zIndex: 10, width: 32, height: 32, borderRadius: "50%", background: T.colorSurfacePrimary, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)", opacity: _aiIsAtBottom ? 0 : 1, pointerEvents: _aiIsAtBottom ? "none" : "auto", transition: "opacity 0.35s ease" }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorBorderLight; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; }}><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 5V19M12 19L19 12M12 19L5 12" stroke="#1F2024" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></button>)}
           <div style={{ flex: 1, overflow: "hidden", position: "relative", display: "flex", flexDirection: "column" }}>
             <div ref={_aiChatScrollRef} style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", scrollBehavior: "smooth" }}>
@@ -3144,9 +3020,9 @@ function AccruedIncomeReviewFlow(_ref) {
           </div>
           {!_aiStepsComplete && _aiLine1Done && !_aiIsResume && (<div style={{ padding: "0 24px 20px", flexShrink: 0 }}><div style={{ maxWidth: 680, margin: "0 auto" }}><div style={{ borderRadius: 8, padding: "14px 14px 12px", background: T.colorSurfacePrimary, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04), 0 0 0 1px " + T.colorBorderDark }}><div style={{ display: "flex", alignItems: "center" }}><div style={{ fontSize: 14, lineHeight: "22px", flex: 1 }}><span style={{ background: "linear-gradient(90deg, #9D9D9E 0%, #9D9D9E 30%, #2A2A2A 50%, #9D9D9E 70%, " + T.colorTextDisabled + " 100%)", backgroundSize: "200% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", animation: "_aiTextShimmer 2s linear infinite", display: "inline-block" }}>Reviewing accrued income...</span></div><button style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 36, padding: "0 10px", border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 13, fontWeight: 500, color: T.colorTextPrimary, flexShrink: 0, boxSizing: "border-box", fontFamily: "'Inter', sans-serif" }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorBorderLight; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; }}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="10" height="10" rx="1.5" stroke="#080908" strokeWidth="1.25" /></svg>Stop</button></div></div></div></div>)}
           {_aiCanvasReady && (<div style={{ padding: "60px 12px 16px", flexShrink: 0, background: "linear-gradient(to bottom, rgba(251,251,251,0) 0%, rgba(251,251,251,1) 60px)", marginTop: -60 }}><div style={{ maxWidth: 680, margin: "0 auto" }}><button onClick={_aiHandleRestart} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10, height: 40, padding: "0 16px", marginBottom: 10, border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04)", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.style.borderColor = T.colorBorderHover; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; e.currentTarget.style.borderColor = T.colorBorderDark; }}><PlayCircleIcon color={T.colorTextPrimary} size={20} />Restart review</button><div style={{ borderRadius: 8, padding: "14px 14px 12px", background: T.colorSurfacePrimary, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04), 0 0 0 1px " + T.colorBorderDark }}><textarea value={_aiInputValue} onChange={function(e) { _aiSetInputValue(e.target.value); }} placeholder="Ask for changes or information..." rows={3} style={{ width: "100%", border: "none", outline: "none", resize: "none", fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px", background: "transparent", fontFamily: "'Inter', sans-serif", display: "block" }} /><div style={{ display: "flex", alignItems: "center", marginTop: 8 }}><button style={{ width: 32, height: 32, border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 6, color: T.colorTextSecondary, padding: 0 }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorBorderLight; }} onMouseLeave={function(e) { e.currentTarget.style.background = "none"; }}><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15.5 8.5L8.5 15.5C7.12 16.88 4.88 16.88 3.5 15.5C2.12 14.12 2.12 11.88 3.5 10.5L10.5 3.5C11.33 2.67 12.67 2.67 13.5 3.5C14.33 4.33 14.33 5.67 13.5 6.5L6.5 13.5C6.08 13.92 5.42 13.92 5 13.5C4.58 13.08 4.58 12.42 5 12L11.5 5.5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></button><div style={{ flex: 1 }} /><button style={{ width: 36, height: 36, marginLeft: 6, border: "1px solid " + T.colorBorderDark, borderRadius: 10, background: _aiInputValue.trim() ? T.colorBrandPrimary : T.colorSurfaceSecondary, cursor: _aiInputValue.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.15s", padding: 0 }}><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M9.99984 15.8346V4.16797M9.99984 4.16797L4.1665 10.0013M9.99984 4.16797L15.8332 10.0013" stroke={_aiInputValue.trim() ? "#FFFFFF" : "#8C8C8B"} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></button></div></div></div></div>)}
-        </div>
-        {_aiResultsVisible && (<div onMouseDown={_aiHandleDragStart} style={{ position: "absolute", top: 0, bottom: 0, left: _aiChatWidth + 16, width: 16, cursor: "col-resize", zIndex: 5, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ width: 4, height: 40, borderRadius: 2, background: _aiIsDragging ? T.colorBorderHover : "transparent", transition: "background 0.15s" }} /></div>)}
-        <div style={{ position: "absolute", top: 16, bottom: 16, left: _aiChatWidth + 32, right: _aiBoxesOpen ? 432 : 16, background: T.colorSurfacePrimary, borderRadius: 8, border: "1px solid " + T.colorButtonSecondary, overflow: "hidden", zIndex: 2, transform: _aiResultsVisible ? "none" : "translateX(calc(100% + 32px))", transition: _aiIsDragging ? "none" : "transform 0.72s cubic-bezier(0.16,1,0.3,1), right 0.35s cubic-bezier(0.16,1,0.3,1)", willChange: _aiResultsVisible ? "auto" : "transform" }}>
+        </div>)}
+        {_aiResultsVisible && !hideChat && (<div onMouseDown={_aiHandleDragStart} style={{ position: "absolute", top: 0, bottom: 0, left: _aiChatWidth + 16, width: 16, cursor: "col-resize", zIndex: 5, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ width: 4, height: 40, borderRadius: 2, background: _aiIsDragging ? T.colorBorderHover : "transparent", transition: "background 0.15s" }} /></div>)}
+        <div style={{ position: "absolute", top: 16, bottom: 16, left: hideChat ? 16 : _aiChatWidth + 32, right: _aiEffBoxesOpen ? 432 : 16, background: T.colorSurfacePrimary, borderRadius: 8, border: "1px solid " + T.colorButtonSecondary, overflow: "hidden", zIndex: 2, transform: _aiResultsVisible ? "none" : "translateX(calc(100% + 32px))", transition: _aiIsDragging ? "none" : "transform 0.72s cubic-bezier(0.16,1,0.3,1), right 0.35s cubic-bezier(0.16,1,0.3,1)", willChange: _aiResultsVisible ? "auto" : "transform" }}>
           {_aiCanvasReady ? (
             <div style={{ animation: "_aiFadeIn 0.4s ease 0.1s both", height: "100%", overflowY: "auto" }}>
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
@@ -3209,7 +3085,7 @@ function AccruedIncomeReviewFlow(_ref) {
           ) : _aiResultsVisible ? <CanvasLoader /> : null}
         </div>
         {_aiCanvasReady && (
-          <div style={{ position: "absolute", top: 16, bottom: 16, right: 16, width: 400, zIndex: 3, transform: _aiBoxesOpen ? "translateX(0)" : "translateX(calc(100% + 32px))", transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1)", pointerEvents: _aiBoxesOpen ? "auto" : "none", display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ position: "absolute", top: 16, bottom: 16, right: 16, width: 400, zIndex: 3, transform: _aiEffBoxesOpen ? "translateX(0)" : "translateX(calc(100% + 32px))", transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1)", pointerEvents: _aiEffBoxesOpen ? "auto" : "none", display: "flex", flexDirection: "column", gap: 16 }}>
             <div style={{ background: T.colorSurfacePrimary, borderRadius: 8, border: "1px solid " + T.colorButtonSecondary, overflow: "hidden", flexShrink: 0 }}>
               <div style={{ padding: "18px 20px" }}><span style={{ fontSize: 16, fontWeight: 500, color: T.colorTextPrimary }}>Linked sources</span></div>
               <div style={{ borderTop: "1px solid " + T.colorSurfaceActive, padding: "12px 10px 16px" }}>
@@ -4023,13 +3899,10 @@ registerPage("Adjustments", {
     var _s4 = useState("jan_2026"); var importStartMonth = _s4[0], setImportStartMonth = _s4[1];
     var _s5 = useState(null); var importFile = _s5[0], setImportFile = _s5[1];
     var _s6 = useState(null); var activeScheduleType = _s6[0], setActiveScheduleType = _s6[1];
-    var _s10 = useState(false); var prepaymentReviewOpen = _s10[0], setPrepaymentReviewOpen = _s10[1];
+    var _s6b = useState("schedule"); var scheduleViewMode = _s6b[0], setScheduleViewMode = _s6b[1];
     var _s11 = useState({ resolved: 0, total: 5, hasResults: true, resolvedArray: [], ignoredArray: [], cardActions: {} }); var prepaymentReviewState = _s11[0], setPrepaymentReviewState = _s11[1];
-    var _s12 = useState(false); var accrualReviewOpen = _s12[0], setAccrualReviewOpen = _s12[1];
     var _s13 = useState({ resolved: 0, total: 4, hasResults: true, resolvedArray: [], ignoredArray: [], cardActions: {} }); var accrualReviewState = _s13[0], setAccrualReviewState = _s13[1];
-    var _s14 = useState(false); var deferredRevenueReviewOpen = _s14[0], setDeferredRevenueReviewOpen = _s14[1];
     var _s15 = useState(null); var deferredRevenueReviewState = _s15[0], setDeferredRevenueReviewState = _s15[1];
-    var _s16 = useState(false); var accruedIncomeReviewOpen = _s16[0], setAccruedIncomeReviewOpen = _s16[1];
     var _s17 = useState(null); var accruedIncomeReviewState = _s17[0], setAccruedIncomeReviewState = _s17[1];
     var _s30 = useState(false); var loanReviewOpen = _s30[0], setLoanReviewOpen = _s30[1];
     var _s31 = useState(null); var loanReviewState = _s31[0], setLoanReviewState = _s31[1];
@@ -4232,14 +4105,29 @@ registerPage("Adjustments", {
 
       var hasSuggestions = workflow.status === "suggestions";
       var remaining = hasSuggestions ? workflow.total - workflow.resolved : 0;
-      var sugText = hasSuggestions
-        ? remaining + " suggestion" + (remaining !== 1 ? "s" : "")
-        : "Not started";
-      var sugColor = hasSuggestions
-        ? (remaining > 0 ? T.colorInfoAlt : T.colorInfo)
-        : T.colorTextMuted;
-      var updatedText = hasSuggestions ? "Updated 5 May, 12:23" : null;
-      var timestampText = hasSuggestions ? "5 May, 12:23" : null;
+
+      var _sugBadge = null;
+      if (hasSuggestions) {
+        if (remaining > 0) {
+          _sugBadge = (
+            <span style={{
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              minWidth: 20, height: 20, padding: "0 5px", borderRadius: 6,
+              background: T.colorErrorBg, color: T.colorError,
+              fontSize: 12, fontWeight: 600, lineHeight: "20px", letterSpacing: "0.1px",
+            }}>{remaining}</span>
+          );
+        } else {
+          _sugBadge = (
+            <span style={{
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              minWidth: 20, height: 20, padding: "0 5px", borderRadius: 6,
+              background: T.colorInfoBg, color: T.colorInfo,
+              fontSize: 12, fontWeight: 600, lineHeight: "20px", letterSpacing: "0.1px",
+            }}>0</span>
+          );
+        }
+      }
 
       return (
         <div style={{
@@ -4248,32 +4136,16 @@ registerPage("Adjustments", {
         }}>
           {/* Header row */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            {/* Left: title + updated */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <span style={{ fontSize: 20, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "28px", letterSpacing: "0.2px" }}>{title}</span>
-              {updatedText && <span style={{ ...T.textSm, fontWeight: 400, color: T.colorTextSecondary }}>{updatedText}</span>}
-            </div>
+            {/* Left: title */}
+            <span style={{ fontSize: 20, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "28px", letterSpacing: "0.2px" }}>{title}</span>
 
-            {/* Right: review info + Run button + divider + View full schedule */}
+            {/* Right: Run button + divider + View full schedule */}
             <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
-              {/* Review info */}
-              <div style={{ display: "flex", flexDirection: "column", marginRight: 20 }}>
-                <span style={{ ...T.textSm, fontWeight: 500, color: T.colorTextPrimary }}>{workflow.label}</span>
-                <span style={{ ...T.textSm, fontWeight: 400, color: sugColor, lineHeight: "20px" }}>
-                  {sugText}
-                  {timestampText && (
-                    <Fragment>
-                      <span style={{ display: "inline-block", width: 4, height: 4, borderRadius: "50%", background: T.colorTextSecondary, verticalAlign: "middle", margin: "0 6px" }} />
-                      <span style={{ color: T.colorTextSecondary }}>{timestampText}</span>
-                    </Fragment>
-                  )}
-                </span>
-              </div>
-
-              {/* Run button */}
-              <SecondaryButton onClick={onRun} style={{ height: 44, padding: "8px 12px 8px 16px", fontSize: 14, gap: 8, whiteSpace: "nowrap" }}>
-                Run
+              {/* Run button with label + optional badge */}
+              <SecondaryButton onClick={onRun} style={{ height: 44, padding: "8px 16px 8px 12px", fontSize: 14, gap: 8, whiteSpace: "nowrap" }}>
                 <PlayCircleIcon color="currentColor" size={20} />
+                {workflow.label}
+                {_sugBadge}
               </SecondaryButton>
 
               {/* Vertical divider */}
@@ -4379,8 +4251,8 @@ registerPage("Adjustments", {
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <OverviewCard
               title="Prepayments"
-              onViewSchedule={function() { setActiveScheduleType("prepayments"); }}
-              onRun={function() { setPrepaymentReviewOpen(true); }}
+              onViewSchedule={function() { setActiveScheduleType("prepayments"); setScheduleViewMode("schedule"); }}
+              onRun={function() { setActiveScheduleType("prepayments"); setScheduleViewMode("ai"); }}
               workflow={prepaymentReviewState && prepaymentReviewState.hasResults
                 ? { label: "Review prepayments", status: "suggestions", resolved: prepaymentReviewState.resolved, total: prepaymentReviewState.total }
                 : { label: "Review prepayments", status: "not_started" }}
@@ -4396,8 +4268,8 @@ registerPage("Adjustments", {
 
             <OverviewCard
               title="Accruals"
-              onViewSchedule={function() { setActiveScheduleType("accruals"); }}
-              onRun={function() { setAccrualReviewOpen(true); }}
+              onViewSchedule={function() { setActiveScheduleType("accruals"); setScheduleViewMode("schedule"); }}
+              onRun={function() { setActiveScheduleType("accruals"); setScheduleViewMode("ai"); }}
               workflow={accrualReviewState && accrualReviewState.hasResults
                 ? { label: "Review accruals", status: "suggestions", resolved: accrualReviewState.resolved, total: accrualReviewState.total }
                 : { label: "Review accruals", status: "not_started" }}
@@ -4413,8 +4285,8 @@ registerPage("Adjustments", {
 
             <OverviewCard
               title="Deferred revenue"
-              onViewSchedule={function() { setActiveScheduleType("deferred_revenue"); }}
-              onRun={function() { setDeferredRevenueReviewOpen(true); }}
+              onViewSchedule={function() { setActiveScheduleType("deferred_revenue"); setScheduleViewMode("schedule"); }}
+              onRun={function() { setActiveScheduleType("deferred_revenue"); setScheduleViewMode("ai"); }}
               workflow={deferredRevenueReviewState && deferredRevenueReviewState.hasResults
                 ? { label: "Review deferred revenue", status: "suggestions", resolved: deferredRevenueReviewState.resolved, total: deferredRevenueReviewState.total }
                 : { label: "Review deferred revenue", status: "not_started" }}
@@ -4430,8 +4302,8 @@ registerPage("Adjustments", {
 
             <OverviewCard
               title="Accrued income"
-              onViewSchedule={function() { setActiveScheduleType("accrued_income"); }}
-              onRun={function() { setAccruedIncomeReviewOpen(true); }}
+              onViewSchedule={function() { setActiveScheduleType("accrued_income"); setScheduleViewMode("schedule"); }}
+              onRun={function() { setActiveScheduleType("accrued_income"); setScheduleViewMode("ai"); }}
               workflow={accruedIncomeReviewState && accruedIncomeReviewState.hasResults
                 ? { label: "Review accrued income", status: "suggestions", resolved: accruedIncomeReviewState.resolved, total: accruedIncomeReviewState.total }
                 : { label: "Review accrued income", status: "not_started" }}
@@ -4627,17 +4499,13 @@ registerPage("Adjustments", {
           var _schSugCount = activeScheduleType ? _schSugMap[activeScheduleType] : null;
           return (
             <Fragment>
-              <PrepaymentSchedulePage open={activeScheduleType === "prepayments"} onClose={function() { setActiveScheduleType(null); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_PR_CARDS} reviewState={prepaymentReviewState} onReviewStateChange={setPrepaymentReviewState} reviewTitle="Prepayments review" onRunReview={function() { setPrepaymentReviewOpen(true); }} />
-              <AccrualSchedulePage open={activeScheduleType === "accruals"} onClose={function() { setActiveScheduleType(null); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_AR_CARDS} reviewState={accrualReviewState} onReviewStateChange={setAccrualReviewState} reviewTitle="Accruals review" onRunReview={function() { setAccrualReviewOpen(true); }} />
-              <DeferredRevenueSchedulePage open={activeScheduleType === "deferred_revenue"} onClose={function() { setActiveScheduleType(null); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_DRR_CARDS} reviewState={deferredRevenueReviewState} onReviewStateChange={setDeferredRevenueReviewState} reviewTitle="Deferred revenue review" onRunReview={function() { setDeferredRevenueReviewOpen(true); }} />
-              <AccruedIncomeSchedulePage open={activeScheduleType === "accrued_income"} onClose={function() { setActiveScheduleType(null); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_AIR_CARDS} reviewState={accruedIncomeReviewState} onReviewStateChange={setAccruedIncomeReviewState} reviewTitle="Accrued income review" onRunReview={function() { setAccruedIncomeReviewOpen(true); }} />
+              <PrepaymentSchedulePage open={activeScheduleType === "prepayments"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_PR_CARDS} reviewState={prepaymentReviewState} onReviewStateChange={setPrepaymentReviewState} reviewTitle="Prepayments review" onRunReview={function() { setScheduleViewMode("ai"); }} viewMode={activeScheduleType === "prepayments" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} />
+              <AccrualSchedulePage open={activeScheduleType === "accruals"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_AR_CARDS} reviewState={accrualReviewState} onReviewStateChange={setAccrualReviewState} reviewTitle="Accruals review" onRunReview={function() { setScheduleViewMode("ai"); }} viewMode={activeScheduleType === "accruals" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} />
+              <DeferredRevenueSchedulePage open={activeScheduleType === "deferred_revenue"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_DRR_CARDS} reviewState={deferredRevenueReviewState} onReviewStateChange={setDeferredRevenueReviewState} reviewTitle="Deferred revenue review" onRunReview={function() { setScheduleViewMode("ai"); }} viewMode={activeScheduleType === "deferred_revenue" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} />
+              <AccruedIncomeSchedulePage open={activeScheduleType === "accrued_income"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_AIR_CARDS} reviewState={accruedIncomeReviewState} onReviewStateChange={setAccruedIncomeReviewState} reviewTitle="Accrued income review" onRunReview={function() { setScheduleViewMode("ai"); }} viewMode={activeScheduleType === "accrued_income" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} />
             </Fragment>
           );
         })()}
-        {prepaymentReviewOpen && <PrepaymentReviewFlow onClose={function() { setPrepaymentReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setPrepaymentReviewState} savedState={prepaymentReviewState} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />}
-        {accrualReviewOpen && <AccrualReviewFlow onClose={function() { setAccrualReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setAccrualReviewState} savedState={accrualReviewState} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />}
-        {deferredRevenueReviewOpen && <DeferredRevenueReviewFlow onClose={function() { setDeferredRevenueReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setDeferredRevenueReviewState} savedState={deferredRevenueReviewState} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />}
-        {accruedIncomeReviewOpen && <AccruedIncomeReviewFlow onClose={function() { setAccruedIncomeReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setAccruedIncomeReviewState} savedState={accruedIncomeReviewState} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />}
         {loanReviewOpen && <LoanAmortisationReviewFlow onClose={function() { setLoanReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setLoanReviewState} savedState={loanReviewState} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />}
         {depreciationReviewOpen && <DepreciationReviewFlow onClose={function() { setDepreciationReviewOpen(false); }} selectedPeriod="April 2026" onStateChange={setDepreciationReviewState} savedState={depreciationReviewState} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />}
 
