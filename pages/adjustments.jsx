@@ -661,9 +661,9 @@ function PrepaymentSchedulePage(_ref) {
     return true;
   });
 
-  var filteredData = _psVisibleSuggestions.concat(searchValue
+  var filteredData = searchValue
     ? data.filter(function(item) { return item.description.toLowerCase().includes(searchValue.toLowerCase()) || item.expenseAccount.toLowerCase().includes(searchValue.toLowerCase()); })
-    : data);
+    : data;
 
   return (
     <div style={overlayStyle}>
@@ -1002,7 +1002,7 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
     if (rs.ignoredArray && rs.ignoredArray.indexOf(idx) !== -1) return false;
     return true;
   });
-  const _asFilteredData = _asVisibleSuggestions.concat(_asSearchValue ? _asData.filter(item => item.description.toLowerCase().includes(_asSearchValue.toLowerCase()) || item.expenseAccount.toLowerCase().includes(_asSearchValue.toLowerCase())) : _asData);
+  const _asFilteredData = _asSearchValue ? _asData.filter(item => item.description.toLowerCase().includes(_asSearchValue.toLowerCase()) || item.expenseAccount.toLowerCase().includes(_asSearchValue.toLowerCase())) : _asData;
 
   return (
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: T.colorSurfacePrimary, zIndex: 310, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: T.fontFamily }}>
@@ -1211,7 +1211,7 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
     if (rs.ignoredArray && rs.ignoredArray.indexOf(idx) !== -1) return false;
     return true;
   });
-  const _drFilteredData = _drVisibleSuggestions.concat(_drSearchValue ? _drData.filter(item => item.description.toLowerCase().includes(_drSearchValue.toLowerCase()) || item.revenueAccount.toLowerCase().includes(_drSearchValue.toLowerCase())) : _drData);
+  const _drFilteredData = _drSearchValue ? _drData.filter(item => item.description.toLowerCase().includes(_drSearchValue.toLowerCase()) || item.revenueAccount.toLowerCase().includes(_drSearchValue.toLowerCase())) : _drData;
 
   return (
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: T.colorSurfacePrimary, zIndex: 310, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: T.fontFamily }}>
@@ -1478,7 +1478,7 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
     if (rs.ignoredArray && rs.ignoredArray.indexOf(idx) !== -1) return false;
     return true;
   });
-  const _aiFilteredData = _aiVisibleSuggestions.concat(_aiSearchValue ? _aiData.filter(item => item.description.toLowerCase().includes(_aiSearchValue.toLowerCase()) || item.incomeAccount.toLowerCase().includes(_aiSearchValue.toLowerCase())) : _aiData);
+  const _aiFilteredData = _aiSearchValue ? _aiData.filter(item => item.description.toLowerCase().includes(_aiSearchValue.toLowerCase()) || item.incomeAccount.toLowerCase().includes(_aiSearchValue.toLowerCase())) : _aiData;
 
   return (
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: T.colorSurfacePrimary, zIndex: 310, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: T.fontFamily }}>
