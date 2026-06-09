@@ -95,7 +95,7 @@ function AdjInlineComment({ rowKey, comments, onAddComment, ocUI }) {
     React.createElement("span", { ref: btnRef },
       React.createElement(AdjCommentBtn, { hasComments: has, commentCount: comments.length, onClick: handleClick })
     ),
-    isOpen && anchorRect.current && React.createElement(AdjCommentPopover, { comments: comments, onAdd: function(text) { onAddComment(rowKey, text); }, onClose: function() { ocUI.closeRow(); }, anchorRect: anchorRect.current })
+    isOpen && anchorRect.current && React.createElement(AdjCommentPopover, { comments: comments, onAdd: function(text) { if (onAddComment) onAddComment(rowKey, text); }, onClose: function() { ocUI.closeRow(); }, anchorRect: anchorRect.current })
   );
 }
 
@@ -259,7 +259,7 @@ function _buildSugEntries(periodStr, totalAmount, entryKey) {
 
 // ── Prepayment Schedule ────────────────────────────────────────────────────
 function PrepaymentSchedulePage(_ref) {
-  var open = _ref.open, onClose = _ref.onClose, activeScheduleType = _ref.activeScheduleType, onScheduleTypeChange = _ref.onScheduleTypeChange, suggestionsCount = _ref.suggestionsCount, sugCards = _ref.sugCards, reviewState = _ref.reviewState, onReviewStateChange = _ref.onReviewStateChange, reviewTitle = _ref.reviewTitle, addLabel = _ref.addLabel, onRunReview = _ref.onRunReview, viewMode = _ref.viewMode, onToggleMode = _ref.onToggleMode;
+  var open = _ref.open, onClose = _ref.onClose, activeScheduleType = _ref.activeScheduleType, onScheduleTypeChange = _ref.onScheduleTypeChange, suggestionsCount = _ref.suggestionsCount, sugCards = _ref.sugCards, reviewState = _ref.reviewState, onReviewStateChange = _ref.onReviewStateChange, reviewTitle = _ref.reviewTitle, addLabel = _ref.addLabel, onRunReview = _ref.onRunReview, viewMode = _ref.viewMode, onToggleMode = _ref.onToggleMode, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment;
   if (!open) return null;
 
   var _spSt = useState(false); var _sugPanelOpen = _spSt[0], _setSugPanelOpen = _spSt[1];
@@ -670,7 +670,7 @@ function PrepaymentSchedulePage(_ref) {
       <_ScheduleTopBar activeType={activeScheduleType} onTypeChange={onScheduleTypeChange} onClose={onClose} suggestionsCount={suggestionsCount} onSuggestionsClick={function() { _setSugPanelOpen(function(p) { return !p; }); }} sugPanelOpen={_sugPanelOpen} viewMode={viewMode} onToggleMode={function() { _setSugPanelOpen(false); if (onToggleMode) onToggleMode(); }} aiProgress={viewMode === "ai" && reviewState && reviewState.hasResults ? { resolved: reviewState.resolved, total: reviewState.total } : null} />
 
       {viewMode === "ai" ? (
-        <PrepaymentReviewFlow embedded={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={_sugPanelOpen} />
+        <PrepaymentReviewFlow embedded={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={_sugPanelOpen} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
       ) : (<div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}>
       <div style={{ display: "flex", flexDirection: "column", flex: "1 1 auto", minWidth: 0, overflow: "hidden", transition: "flex 0.3s ease" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 32px", flexShrink: 0, flexWrap: "wrap", borderBottom: "1px solid " + _psBorderClr }}>
@@ -791,7 +791,7 @@ function PrepaymentSchedulePage(_ref) {
         return (
         <div style={{ width: _sugPanelOpen ? 600 : 0, flexShrink: 0, borderLeft: _sugPanelOpen ? "1px solid " + T.colorBorderDark : "none", display: "flex", flexDirection: "column", overflow: "hidden", transition: "width 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
           {_hasResults ? (
-            <PrepaymentReviewFlow key={"ps-panel-" + (reviewState ? reviewState.resolved : 0)} embedded={true} hideChat={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={false} />
+            <PrepaymentReviewFlow key={"ps-panel-" + (reviewState ? reviewState.resolved : 0)} embedded={true} hideChat={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={false} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
           ) : (
             <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "80px 24px 48px", gap: 12, background: T.colorSurfacePrimary }}>
               <span style={{ fontSize: 15, fontWeight: 600, color: T.colorTextPrimary }}>No suggestions to show</span>
@@ -899,7 +899,7 @@ function PrepaymentSchedulePage(_ref) {
 
 
 // ── Accrual Schedule ───────────────────────────────────────────────────────
-function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview, onReviewStateChange, viewMode, onToggleMode }) {
+function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview, onReviewStateChange, viewMode, onToggleMode, adjComments = {}, onAddAdjComment }) {
   if (!open) return null;
 
   const [_sugPanelOpen, _setSugPanelOpen] = useState(false);
@@ -1008,7 +1008,7 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: T.colorSurfacePrimary, zIndex: 310, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: T.fontFamily }}>
       <_ScheduleTopBar activeType={activeScheduleType} onTypeChange={onScheduleTypeChange} onClose={onClose} suggestionsCount={suggestionsCount} onSuggestionsClick={() => { _setSugPanelOpen(p => !p); }} sugPanelOpen={_sugPanelOpen} viewMode={viewMode} onToggleMode={function() { _setSugPanelOpen(false); if (onToggleMode) onToggleMode(); }} aiProgress={viewMode === "ai" && reviewState && reviewState.hasResults ? { resolved: reviewState.resolved, total: reviewState.total } : null} />
       {viewMode === "ai" ? (
-        <AccrualReviewFlow embedded={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={_sugPanelOpen} />
+        <AccrualReviewFlow embedded={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={_sugPanelOpen} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
       ) : (<div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}>
       <div style={{ display: "flex", flexDirection: "column", flex: "1 1 auto", minWidth: 0, overflow: "hidden", transition: "flex 0.3s ease" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 32px", flexShrink: 0, flexWrap: "wrap", borderBottom: "1px solid " + _asBorderClr }}>
@@ -1063,7 +1063,7 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
         return (
         <div style={{ width: _sugPanelOpen ? 600 : 0, flexShrink: 0, borderLeft: _sugPanelOpen ? "1px solid " + T.colorBorderDark : "none", display: "flex", flexDirection: "column", overflow: "hidden", transition: "width 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
           {_hasResults ? (
-            <AccrualReviewFlow key={"as-panel-" + (reviewState ? reviewState.resolved : 0)} embedded={true} hideChat={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={false} />
+            <AccrualReviewFlow key={"as-panel-" + (reviewState ? reviewState.resolved : 0)} embedded={true} hideChat={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={false} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
           ) : (
             <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "80px 24px 48px", gap: 12, background: T.colorSurfacePrimary }}>
               <span style={{ fontSize: 15, fontWeight: 600, color: T.colorTextPrimary }}>No suggestions to show</span>
@@ -1116,7 +1116,7 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
 
 
 // ── Deferred Revenue Schedule ──────────────────────────────────────────────
-function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview, onReviewStateChange, viewMode, onToggleMode }) {
+function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview, onReviewStateChange, viewMode, onToggleMode, adjComments = {}, onAddAdjComment }) {
   if (!open) return null;
 
   const [_sugPanelOpen, _setSugPanelOpen] = useState(false);
@@ -1217,7 +1217,7 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: T.colorSurfacePrimary, zIndex: 310, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: T.fontFamily }}>
       <_ScheduleTopBar activeType={activeScheduleType} onTypeChange={onScheduleTypeChange} onClose={onClose} suggestionsCount={suggestionsCount} onSuggestionsClick={() => { _setSugPanelOpen(p => !p); }} sugPanelOpen={_sugPanelOpen} viewMode={viewMode} onToggleMode={function() { _setSugPanelOpen(false); if (onToggleMode) onToggleMode(); }} aiProgress={viewMode === "ai" && reviewState && reviewState.hasResults ? { resolved: reviewState.resolved, total: reviewState.total } : null} />
       {viewMode === "ai" ? (
-        <DeferredRevenueReviewFlow embedded={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={_sugPanelOpen} />
+        <DeferredRevenueReviewFlow embedded={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={_sugPanelOpen} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
       ) : (<div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}>
       <div style={{ display: "flex", flexDirection: "column", flex: "1 1 auto", minWidth: 0, overflow: "hidden", transition: "flex 0.3s ease" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 32px", flexShrink: 0, flexWrap: "wrap", borderBottom: "1px solid " + _drBorderClr }}>
@@ -1272,7 +1272,7 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
         return (
         <div style={{ width: _sugPanelOpen ? 600 : 0, flexShrink: 0, borderLeft: _sugPanelOpen ? "1px solid " + T.colorBorderDark : "none", display: "flex", flexDirection: "column", overflow: "hidden", transition: "width 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
           {_hasResults ? (
-            <DeferredRevenueReviewFlow key={"dr-panel-" + (reviewState ? reviewState.resolved : 0)} embedded={true} hideChat={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={false} />
+            <DeferredRevenueReviewFlow key={"dr-panel-" + (reviewState ? reviewState.resolved : 0)} embedded={true} hideChat={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={false} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
           ) : (
             <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "80px 24px 48px", gap: 12, background: T.colorSurfacePrimary }}>
               <span style={{ fontSize: 15, fontWeight: 600, color: T.colorTextPrimary }}>No suggestions to show</span>
@@ -1383,7 +1383,7 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
 
 
 // ── Accrued Income Schedule ────────────────────────────────────────────────
-function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview, onReviewStateChange, viewMode, onToggleMode }) {
+function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview, onReviewStateChange, viewMode, onToggleMode, adjComments = {}, onAddAdjComment }) {
   if (!open) return null;
 
   const [_sugPanelOpen, _setSugPanelOpen] = useState(false);
@@ -1484,7 +1484,7 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: T.colorSurfacePrimary, zIndex: 310, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: T.fontFamily }}>
       <_ScheduleTopBar activeType={activeScheduleType} onTypeChange={onScheduleTypeChange} onClose={onClose} suggestionsCount={suggestionsCount} onSuggestionsClick={() => { _setSugPanelOpen(p => !p); }} sugPanelOpen={_sugPanelOpen} viewMode={viewMode} onToggleMode={function() { _setSugPanelOpen(false); if (onToggleMode) onToggleMode(); }} aiProgress={viewMode === "ai" && reviewState && reviewState.hasResults ? { resolved: reviewState.resolved, total: reviewState.total } : null} />
       {viewMode === "ai" ? (
-        <AccruedIncomeReviewFlow embedded={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={_sugPanelOpen} />
+        <AccruedIncomeReviewFlow embedded={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={_sugPanelOpen} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
       ) : (<div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}>
       <div style={{ display: "flex", flexDirection: "column", flex: "1 1 auto", minWidth: 0, overflow: "hidden", transition: "flex 0.3s ease" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 32px", flexShrink: 0, flexWrap: "wrap", borderBottom: "1px solid " + _aiBorderClr }}>
@@ -1539,7 +1539,7 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
         return (
         <div style={{ width: _sugPanelOpen ? 600 : 0, flexShrink: 0, borderLeft: _sugPanelOpen ? "1px solid " + T.colorBorderDark : "none", display: "flex", flexDirection: "column", overflow: "hidden", transition: "width 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
           {_hasResults ? (
-            <AccruedIncomeReviewFlow key={"ai-panel-" + (reviewState ? reviewState.resolved : 0)} embedded={true} hideChat={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={false} />
+            <AccruedIncomeReviewFlow key={"ai-panel-" + (reviewState ? reviewState.resolved : 0)} embedded={true} hideChat={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={false} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
           ) : (
             <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "80px 24px 48px", gap: 12, background: T.colorSurfacePrimary }}>
               <span style={{ fontSize: 15, fontWeight: 600, color: T.colorTextPrimary }}>No suggestions to show</span>
@@ -4499,10 +4499,10 @@ registerPage("Adjustments", {
           var _schSugCount = activeScheduleType ? _schSugMap[activeScheduleType] : null;
           return (
             <Fragment>
-              <PrepaymentSchedulePage open={activeScheduleType === "prepayments"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_PR_CARDS} reviewState={prepaymentReviewState} onReviewStateChange={setPrepaymentReviewState} reviewTitle="Prepayments review" onRunReview={function() { setScheduleViewMode("ai"); }} viewMode={activeScheduleType === "prepayments" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} />
-              <AccrualSchedulePage open={activeScheduleType === "accruals"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_AR_CARDS} reviewState={accrualReviewState} onReviewStateChange={setAccrualReviewState} reviewTitle="Accruals review" onRunReview={function() { setScheduleViewMode("ai"); }} viewMode={activeScheduleType === "accruals" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} />
-              <DeferredRevenueSchedulePage open={activeScheduleType === "deferred_revenue"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_DRR_CARDS} reviewState={deferredRevenueReviewState} onReviewStateChange={setDeferredRevenueReviewState} reviewTitle="Deferred revenue review" onRunReview={function() { setScheduleViewMode("ai"); }} viewMode={activeScheduleType === "deferred_revenue" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} />
-              <AccruedIncomeSchedulePage open={activeScheduleType === "accrued_income"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_AIR_CARDS} reviewState={accruedIncomeReviewState} onReviewStateChange={setAccruedIncomeReviewState} reviewTitle="Accrued income review" onRunReview={function() { setScheduleViewMode("ai"); }} viewMode={activeScheduleType === "accrued_income" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} />
+              <PrepaymentSchedulePage open={activeScheduleType === "prepayments"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_PR_CARDS} reviewState={prepaymentReviewState} onReviewStateChange={setPrepaymentReviewState} reviewTitle="Prepayments review" onRunReview={function() { setScheduleViewMode("ai"); }} viewMode={activeScheduleType === "prepayments" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
+              <AccrualSchedulePage open={activeScheduleType === "accruals"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_AR_CARDS} reviewState={accrualReviewState} onReviewStateChange={setAccrualReviewState} reviewTitle="Accruals review" onRunReview={function() { setScheduleViewMode("ai"); }} viewMode={activeScheduleType === "accruals" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
+              <DeferredRevenueSchedulePage open={activeScheduleType === "deferred_revenue"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_DRR_CARDS} reviewState={deferredRevenueReviewState} onReviewStateChange={setDeferredRevenueReviewState} reviewTitle="Deferred revenue review" onRunReview={function() { setScheduleViewMode("ai"); }} viewMode={activeScheduleType === "deferred_revenue" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
+              <AccruedIncomeSchedulePage open={activeScheduleType === "accrued_income"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_AIR_CARDS} reviewState={accruedIncomeReviewState} onReviewStateChange={setAccruedIncomeReviewState} reviewTitle="Accrued income review" onRunReview={function() { setScheduleViewMode("ai"); }} viewMode={activeScheduleType === "accrued_income" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
             </Fragment>
           );
         })()}
