@@ -2610,16 +2610,12 @@ var _DRR_STEPS = [
 
 var _DRR_CARDS = [
   { idx: 0, key: "advance", title: "Defer advance payment from Lidl for Christmas range", contact: "Lidl UK – Christmas promotional range", description: "Lidl paid £18,000.00 on 28 March 2026 for a Christmas snack range to be delivered across August to November 2026. The full amount has been posted to 4000 – Sales in March. No product has been delivered yet, so the entire balance should be deferred and released as deliveries are made.", tableRow: { account: "4000 – Sales", amount: "£18,000.00", period: "Aug – Nov 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Lidl UK", aiInsight: "The full advance payment has been posted to sales in March but no product has been delivered yet. Deliveries run August to November.", adjType: "defer_revenue", description: "Christmas range – Lidl", amount: "18,000.00", revenueAccount: "4000 – Sales", period: "Aug – Nov 2026", deferralDate: "28/03/2026", recognitionDate: "01/08/2026" } },
-  { idx: 1, key: "partial", title: "Defer balance of Costco co-packing contract", contact: "Costco – co-packing arrangement", description: "A 6-month co-packing contract with Costco for £14,400.00 was invoiced on 1 March 2026. Two months of production have been completed (March and April), with £4,800.00 recognised. The remaining £9,600.00 relates to May to August and should be deferred.", tableRow: { account: "4000 – Sales", amount: "£9,600.00", period: "May – Aug 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Costco", aiInsight: "Only two of six months of co-packing have been completed. The remaining £9,600.00 relates to May to August and should be deferred.", adjType: "defer_revenue", description: "Co-packing contract – Costco", amount: "9,600.00", revenueAccount: "4000 – Sales", period: "May – Aug 2026", deferralDate: "01/03/2026", recognitionDate: "01/05/2026" } },
-  { idx: 2, key: "stale", title: "Release stale deferred balance for Ocado promotion", contact: "Ocado – online promotion", description: "The deferred income schedule for the Ocado online promotion shows a remaining balance of £280.00. The promotion ran from October to February and all stock was delivered by 15 February 2026. A residual balance remains due to a rounding difference on the final release. This should be released to revenue.", tableRow: { account: "2110 – Deferred income", amount: "£280.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Ocado", aiInsight: "The promotion ended in February and all stock was delivered. A residual £280.00 balance remains due to rounding on the final release.", adjType: "release_revenue", description: "Online promotion – Ocado", amount: "280.00", revenueAccount: "2110 – Deferred income", period: "Apr 2026", deferralDate: "30/04/2026", recognitionDate: "30/04/2026" } },
-  { idx: 3, key: "pattern", title: "Post missed April release for Waitrose seasonal line", contact: "Waitrose – seasonal product line", description: "The Waitrose seasonal line deferred income schedule has been releasing £1,600.00 per month since January 2026. The April release has not been posted. The schedule shows the entry as due but it was not included in the April close. This appears to have been missed during the period-end process.", tableRow: { account: "2110 – Deferred income", amount: "£1,600.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Waitrose", aiInsight: "The April release of £1,600.00 was scheduled on the deferral schedule but was not included in the April close.", adjType: "release_revenue", description: "Seasonal line – Waitrose", amount: "1,600.00", revenueAccount: "2110 – Deferred income", period: "Apr 2026", deferralDate: "30/04/2026", recognitionDate: "30/04/2026" } },
+  { idx: 1, key: "warehouse_b", title: "Allocate remaining £800 balance on Warehouse B sublease", contact: "Warehouse B – sublease advance", description: "The Warehouse B sublease shows £800 unallocated from a quarterly advance payment of £3,200 received on 1 March 2026. The recognition schedule covers March to June 2026 at £800 per month, but the final period has not been allocated. This balance should be assigned to complete the schedule.", tableRow: { account: "2110 – Deferred income", amount: "£800.00", period: "Jun 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Warehouse B sublease", aiInsight: "The advance payment of £3,200 covers four months of sublease at £800 each, but only three periods are currently allocated. The final £800 should be assigned to June 2026.", adjType: "release_revenue", description: "Sublease – Warehouse unit B", amount: "800.00", revenueAccount: "2110 – Deferred income", period: "Jun 2026", deferralDate: "01/03/2026", recognitionDate: "01/06/2026" } },
 ];
 
 var _DRR_NAV_CATS = [
-  { key: "advance",  label: "New advance payment",   baseIdx: 0, items: [{ contact: "Lidl Christmas range" }] },
-  { key: "partial",  label: "Partially delivered",    baseIdx: 1, items: [{ contact: "Costco co-packing" }] },
-  { key: "stale",    label: "Stale balance",          baseIdx: 2, items: [{ contact: "Ocado promotion" }] },
-  { key: "pattern",  label: "Release pattern break",  baseIdx: 3, items: [{ contact: "Waitrose seasonal" }] },
+  { key: "advance",     label: "New advance payment", baseIdx: 0, items: [{ contact: "Lidl Christmas range" }] },
+  { key: "warehouse_b", label: "Unallocated balance",  baseIdx: 1, items: [{ contact: "Warehouse B sublease" }] },
 ];
 
 function DeferredRevenueReviewFlow(_ref) {
@@ -2649,6 +2645,10 @@ function DeferredRevenueReviewFlow(_ref) {
   _s = useState(selectedPeriod); var _drActivePeriod = _s[0], _drSetActivePeriod = _s[1];
   _s = useState(false); var _drScheduleOpen = _s[0], _drSetScheduleOpen = _s[1];
   _s = useState(0); var _drRestartKey = _s[0], _drSetRestartKey = _s[1];
+  _s = useState(_drInitResume ? "results" : "intro"); var _drPhase = _s[0], _drSetPhase = _s[1];
+  _s = useState(_drInitResume ? 2 : 0); var _drInitSteps = _s[0], _drSetInitSteps = _s[1];
+  _s = useState(_drInitResume); var _drFindingsDone = _s[0], _drSetFindingsDone = _s[1];
+  _s = useState(_drInitResume ? "correct" : null); var _drUserChoice = _s[0], _drSetUserChoice = _s[1];
   var _drChatScrollRef = useRef(null), _drChatEndRef = useRef(null), _drPeriodDropRef = useRef(null);
 
   var _drAllMonths = ["April 2025","May 2025","June 2025","July 2025","August 2025","September 2025","October 2025","November 2025","December 2025","January 2026","February 2026","March 2026","April 2026"];
@@ -2663,18 +2663,35 @@ function DeferredRevenueReviewFlow(_ref) {
 
   useEffect(function() { if (onStateChange && _drCanvasReady) onStateChange({ resolved: _drResolvedCount, total: _drTotalSuggestions, hasResults: true, resolvedArray: Array.from(_drResolvedCards), ignoredArray: Array.from(_drIgnoredCards), cardActions: _drCardActions }); }, [_drResolvedCount, _drCanvasReady, _drCardActions]);
 
-  var _drLine1Segments = [{ text: "I'll review your deferred revenue schedule for ", bold: false }, { text: selectedPeriod, bold: true }, { text: ", cross-reference Xero sales invoices, and compare against prior-year deferrals to surface anything that's missing or needs attention.", bold: false }];
+  var _drLine1Segments = [{ text: "I'll review your ", bold: false }, { text: selectedPeriod, bold: true }, { text: " deferred revenue schedule. Let me start by loading your Xero data and scanning recent invoices.", bold: false }];
   var _drLine1Full = _drLine1Segments.map(function(s) { return s.text; }).join("");
+  var _drFindingsSegments = [{ text: "Scanned ", bold: false }, { text: "47 transactions", bold: true }, { text: " and ", bold: false }, { text: "22 invoices", bold: true }, { text: ". New advance: ", bold: false }, { text: "Lidl UK", bold: true }, { text: ", 28 Mar 2026, £18,000 — not deferred. ", bold: false }, { text: "£800 unallocated", bold: true }, { text: " on Warehouse B sublease.", bold: false }];
+  var _drFindingsFull = _drFindingsSegments.map(function(s) { return s.text; }).join("");
   var _drTw = useTypewriter(_drLine1Full + (_drRestartKey > 0 ? "​".repeat(_drRestartKey) : ""), 18, _drIsResume);
   var _drLine1Done = _drTw.done;
 
-  useEffect(function() { if (!_drLine1Done || _drIsResume) return; var REVEAL = 80, timers = []; _DRR_STEPS.forEach(function(_, i) { timers.push(setTimeout(function() { _drSetVisibleSteps(function(v) { return Math.max(v, i + 1); }); }, i * REVEAL)); }); timers.push(setTimeout(function() { _drSetStepsPopulated(true); }, (_DRR_STEPS.length - 1) * REVEAL + 80)); return function() { timers.forEach(clearTimeout); }; }, [_drLine1Done, _drRestartKey]);
+  // Phase: intro → loading_steps after opening message done
+  useEffect(function() { if (!_drLine1Done || _drIsResume) return; var t = setTimeout(function() { _drSetPhase("loading_steps"); }, 400); return function() { clearTimeout(t); }; }, [_drLine1Done, _drRestartKey]);
+
+  // Phase: loading_steps → run 2 plain steps → findings
+  useEffect(function() { if (_drPhase !== "loading_steps" || _drIsResume) return; var t1 = setTimeout(function() { _drSetInitSteps(1); }, 1300); var t2 = setTimeout(function() { _drSetInitSteps(2); }, 2800); var t3 = setTimeout(function() { _drSetPhase("findings"); }, 3100); return function() { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); }; }, [_drPhase, _drRestartKey]);
+
+  // Phase: findings → mark findings done after typewriter completes
+  useEffect(function() { if (_drPhase !== "findings" || _drIsResume || _drFindingsDone) return; var delay = Math.ceil(_drFindingsFull.length * 8) + 50; var t = setTimeout(function() { _drSetFindingsDone(true); }, delay); return function() { clearTimeout(t); }; }, [_drPhase, _drRestartKey]);
+
+  // User confirms → transition to accordion phase
+  useEffect(function() { if (_drUserChoice !== "correct" || _drIsResume) return; var t = setTimeout(function() { _drSetPhase("accordion"); }, 300); return function() { clearTimeout(t); }; }, [_drUserChoice, _drRestartKey]);
+
+  // Phase: accordion → populate steps
+  useEffect(function() { if (_drPhase !== "accordion" || _drIsResume) return; _drSetStepsPopulated(true); }, [_drPhase, _drRestartKey]);
 
   useEffect(function() {
     if (!_drStepsPopulated || _drIsResume) return;
     _drSetStepStatuses(_DRR_STEPS.map(function(_, i) { return i === 0 ? "active" : "pending"; }));
     _drSetStepSubtexts(_DRR_STEPS.map(function() { return false; }));
     var timers = [], cum = 0;
+    _DRR_STEPS.forEach(function(_, i) { timers.push(setTimeout(function() { _drSetVisibleSteps(function(v) { return Math.max(v, i + 1); }); }, i * 80)); });
+    cum = (_DRR_STEPS.length - 1) * 80 + 100;
     _DRR_STEPS.forEach(function(step, i) {
       cum += step.duration;
       if (step.subtext) timers.push(setTimeout(function() { _drSetStepSubtexts(function(prev) { var n = prev.slice(); n[i] = true; return n; }); }, cum - 350));
@@ -2684,15 +2701,15 @@ function DeferredRevenueReviewFlow(_ref) {
   }, [_drStepsPopulated, _drRestartKey]);
 
   useEffect(function() { if (!_drStepsComplete || _drIsResume) return; var t1 = setTimeout(function() { _drSetStepsCollapsed(true); }, 500); var t2 = setTimeout(function() { _drSetResultsVisible(true); }, 700); return function() { clearTimeout(t1); clearTimeout(t2); }; }, [_drStepsComplete, _drRestartKey]);
-  useEffect(function() { if (!_drResultsVisible || _drIsResume) return; var t1 = setTimeout(function() { _drSetCanvasReady(true); }, 3200); var t2 = setTimeout(function() { _drSetBoxesOpen(true); }, 3800); return function() { clearTimeout(t1); clearTimeout(t2); }; }, [_drResultsVisible, _drRestartKey]);
-  useEffect(function() { if (_drChatEndRef.current) _drChatEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" }); }, [_drLine1Done, _drStepsComplete, _drCanvasReady]);
+  useEffect(function() { if (!_drResultsVisible || _drIsResume) return; _drSetPhase("results"); var t1 = setTimeout(function() { _drSetCanvasReady(true); }, 3200); var t2 = setTimeout(function() { _drSetBoxesOpen(true); }, 3800); return function() { clearTimeout(t1); clearTimeout(t2); }; }, [_drResultsVisible, _drRestartKey]);
+  useEffect(function() { if (_drChatEndRef.current) _drChatEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" }); }, [_drLine1Done, _drStepsComplete, _drCanvasReady, _drFindingsDone, _drUserChoice, _drInitSteps]);
   useEffect(function() { var el = _drChatScrollRef.current; if (!el) return; var onScroll = function() { _drSetIsAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 40); }; el.addEventListener("scroll", onScroll); return function() { el.removeEventListener("scroll", onScroll); }; }, []);
   useEffect(function() { var onKey = function(e) { if (e.key === "Escape") onClose(); }; window.addEventListener("keydown", onKey); return function() { window.removeEventListener("keydown", onKey); }; }, []);
   useEffect(function() { if (!embedded || hideChat || !_drInitResume) return; var t = setTimeout(function() { _drSetResultsVisible(true); }, 50); return function() { clearTimeout(t); }; }, []);
 
   var _drHandleDragStart = function(e) { e.preventDefault(); _drSetIsDragging(true); var startX = e.clientX, startW = _drChatWidth; var onMove = function(ev) { _drSetChatWidth(Math.max(280, Math.min(700, startW + (ev.clientX - startX)))); }; var onUp = function() { _drSetIsDragging(false); document.removeEventListener("mousemove", onMove); document.removeEventListener("mouseup", onUp); document.body.style.cursor = ""; document.body.style.userSelect = ""; }; document.body.style.cursor = "col-resize"; document.body.style.userSelect = "none"; document.addEventListener("mousemove", onMove); document.addEventListener("mouseup", onUp); };
 
-  var _drHandleRestart = function() { _drSetStepStatuses([]); _drSetStepSubtexts([]); _drSetVisibleSteps(0); _drSetStepsPopulated(false); _drSetStepsCollapsed(false); _drSetResultsVisible(false); _drSetCanvasReady(false); _drSetBoxesOpen(false); _drSetResolvedCards(new Set()); _drSetIgnoredCards(new Set()); _drSetCardActions({}); _drSetAnalysisOpen(false); _drSetIsResume(false); _drSetRestartKey(function(k) { return k + 1; }); if (onStateChange) onStateChange(null); };
+  var _drHandleRestart = function() { _drSetStepStatuses([]); _drSetStepSubtexts([]); _drSetVisibleSteps(0); _drSetStepsPopulated(false); _drSetStepsCollapsed(false); _drSetResultsVisible(false); _drSetCanvasReady(false); _drSetBoxesOpen(false); _drSetResolvedCards(new Set()); _drSetIgnoredCards(new Set()); _drSetCardActions({}); _drSetAnalysisOpen(false); _drSetIsResume(false); _drSetPhase("intro"); _drSetInitSteps(0); _drSetFindingsDone(false); _drSetUserChoice(null); _drSetRestartKey(function(k) { return k + 1; }); if (onStateChange) onStateChange(null); };
 
   return (
     <div style={embedded ? { display: "flex", flex: 1, flexDirection: "column", overflow: "hidden", background: T.colorSurfaceContrast } : { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
@@ -2724,9 +2741,61 @@ function DeferredRevenueReviewFlow(_ref) {
             <div ref={_drChatScrollRef} style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", scrollBehavior: "smooth" }}>
               {_drResultsVisible && <div style={{ position: "sticky", top: 0, height: 40, marginBottom: -40, background: "linear-gradient(to bottom, rgba(251,251,251,1) 0%, rgba(251,251,251,0) 100%)", zIndex: 2, pointerEvents: "none", flexShrink: 0 }} />}
               <div style={{ maxWidth: 680, width: "100%", margin: "0 auto", padding: _drResultsVisible ? "24px 24px 100px" : "24px 24px 24px", flex: 1, display: "flex", flexDirection: "column" }}>
-                <div style={{ fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px", width: _drResultsVisible ? "90%" : "70%", marginBottom: 20 }}><p style={{ margin: 0 }}><StreamingMessage segments={_drLine1Segments} speed={18} instant={_drIsResume} key={_drIsResume ? "resume-intro" : "fresh-intro-" + _drRestartKey} /></p></div>
-                {_drStepsPopulated && _drStepStatuses.length > 0 && (
-                  <div style={{ animation: "_drFadeIn 0.3s ease both" }}>
+                {/* Opening AI message */}
+                <div style={{ fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px", marginBottom: 20 }}><p style={{ margin: 0 }}><StreamingMessage segments={_drLine1Segments} speed={18} instant={_drIsResume} key={_drIsResume ? "resume-intro" : "fresh-intro-" + _drRestartKey} /></p></div>
+
+                {/* Plain loading steps: Load Xero data + Scan invoices */}
+                {_drPhase !== "intro" && (
+                  <div style={{ animation: "_drFadeIn 0.35s ease both" }}>
+                    <div style={{ display: "flex", gap: 16 }}>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, paddingTop: 2, overflow: "visible" }}>
+                        <div style={{ width: 20, height: 20, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          {_drInitSteps >= 1
+                            ? <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ animation: "_drStepPop 0.35s cubic-bezier(0.34,1.4,0.64,1) both" }}><circle cx="10" cy="10" r="10" fill={T.colorBrandPrimary}/><path d="M5.5 10.5L8.5 13.5L14.5 7" stroke={T.colorSurfacePrimary} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            : <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ animation: "spin 0.75s linear infinite" }}><path d="M10 2A8 8 0 1 1 2 10" stroke={T.colorBrandPrimary} strokeWidth="1.5" strokeLinecap="round"/></svg>
+                          }
+                        </div>
+                        {_drInitSteps >= 1 && <div style={{ width: 1, flexGrow: 1, minHeight: 20, background: T.colorBorderDark, margin: "4px 0" }} />}
+                      </div>
+                      <div style={{ paddingBottom: _drInitSteps >= 1 ? 16 : 0 }}>
+                        <span style={{ fontSize: 14, lineHeight: "24px", color: T.colorTextPrimary }}>Load Xero data</span>
+                      </div>
+                    </div>
+                    {_drInitSteps >= 1 && (
+                      <div style={{ display: "flex", gap: 16, animation: "_drFadeIn 0.4s ease both" }}>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, paddingTop: 2, overflow: "visible" }}>
+                          <div style={{ width: 20, height: 20, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            {_drInitSteps >= 2
+                              ? <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ animation: "_drStepPop 0.35s cubic-bezier(0.34,1.4,0.64,1) both" }}><circle cx="10" cy="10" r="10" fill={T.colorBrandPrimary}/><path d="M5.5 10.5L8.5 13.5L14.5 7" stroke={T.colorSurfacePrimary} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                              : <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ animation: "spin 0.75s linear infinite" }}><path d="M10 2A8 8 0 1 1 2 10" stroke={T.colorBrandPrimary} strokeWidth="1.5" strokeLinecap="round"/></svg>
+                            }
+                          </div>
+                        </div>
+                        <div><span style={{ fontSize: 14, lineHeight: "24px", color: T.colorTextPrimary }}>Scan invoices</span></div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* AI findings message */}
+                {(_drPhase === "findings" || _drPhase === "accordion" || _drPhase === "results") && (
+                  <div style={{ animation: _drIsResume ? "none" : "_drFadeIn 0.4s ease both", marginTop: 20, fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px" }}>
+                    <p style={{ margin: 0 }}><StreamingMessage segments={_drFindingsSegments} speed={8} instant={_drIsResume} key={_drIsResume ? "resume-findings" : "fresh-findings-" + _drRestartKey} /></p>
+                  </div>
+                )}
+
+                {/* User choice echo bubble */}
+                {_drUserChoice && (
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 20, animation: "_drFadeIn 0.3s ease both" }}>
+                    <div style={{ maxWidth: 400, background: T.colorBrandLighter, borderRadius: "12px 12px 2px 12px", padding: "10px 14px", fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px" }}>
+                      {_drUserChoice === "correct" ? "Looks correct" : "Something's missing"}
+                    </div>
+                  </div>
+                )}
+
+                {/* Deeper analysis accordion (after user confirms) */}
+                {(_drPhase === "accordion" || _drPhase === "results") && _drStepsPopulated && _drStepStatuses.length > 0 && (
+                  <div style={{ animation: "_drFadeIn 0.3s ease both", marginTop: 20 }}>
                     <button onClick={function() { _drSetStepsCollapsed(function(c) { return !c; }); }} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: _drStepsCollapsed ? 0 : 20, cursor: "pointer", background: "none", border: "none", padding: 0, width: "100%", textAlign: "left" }}>
                       <div style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#8C8C8B" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
                       <div style={{ flex: 1 }}><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 15, fontWeight: 600, color: T.colorTextPrimary }}>Deferred revenue review</span><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ transition: "transform 0.2s ease", transform: _drStepsCollapsed ? "rotate(180deg)" : "rotate(0deg)" }}><path d="M3 8.5L7 4.5L11 8.5" stroke="#8C8C8B" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></div><span style={{ fontSize: 13, color: T.colorTextSecondary }}>{_drStepsComplete ? "Completed" : "In progress"}</span></div>
@@ -2738,12 +2807,16 @@ function DeferredRevenueReviewFlow(_ref) {
                     })}
                   </div>
                 )}
-                {_drCanvasReady && (<div style={{ animation: _drIsResume ? "none" : "_drFadeIn 0.4s ease 0.2s both", marginTop: 20, fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px" }}><p style={{ margin: 0 }}><StreamingMessage segments={[{ text: "I've found ", bold: false }, { text: "4 items", bold: true }, { text: " that need attention – including a new advance payment that should be deferred, a stale balance, and a missed release. Review each suggestion and take action or skip.", bold: false }]} speed={18} instant={_drIsResume} key={_drIsResume ? "resume" : "fresh"} /></p></div>)}
+
+                {/* Final summary message after canvas slides in */}
+                {_drCanvasReady && (<div style={{ animation: _drIsResume ? "none" : "_drFadeIn 0.4s ease 0.2s both", marginTop: 20, fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px" }}><p style={{ margin: 0 }}><StreamingMessage segments={[{ text: "I've found ", bold: false }, { text: "2 items", bold: true }, { text: " that need attention — a new advance payment from Lidl that should be deferred, and an unallocated balance on the Warehouse B sublease. Review each suggestion below.", bold: false }]} speed={18} instant={_drIsResume} key={_drIsResume ? "resume-summary" : "fresh-summary-" + _drRestartKey} /></p></div>)}
+
                 <div ref={_drChatEndRef} />
               </div>
             </div>
           </div>
-          {!_drStepsComplete && _drLine1Done && !_drIsResume && (<div style={{ padding: "0 24px 20px", flexShrink: 0 }}><div style={{ maxWidth: 680, margin: "0 auto" }}><div style={{ borderRadius: 8, padding: "14px 14px 12px", background: T.colorSurfacePrimary, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04), 0 0 0 1px " + T.colorBorderDark }}><div style={{ display: "flex", alignItems: "center" }}><div style={{ fontSize: 14, lineHeight: "22px", flex: 1 }}><span style={{ background: "linear-gradient(90deg, #9D9D9E 0%, #9D9D9E 30%, #2A2A2A 50%, #9D9D9E 70%, " + T.colorTextDisabled + " 100%)", backgroundSize: "200% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", animation: "_drTextShimmer 2s linear infinite", display: "inline-block" }}>Reviewing deferred revenue...</span></div><button style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 36, padding: "0 10px", border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 13, fontWeight: 500, color: T.colorTextPrimary, flexShrink: 0, boxSizing: "border-box", fontFamily: "'Inter', sans-serif" }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorBorderLight; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; }}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="10" height="10" rx="1.5" stroke="#080908" strokeWidth="1.25" /></svg>Stop</button></div></div></div></div>)}
+          {_drFindingsDone && _drPhase === "findings" && !_drUserChoice && (<div style={{ padding: "60px 24px 20px", flexShrink: 0, background: "linear-gradient(to bottom, rgba(251,251,251,0) 0%, rgba(251,251,251,1) 60px)", marginTop: -60 }}><div style={{ maxWidth: 680, margin: "0 auto" }}><div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 16, padding: "20px 20px 12px", maxWidth: 480, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04)", animation: "_drFadeIn 0.25s ease both" }}><p style={{ fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, marginTop: 0, marginBottom: 12 }}>Does everything look correct, or is something missing?</p><button onClick={function() { _drSetUserChoice("correct"); }} style={{ display: "block", width: "100%", textAlign: "left", padding: "12px 16px", marginBottom: 8, background: T.colorSurfaceTertiary, border: "none", borderRadius: 10, cursor: "pointer", fontSize: 14, color: T.colorTextPrimary, fontFamily: "'Inter', sans-serif" }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorSurfaceActive; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfaceTertiary; }}>Looks correct</button><button onClick={function() { _drSetUserChoice("missing"); }} style={{ display: "block", width: "100%", textAlign: "left", padding: "12px 16px", marginBottom: 8, background: T.colorSurfaceTertiary, border: "none", borderRadius: 10, cursor: "pointer", fontSize: 14, color: T.colorTextPrimary, fontFamily: "'Inter', sans-serif" }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorSurfaceActive; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfaceTertiary; }}>Something's missing</button></div></div></div>)}
+          {_drPhase === "accordion" && !_drStepsComplete && !_drIsResume && (<div style={{ padding: "0 24px 20px", flexShrink: 0 }}><div style={{ maxWidth: 680, margin: "0 auto" }}><div style={{ borderRadius: 8, padding: "14px 14px 12px", background: T.colorSurfacePrimary, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04), 0 0 0 1px " + T.colorBorderDark }}><div style={{ display: "flex", alignItems: "center" }}><div style={{ fontSize: 14, lineHeight: "22px", flex: 1 }}><span style={{ background: "linear-gradient(90deg, #9D9D9E 0%, #9D9D9E 30%, #2A2A2A 50%, #9D9D9E 70%, " + T.colorTextDisabled + " 100%)", backgroundSize: "200% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", animation: "_drTextShimmer 2s linear infinite", display: "inline-block" }}>Reviewing deferred revenue...</span></div><button style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 36, padding: "0 10px", border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 13, fontWeight: 500, color: T.colorTextPrimary, flexShrink: 0, boxSizing: "border-box", fontFamily: "'Inter', sans-serif" }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorBorderLight; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; }}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="10" height="10" rx="1.5" stroke="#080908" strokeWidth="1.25" /></svg>Stop</button></div></div></div></div>)}
           {_drCanvasReady && !hideChat && (<div style={{ padding: "60px 12px 16px", flexShrink: 0, background: "linear-gradient(to bottom, rgba(251,251,251,0) 0%, rgba(251,251,251,1) 60px)", marginTop: -60 }}><div style={{ maxWidth: 680, margin: "0 auto" }}><button onClick={_drHandleRestart} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10, height: 40, padding: "0 16px", marginBottom: 10, border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04)", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.style.borderColor = T.colorBorderHover; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; e.currentTarget.style.borderColor = T.colorBorderDark; }}><PlayCircleIcon color={T.colorTextPrimary} size={20} />Restart review</button><div style={{ borderRadius: 8, padding: "14px 14px 12px", background: T.colorSurfacePrimary, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04), 0 0 0 1px " + T.colorBorderDark }}><textarea value={_drInputValue} onChange={function(e) { _drSetInputValue(e.target.value); }} placeholder="Ask for changes or information..." rows={3} style={{ width: "100%", border: "none", outline: "none", resize: "none", fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px", background: "transparent", fontFamily: "'Inter', sans-serif", display: "block" }} /><div style={{ display: "flex", alignItems: "center", marginTop: 8 }}><button style={{ width: 32, height: 32, border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 6, color: T.colorTextSecondary, padding: 0 }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorBorderLight; }} onMouseLeave={function(e) { e.currentTarget.style.background = "none"; }}><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15.5 8.5L8.5 15.5C7.12 16.88 4.88 16.88 3.5 15.5C2.12 14.12 2.12 11.88 3.5 10.5L10.5 3.5C11.33 2.67 12.67 2.67 13.5 3.5C14.33 4.33 14.33 5.67 13.5 6.5L6.5 13.5C6.08 13.92 5.42 13.92 5 13.5C4.58 13.08 4.58 12.42 5 12L11.5 5.5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></button><div style={{ flex: 1 }} /><button style={{ width: 36, height: 36, marginLeft: 6, border: "1px solid " + T.colorBorderDark, borderRadius: 10, background: _drInputValue.trim() ? T.colorBrandPrimary : T.colorSurfaceSecondary, cursor: _drInputValue.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.15s", padding: 0 }}><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M9.99984 15.8346V4.16797M9.99984 4.16797L4.1665 10.0013M9.99984 4.16797L15.8332 10.0013" stroke={_drInputValue.trim() ? "#FFFFFF" : "#8C8C8B"} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></button></div></div></div></div>)}
         </div>)}
         {_drResultsVisible && !hideChat && (<div onMouseDown={_drHandleDragStart} style={{ position: "absolute", top: 0, bottom: 0, left: _drChatWidth + 16, width: 16, cursor: "col-resize", zIndex: 5, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ width: 4, height: 40, borderRadius: 2, background: _drIsDragging ? T.colorBorderHover : "transparent", transition: "background 0.15s" }} /></div>)}
@@ -4345,7 +4418,7 @@ registerPage("Adjustments", {
         }}>
           {/* Title + subtitle */}
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <span style={{ fontSize: 24, fontWeight: 600, color: T.colorTextPrimary, lineHeight: "32px", letterSpacing: "-0.3px" }}>{title}</span>
+            <span style={{ fontSize: 20, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "28px", letterSpacing: "-0.2px" }}>{title}</span>
             {updatedAt && <span style={{ ...T.textSm, color: T.colorTextSecondary }}>{"Updated " + updatedAt}</span>}
           </div>
 
@@ -4358,7 +4431,7 @@ registerPage("Adjustments", {
                 {_ovInfoIcon}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 20, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{metrics.opening}</span>
+                <span style={{ ...T.textMd, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{metrics.opening}</span>
                 {_ovGlBadge(metrics.openingGl)}
               </div>
             </div>
@@ -4367,7 +4440,7 @@ registerPage("Adjustments", {
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               <span style={{ ...T.textSm, fontWeight: 400, color: T.colorTextSecondary }}>Closing balance</span>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 20, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{metrics.closing}</span>
+                <span style={{ ...T.textMd, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{metrics.closing}</span>
                 {_ovGlBadge(metrics.closingGl)}
               </div>
             </div>
@@ -4378,13 +4451,13 @@ registerPage("Adjustments", {
                 <span style={{ ...T.textSm, fontWeight: 400, color: T.colorTextSecondary }}>Additions</span>
                 {_ovInfoIcon}
               </div>
-              <span style={{ fontSize: 20, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{metrics.additions}</span>
+              <span style={{ ...T.textMd, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{metrics.additions}</span>
             </div>
 
             {/* Releases */}
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               <span style={{ ...T.textSm, fontWeight: 400, color: T.colorTextSecondary }}>{metrics.releasesLabel || "Releases"}</span>
-              <span style={{ fontSize: 20, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{metrics.releases}</span>
+              <span style={{ ...T.textMd, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{metrics.releases}</span>
             </div>
           </div>
 
@@ -4393,14 +4466,11 @@ registerPage("Adjustments", {
 
           {/* Bottom buttons — no wrap so the review button shrinks and truncates */}
           <div style={{ display: "flex", gap: 12, minWidth: 0, overflow: "hidden" }}>
-            {/* flex:1 1 0 grows to fill space, shrinks when tight; minWidth:0 lets it go below content size */}
-            <div style={{ flex: "1 1 0", minWidth: 0, overflow: "hidden" }}>
-              <SecondaryButton onClick={onRun} style={{ height: 44, padding: "8px 16px 8px 12px", fontSize: 14, gap: 8, overflow: "hidden", width: "100%", boxSizing: "border-box" }}>
-                <PlayCircleIcon color="currentColor" size={20} style={{ flexShrink: 0 }} />
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{workflow.label}</span>
-                {_sugBadge && <span style={{ flexShrink: 0 }}>{_sugBadge}</span>}
-              </SecondaryButton>
-            </div>
+            <SecondaryButton onClick={onRun} style={{ height: 44, padding: "8px 16px 8px 12px", fontSize: 14, gap: 8, overflow: "hidden", flex: "0 1 auto", minWidth: 0, boxSizing: "border-box" }}>
+              <PlayCircleIcon color="currentColor" size={20} style={{ flexShrink: 0 }} />
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{workflow.label}</span>
+              {_sugBadge && <span style={{ flexShrink: 0, marginLeft: "auto" }}>{_sugBadge}</span>}
+            </SecondaryButton>
             <SecondaryButton onClick={onViewSchedule} style={{ height: 44, padding: "8px 16px 8px 12px", fontSize: 14, gap: 8, whiteSpace: "nowrap", flexShrink: 0 }}>
               {calendarBtnIcon}
               View full schedule
@@ -4458,7 +4528,7 @@ registerPage("Adjustments", {
             </div>
           )}
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(max(420px, calc(50% - 12px)), 1fr))", gap: 24 }}>
             <OverviewCard
               title="Prepayments"
               updatedAt="5 Mar, 09:41"
