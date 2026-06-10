@@ -3050,6 +3050,12 @@ function AccruedIncomeReviewFlow(_ref) {
   _s = useState(selectedPeriod); var _aiActivePeriod = _s[0], _aiSetActivePeriod = _s[1];
   _s = useState(false); var _aiScheduleOpen = _s[0], _aiSetScheduleOpen = _s[1];
   _s = useState(0); var _aiRestartKey = _s[0], _aiSetRestartKey = _s[1];
+  _s = useState(_aiInitResume ? "results" : "intro"); var _aiPhase = _s[0], _aiSetPhase = _s[1];
+  _s = useState(_aiInitResume ? 2 : 0); var _aiInitSteps = _s[0], _aiSetInitSteps = _s[1];
+  _s = useState(_aiInitResume); var _aiFindingsDone = _s[0], _aiSetFindingsDone = _s[1];
+  _s = useState(_aiInitResume ? "correct" : null); var _aiUserChoice1 = _s[0], _aiSetUserChoice1 = _s[1];
+  _s = useState(_aiInitResume); var _aiFollowupDone = _s[0], _aiSetFollowupDone = _s[1];
+  _s = useState(_aiInitResume ? "start" : null); var _aiUserChoice2 = _s[0], _aiSetUserChoice2 = _s[1];
   var _aiChatScrollRef = useRef(null), _aiChatEndRef = useRef(null), _aiPeriodDropRef = useRef(null);
 
   var _aiAllMonths = ["April 2025","May 2025","June 2025","July 2025","August 2025","September 2025","October 2025","November 2025","December 2025","January 2026","February 2026","March 2026","April 2026"];
@@ -3064,18 +3070,37 @@ function AccruedIncomeReviewFlow(_ref) {
 
   useEffect(function() { if (onStateChange && _aiCanvasReady) onStateChange({ resolved: _aiResolvedCount, total: _aiTotalSuggestions, hasResults: true, resolvedArray: Array.from(_aiResolvedCards), ignoredArray: Array.from(_aiIgnoredCards), cardActions: _aiCardActions }); }, [_aiResolvedCount, _aiCanvasReady, _aiCardActions]);
 
-  var _aiLine1Segments = [{ text: "I'll review your accrued revenue for ", bold: false }, { text: selectedPeriod, bold: true }, { text: ", cross-reference Xero sales records, and compare against prior-year recognition patterns to surface anything that's missing or needs attention.", bold: false }];
+  var _aiLine1Segments = [{ text: "I'll review your ", bold: false }, { text: selectedPeriod, bold: true }, { text: " accrued revenue schedule. Let me start by loading your Xero data and checking recent sales records.", bold: false }];
   var _aiLine1Full = _aiLine1Segments.map(function(s) { return s.text; }).join("");
+  var _aiFindingsSegments = [{ text: "Scanned ", bold: false }, { text: "37 sales records", bold: true }, { text: " and ", bold: false }, { text: "12 invoices", bold: true }, { text: ". ", bold: false }, { text: "Booker Wholesale", bold: true }, { text: " — April deliveries £1,800 unaccrued, consistent monthly pattern. ", bold: false }, { text: "Warehouse B", bold: true }, { text: " rent £650 earned, not billed. ", bold: false }, { text: "Innovate UK", bold: true }, { text: " grant accrual £750 missing this month.", bold: false }];
+  var _aiFindingsFull = _aiFindingsSegments.map(function(s) { return s.text; }).join("");
+  var _aiFollowupSegments = [{ text: "Before running the full review — was there any ", bold: false }, { text: "other unbilled work", bold: true }, { text: " completed during the ", bold: false }, { text: selectedPeriod, bold: true }, { text: " close period that isn't yet on the schedule?", bold: false }];
+  var _aiFollowupFull = _aiFollowupSegments.map(function(s) { return s.text; }).join("");
   var _aiTw = useTypewriter(_aiLine1Full + (_aiRestartKey > 0 ? "​".repeat(_aiRestartKey) : ""), 18, _aiIsResume);
   var _aiLine1Done = _aiTw.done;
 
-  useEffect(function() { if (!_aiLine1Done || _aiIsResume) return; var REVEAL = 80, timers = []; _AIR_STEPS.forEach(function(_, i) { timers.push(setTimeout(function() { _aiSetVisibleSteps(function(v) { return Math.max(v, i + 1); }); }, i * REVEAL)); }); timers.push(setTimeout(function() { _aiSetStepsPopulated(true); }, (_AIR_STEPS.length - 1) * REVEAL + 80)); return function() { timers.forEach(clearTimeout); }; }, [_aiLine1Done, _aiRestartKey]);
+  // Phase: intro → loading_steps
+  useEffect(function() { if (!_aiLine1Done || _aiIsResume) return; var t = setTimeout(function() { _aiSetPhase("loading_steps"); }, 400); return function() { clearTimeout(t); }; }, [_aiLine1Done, _aiRestartKey]);
+  // Phase: loading_steps → plain steps → findings
+  useEffect(function() { if (_aiPhase !== "loading_steps" || _aiIsResume) return; var t1 = setTimeout(function() { _aiSetInitSteps(1); }, 1300); var t2 = setTimeout(function() { _aiSetInitSteps(2); }, 2800); var t3 = setTimeout(function() { _aiSetPhase("findings"); }, 3100); return function() { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); }; }, [_aiPhase, _aiRestartKey]);
+  // Phase: findings → done timer
+  useEffect(function() { if (_aiPhase !== "findings" || _aiIsResume || _aiFindingsDone) return; var t = setTimeout(function() { _aiSetFindingsDone(true); }, Math.ceil(_aiFindingsFull.length * 8) + 50); return function() { clearTimeout(t); }; }, [_aiPhase, _aiRestartKey]);
+  // Choice 1 confirmed → followup
+  useEffect(function() { if (_aiUserChoice1 !== "correct" || _aiIsResume) return; var t = setTimeout(function() { _aiSetPhase("followup"); }, 300); return function() { clearTimeout(t); }; }, [_aiUserChoice1, _aiRestartKey]);
+  // Phase: followup → done timer
+  useEffect(function() { if (_aiPhase !== "followup" || _aiIsResume || _aiFollowupDone) return; var t = setTimeout(function() { _aiSetFollowupDone(true); }, Math.ceil(_aiFollowupFull.length * 8) + 50); return function() { clearTimeout(t); }; }, [_aiPhase, _aiRestartKey]);
+  // Choice 2 "start" → accordion
+  useEffect(function() { if (_aiUserChoice2 !== "start" || _aiIsResume) return; var t = setTimeout(function() { _aiSetPhase("accordion"); }, 300); return function() { clearTimeout(t); }; }, [_aiUserChoice2, _aiRestartKey]);
+  // Phase: accordion → populate steps
+  useEffect(function() { if (_aiPhase !== "accordion" || _aiIsResume) return; _aiSetStepsPopulated(true); }, [_aiPhase, _aiRestartKey]);
 
   useEffect(function() {
     if (!_aiStepsPopulated || _aiIsResume) return;
     _aiSetStepStatuses(_AIR_STEPS.map(function(_, i) { return i === 0 ? "active" : "pending"; }));
     _aiSetStepSubtexts(_AIR_STEPS.map(function() { return false; }));
     var timers = [], cum = 0;
+    _AIR_STEPS.forEach(function(_, i) { timers.push(setTimeout(function() { _aiSetVisibleSteps(function(v) { return Math.max(v, i + 1); }); }, i * 80)); });
+    cum = (_AIR_STEPS.length - 1) * 80 + 100;
     _AIR_STEPS.forEach(function(step, i) {
       cum += step.duration;
       if (step.subtext) timers.push(setTimeout(function() { _aiSetStepSubtexts(function(prev) { var n = prev.slice(); n[i] = true; return n; }); }, cum - 350));
@@ -3085,15 +3110,15 @@ function AccruedIncomeReviewFlow(_ref) {
   }, [_aiStepsPopulated, _aiRestartKey]);
 
   useEffect(function() { if (!_aiStepsComplete || _aiIsResume) return; var t1 = setTimeout(function() { _aiSetStepsCollapsed(true); }, 500); var t2 = setTimeout(function() { _aiSetResultsVisible(true); }, 700); return function() { clearTimeout(t1); clearTimeout(t2); }; }, [_aiStepsComplete, _aiRestartKey]);
-  useEffect(function() { if (!_aiResultsVisible || _aiIsResume) return; var t1 = setTimeout(function() { _aiSetCanvasReady(true); }, 3200); var t2 = setTimeout(function() { _aiSetBoxesOpen(true); }, 3800); return function() { clearTimeout(t1); clearTimeout(t2); }; }, [_aiResultsVisible, _aiRestartKey]);
-  useEffect(function() { if (_aiChatEndRef.current) _aiChatEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" }); }, [_aiLine1Done, _aiStepsComplete, _aiCanvasReady]);
+  useEffect(function() { if (!_aiResultsVisible || _aiIsResume) return; _aiSetPhase("results"); var t1 = setTimeout(function() { _aiSetCanvasReady(true); }, 3200); var t2 = setTimeout(function() { _aiSetBoxesOpen(true); }, 3800); return function() { clearTimeout(t1); clearTimeout(t2); }; }, [_aiResultsVisible, _aiRestartKey]);
+  useEffect(function() { if (_aiChatEndRef.current) _aiChatEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" }); }, [_aiLine1Done, _aiStepsComplete, _aiCanvasReady, _aiFindingsDone, _aiUserChoice1, _aiFollowupDone, _aiUserChoice2, _aiInitSteps]);
   useEffect(function() { var el = _aiChatScrollRef.current; if (!el) return; var onScroll = function() { _aiSetIsAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 40); }; el.addEventListener("scroll", onScroll); return function() { el.removeEventListener("scroll", onScroll); }; }, []);
   useEffect(function() { var onKey = function(e) { if (e.key === "Escape") onClose(); }; window.addEventListener("keydown", onKey); return function() { window.removeEventListener("keydown", onKey); }; }, []);
   useEffect(function() { if (!embedded || hideChat || !_aiInitResume) return; var t = setTimeout(function() { _aiSetResultsVisible(true); }, 50); return function() { clearTimeout(t); }; }, []);
 
   var _aiHandleDragStart = function(e) { e.preventDefault(); _aiSetIsDragging(true); var startX = e.clientX, startW = _aiChatWidth; var onMove = function(ev) { _aiSetChatWidth(Math.max(280, Math.min(700, startW + (ev.clientX - startX)))); }; var onUp = function() { _aiSetIsDragging(false); document.removeEventListener("mousemove", onMove); document.removeEventListener("mouseup", onUp); document.body.style.cursor = ""; document.body.style.userSelect = ""; }; document.body.style.cursor = "col-resize"; document.body.style.userSelect = "none"; document.addEventListener("mousemove", onMove); document.addEventListener("mouseup", onUp); };
 
-  var _aiHandleRestart = function() { _aiSetStepStatuses([]); _aiSetStepSubtexts([]); _aiSetVisibleSteps(0); _aiSetStepsPopulated(false); _aiSetStepsCollapsed(false); _aiSetResultsVisible(false); _aiSetCanvasReady(false); _aiSetBoxesOpen(false); _aiSetResolvedCards(new Set()); _aiSetIgnoredCards(new Set()); _aiSetCardActions({}); _aiSetAnalysisOpen(false); _aiSetIsResume(false); _aiSetRestartKey(function(k) { return k + 1; }); if (onStateChange) onStateChange(null); };
+  var _aiHandleRestart = function() { _aiSetStepStatuses([]); _aiSetStepSubtexts([]); _aiSetVisibleSteps(0); _aiSetStepsPopulated(false); _aiSetStepsCollapsed(false); _aiSetResultsVisible(false); _aiSetCanvasReady(false); _aiSetBoxesOpen(false); _aiSetResolvedCards(new Set()); _aiSetIgnoredCards(new Set()); _aiSetCardActions({}); _aiSetAnalysisOpen(false); _aiSetIsResume(false); _aiSetPhase("intro"); _aiSetInitSteps(0); _aiSetFindingsDone(false); _aiSetUserChoice1(null); _aiSetFollowupDone(false); _aiSetUserChoice2(null); _aiSetRestartKey(function(k) { return k + 1; }); if (onStateChange) onStateChange(null); };
 
   return (
     <div style={embedded ? { display: "flex", flex: 1, flexDirection: "column", overflow: "hidden", background: T.colorSurfaceContrast } : { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
@@ -3125,8 +3150,59 @@ function AccruedIncomeReviewFlow(_ref) {
             <div ref={_aiChatScrollRef} style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", scrollBehavior: "smooth" }}>
               {_aiResultsVisible && <div style={{ position: "sticky", top: 0, height: 40, marginBottom: -40, background: "linear-gradient(to bottom, rgba(251,251,251,1) 0%, rgba(251,251,251,0) 100%)", zIndex: 2, pointerEvents: "none", flexShrink: 0 }} />}
               <div style={{ maxWidth: 680, width: "100%", margin: "0 auto", padding: _aiResultsVisible ? "24px 24px 100px" : "24px 24px 24px", flex: 1, display: "flex", flexDirection: "column" }}>
+                {/* Opening AI message */}
                 <div style={{ fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px", width: _aiResultsVisible ? "90%" : "70%", marginBottom: 20 }}><p style={{ margin: 0 }}><StreamingMessage segments={_aiLine1Segments} speed={18} instant={_aiIsResume} key={_aiIsResume ? "resume-intro" : "fresh-intro-" + _aiRestartKey} /></p></div>
-                {_aiStepsPopulated && _aiStepStatuses.length > 0 && (
+                {/* Plain loading steps */}
+                {_aiPhase !== "intro" && (
+                  <div style={{ animation: "_aiFadeIn 0.35s ease both", marginBottom: 20 }}>
+                    {/* Step 1: Load Xero data */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: _aiInitSteps >= 1 ? 10 : 0 }}>
+                      <div style={{ width: 20, height: 20, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        {_aiInitSteps >= 2 ? <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ animation: "_aiStepPop 0.35s cubic-bezier(0.34,1.4,0.64,1) both" }}><circle cx="10" cy="10" r="10" fill={T.colorBrandPrimary}/><path d="M5.5 10.5L8.5 13.5L14.5 7" stroke={T.colorSurfacePrimary} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/></svg> : <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ animation: "spin 0.75s linear infinite" }}><path d="M10 2A8 8 0 1 1 2 10" stroke={T.colorBrandPrimary} strokeWidth="1.5" strokeLinecap="round"/></svg>}
+                      </div>
+                      <span style={{ fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px" }}>Load Xero data</span>
+                    </div>
+                    {/* Step 2: Check invoices */}
+                    {_aiInitSteps >= 1 && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, animation: "_aiFadeIn 0.35s ease both" }}>
+                        <div style={{ width: 20, height: 20, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          {_aiInitSteps >= 2 ? <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ animation: "_aiStepPop 0.35s cubic-bezier(0.34,1.4,0.64,1) both" }}><circle cx="10" cy="10" r="10" fill={T.colorBrandPrimary}/><path d="M5.5 10.5L8.5 13.5L14.5 7" stroke={T.colorSurfacePrimary} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/></svg> : <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ animation: "spin 0.75s linear infinite" }}><path d="M10 2A8 8 0 1 1 2 10" stroke={T.colorBrandPrimary} strokeWidth="1.5" strokeLinecap="round"/></svg>}
+                        </div>
+                        <span style={{ fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px" }}>Check invoices</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {/* Findings message */}
+                {(_aiPhase === "findings" || _aiPhase === "followup" || _aiPhase === "accordion" || _aiPhase === "results") && (
+                  <div style={{ animation: "_aiFadeIn 0.35s ease both", marginBottom: 20, fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px" }}>
+                    <p style={{ margin: 0 }}><StreamingMessage segments={_aiFindingsSegments} speed={8} instant={_aiIsResume} key={_aiIsResume ? "resume-findings" : "fresh-findings-" + _aiRestartKey} /></p>
+                  </div>
+                )}
+                {/* User choice 1 echo */}
+                {_aiUserChoice1 && (
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 20, animation: "_aiFadeIn 0.25s ease both" }}>
+                    <div style={{ background: T.colorBrandLighter, borderRadius: "12px 12px 2px 12px", padding: "10px 14px", fontSize: 14, color: T.colorTextPrimary, maxWidth: "75%" }}>
+                      {_aiUserChoice1 === "correct" ? "Looks correct" : "Something's missing"}
+                    </div>
+                  </div>
+                )}
+                {/* Followup message */}
+                {(_aiPhase === "followup" || _aiPhase === "accordion" || _aiPhase === "results") && (
+                  <div style={{ animation: "_aiFadeIn 0.35s ease both", marginBottom: 20, fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px" }}>
+                    <p style={{ margin: 0 }}><StreamingMessage segments={_aiFollowupSegments} speed={8} instant={_aiIsResume} key={_aiIsResume ? "resume-followup" : "fresh-followup-" + _aiRestartKey} /></p>
+                  </div>
+                )}
+                {/* User choice 2 echo */}
+                {_aiUserChoice2 && (
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 20, animation: "_aiFadeIn 0.25s ease both" }}>
+                    <div style={{ background: T.colorBrandLighter, borderRadius: "12px 12px 2px 12px", padding: "10px 14px", fontSize: 14, color: T.colorTextPrimary, maxWidth: "75%" }}>
+                      {_aiUserChoice2 === "start" ? "No, start review" : "Yes, add details"}
+                    </div>
+                  </div>
+                )}
+                {/* Accordion */}
+                {(_aiPhase === "accordion" || _aiPhase === "results") && _aiStepsPopulated && _aiStepStatuses.length > 0 && (
                   <div style={{ animation: "_aiFadeIn 0.3s ease both" }}>
                     <button onClick={function() { _aiSetStepsCollapsed(function(c) { return !c; }); }} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: _aiStepsCollapsed ? 0 : 20, cursor: "pointer", background: "none", border: "none", padding: 0, width: "100%", textAlign: "left" }}>
                       <div style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#8C8C8B" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
@@ -3139,12 +3215,18 @@ function AccruedIncomeReviewFlow(_ref) {
                     })}
                   </div>
                 )}
+                {/* Final summary */}
                 {_aiCanvasReady && (<div style={{ animation: _aiIsResume ? "none" : "_aiFadeIn 0.4s ease 0.2s both", marginTop: 20, fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px" }}><p style={{ margin: 0 }}><StreamingMessage segments={[{ text: "I've found ", bold: false }, { text: "4 items", bold: true }, { text: " that need attention – including unbilled revenue, a stale receivable, and a missed recognition. Review each suggestion and take action or skip.", bold: false }]} speed={18} instant={_aiIsResume} key={_aiIsResume ? "resume" : "fresh"} /></p></div>)}
                 <div ref={_aiChatEndRef} />
               </div>
             </div>
           </div>
-          {!_aiStepsComplete && _aiLine1Done && !_aiIsResume && (<div style={{ padding: "0 24px 20px", flexShrink: 0 }}><div style={{ maxWidth: 680, margin: "0 auto" }}><div style={{ borderRadius: 8, padding: "14px 14px 12px", background: T.colorSurfacePrimary, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04), 0 0 0 1px " + T.colorBorderDark }}><div style={{ display: "flex", alignItems: "center" }}><div style={{ fontSize: 14, lineHeight: "22px", flex: 1 }}><span style={{ background: "linear-gradient(90deg, #9D9D9E 0%, #9D9D9E 30%, #2A2A2A 50%, #9D9D9E 70%, " + T.colorTextDisabled + " 100%)", backgroundSize: "200% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", animation: "_aiTextShimmer 2s linear infinite", display: "inline-block" }}>Reviewing accrued revenue...</span></div><button style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 36, padding: "0 10px", border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 13, fontWeight: 500, color: T.colorTextPrimary, flexShrink: 0, boxSizing: "border-box", fontFamily: "'Inter', sans-serif" }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorBorderLight; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; }}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="10" height="10" rx="1.5" stroke="#080908" strokeWidth="1.25" /></svg>Stop</button></div></div></div></div>)}
+          {/* Choice card 1: findings confirmation */}
+          {_aiFindingsDone && _aiPhase === "findings" && !_aiUserChoice1 && (<div style={{ padding: "60px 24px 20px", flexShrink: 0, background: "linear-gradient(to bottom, rgba(251,251,251,0) 0%, rgba(251,251,251,1) 60px)", marginTop: -60 }}><div style={{ maxWidth: 680, margin: "0 auto" }}><div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 16, padding: "20px 20px 12px", maxWidth: 480, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04)", animation: "_aiFadeIn 0.25s ease both" }}><p style={{ fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, marginTop: 0, marginBottom: 12 }}>Does this look right, or is something missing?</p><button onClick={function() { _aiSetUserChoice1("correct"); }} style={{ display: "block", width: "100%", textAlign: "left", padding: "12px 16px", marginBottom: 8, background: T.colorSurfaceTertiary, border: "none", borderRadius: 10, cursor: "pointer", fontSize: 14, color: T.colorTextPrimary, fontFamily: "'Inter', sans-serif" }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorSurfaceActive; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfaceTertiary; }}>Looks correct</button><button onClick={function() { _aiSetUserChoice1("missing"); }} style={{ display: "block", width: "100%", textAlign: "left", padding: "12px 16px", marginBottom: 8, background: T.colorSurfaceTertiary, border: "none", borderRadius: 10, cursor: "pointer", fontSize: 14, color: T.colorTextPrimary, fontFamily: "'Inter', sans-serif" }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorSurfaceActive; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfaceTertiary; }}>Something's missing</button></div></div></div>)}
+          {/* Choice card 2: unbilled work question */}
+          {_aiFollowupDone && _aiPhase === "followup" && !_aiUserChoice2 && (<div style={{ padding: "60px 24px 20px", flexShrink: 0, background: "linear-gradient(to bottom, rgba(251,251,251,0) 0%, rgba(251,251,251,1) 60px)", marginTop: -60 }}><div style={{ maxWidth: 680, margin: "0 auto" }}><div style={{ background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark, borderRadius: 16, padding: "20px 20px 12px", maxWidth: 480, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04)", animation: "_aiFadeIn 0.25s ease both" }}><button disabled style={{ display: "block", width: "100%", textAlign: "left", padding: "12px 16px", marginBottom: 8, background: T.colorSurfaceTertiary, border: "none", borderRadius: 10, cursor: "not-allowed", fontSize: 14, color: T.colorTextDisabled, fontFamily: "'Inter', sans-serif", opacity: 0.45 }}>Yes, add details</button><button onClick={function() { _aiSetUserChoice2("start"); }} style={{ display: "block", width: "100%", textAlign: "left", padding: "12px 16px", marginBottom: 8, background: T.colorSurfaceTertiary, border: "none", borderRadius: 10, cursor: "pointer", fontSize: 14, color: T.colorTextPrimary, fontFamily: "'Inter', sans-serif" }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorSurfaceActive; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfaceTertiary; }}>No, start review</button></div></div></div>)}
+          {/* Shimmer — only during accordion phase */}
+          {_aiPhase === "accordion" && !_aiStepsComplete && !_aiIsResume && (<div style={{ padding: "0 24px 20px", flexShrink: 0 }}><div style={{ maxWidth: 680, margin: "0 auto" }}><div style={{ borderRadius: 8, padding: "14px 14px 12px", background: T.colorSurfacePrimary, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04), 0 0 0 1px " + T.colorBorderDark }}><div style={{ display: "flex", alignItems: "center" }}><div style={{ fontSize: 14, lineHeight: "22px", flex: 1 }}><span style={{ background: "linear-gradient(90deg, #9D9D9E 0%, #9D9D9E 30%, #2A2A2A 50%, #9D9D9E 70%, " + T.colorTextDisabled + " 100%)", backgroundSize: "200% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", animation: "_aiTextShimmer 2s linear infinite", display: "inline-block" }}>Reviewing accrued revenue...</span></div><button style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 36, padding: "0 10px", border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 13, fontWeight: 500, color: T.colorTextPrimary, flexShrink: 0, boxSizing: "border-box", fontFamily: "'Inter', sans-serif" }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorBorderLight; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; }}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="10" height="10" rx="1.5" stroke="#080908" strokeWidth="1.25" /></svg>Stop</button></div></div></div></div>)}
           {_aiCanvasReady && (<div style={{ padding: "60px 12px 16px", flexShrink: 0, background: "linear-gradient(to bottom, rgba(251,251,251,0) 0%, rgba(251,251,251,1) 60px)", marginTop: -60 }}><div style={{ maxWidth: 680, margin: "0 auto" }}><button onClick={_aiHandleRestart} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10, height: 40, padding: "0 16px", marginBottom: 10, border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04)", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.style.borderColor = T.colorBorderHover; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; e.currentTarget.style.borderColor = T.colorBorderDark; }}><PlayCircleIcon color={T.colorTextPrimary} size={20} />Restart review</button><div style={{ borderRadius: 8, padding: "14px 14px 12px", background: T.colorSurfacePrimary, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04), 0 0 0 1px " + T.colorBorderDark }}><textarea value={_aiInputValue} onChange={function(e) { _aiSetInputValue(e.target.value); }} placeholder="Ask for changes or information..." rows={3} style={{ width: "100%", border: "none", outline: "none", resize: "none", fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px", background: "transparent", fontFamily: "'Inter', sans-serif", display: "block" }} /><div style={{ display: "flex", alignItems: "center", marginTop: 8 }}><button style={{ width: 32, height: 32, border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 6, color: T.colorTextSecondary, padding: 0 }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorBorderLight; }} onMouseLeave={function(e) { e.currentTarget.style.background = "none"; }}><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15.5 8.5L8.5 15.5C7.12 16.88 4.88 16.88 3.5 15.5C2.12 14.12 2.12 11.88 3.5 10.5L10.5 3.5C11.33 2.67 12.67 2.67 13.5 3.5C14.33 4.33 14.33 5.67 13.5 6.5L6.5 13.5C6.08 13.92 5.42 13.92 5 13.5C4.58 13.08 4.58 12.42 5 12L11.5 5.5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></button><div style={{ flex: 1 }} /><button style={{ width: 36, height: 36, marginLeft: 6, border: "1px solid " + T.colorBorderDark, borderRadius: 10, background: _aiInputValue.trim() ? T.colorBrandPrimary : T.colorSurfaceSecondary, cursor: _aiInputValue.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.15s", padding: 0 }}><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M9.99984 15.8346V4.16797M9.99984 4.16797L4.1665 10.0013M9.99984 4.16797L15.8332 10.0013" stroke={_aiInputValue.trim() ? "#FFFFFF" : "#8C8C8B"} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></button></div></div></div></div>)}
         </div>)}
         {_aiResultsVisible && !hideChat && (<div onMouseDown={_aiHandleDragStart} style={{ position: "absolute", top: 0, bottom: 0, left: _aiChatWidth + 16, width: 16, cursor: "col-resize", zIndex: 5, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ width: 4, height: 40, borderRadius: 2, background: _aiIsDragging ? T.colorBorderHover : "transparent", transition: "background 0.15s" }} /></div>)}
