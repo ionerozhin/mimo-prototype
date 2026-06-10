@@ -122,7 +122,8 @@ var _SCHEDULE_TYPES = [
   { value: "prepayments", label: "Prepayments" },
   { value: "accruals", label: "Accruals" },
   { value: "deferred_revenue", label: "Deferred revenue" },
-  { value: "accrued_income", label: "Accrued income" },
+  { value: "accrued_income", label: "Accrued revenue" },
+  { value: "depreciation", label: "Depreciation (FAR)" },
 ];
 
 function _ScheduleTopBar(_ref) {
@@ -286,8 +287,8 @@ function PrepaymentSchedulePage(_ref) {
   var fmtMonth = function(m, y) { return MONTH_NAMES[m] + " " + String(y).slice(2); };
   var monthKey = function(m, y) { return y * 12 + m; };
 
-  var PUBLISHED_THROUGH = monthKey(2, 2026);
-  var SCHEDULED_MONTH   = monthKey(3, 2026);
+  var PUBLISHED_THROUGH = monthKey(3, 2026);
+  var SCHEDULED_MONTH   = monthKey(4, 2026);
 
   var visibleMonths = [];
   for (var y = 2026, m = 0; visibleMonths.length < 12; m++) {
@@ -328,7 +329,7 @@ function PrepaymentSchedulePage(_ref) {
       period: "Nov 25 - Oct 26",
       status: "Active",
       balanceForward: 3750.00,
-      toAllocate: null,
+      toAllocate: 1000,
       expenseAccount: "6030 – Insurance",
       invoiceDate: "30 Oct 25",
       invoiceAmount: 4500.00,
@@ -590,9 +591,7 @@ function PrepaymentSchedulePage(_ref) {
     ...cellStyle, fontWeight: 600, height: 72, verticalAlign: "middle",
   };
 
-  var stickyCol0 = { position: "sticky", left: 0, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _psBorderClr, paddingLeft: 32 };
-  var stickyCol1Left = 300;
-  var stickyCol1 = { position: "sticky", left: stickyCol1Left, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _psBorderClr, boxShadow: "4px 0 8px -2px rgba(0,0,0,0.1)" };
+  var stickyCol0 = { position: "sticky", left: 0, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _psBorderClr, paddingLeft: 32, boxShadow: "4px 0 8px -2px rgba(0,0,0,0.1)" };
 
   var COL_WIDTHS = {
     description: 300, balance: 200, account: 280,
@@ -601,11 +600,11 @@ function PrepaymentSchedulePage(_ref) {
 
   var fixedColsWidth = COL_WIDTHS.description + COL_WIDTHS.balance + COL_WIDTHS.account + COL_WIDTHS.invoiceDate + COL_WIDTHS.invoiceAmount;
 
-  var renderMonthCell = function(entry, isFooter) {
+  var renderMonthCell = function(entry, isFooter, mKey) {
     if (!entry) return React.createElement("span", { style: { color: "#B0B3B8" } }, "-");
-    var addition = entry.addition, release = entry.release, status = entry.status;
-    var isPublished = status === "published";
-    var isScheduled = status === "scheduled";
+    var addition = entry.addition, release = entry.release;
+    var isPublished = mKey != null ? mKey <= PUBLISHED_THROUGH : entry.status === "published";
+    var isScheduled = mKey != null ? mKey === SCHEDULED_MONTH : entry.status === "scheduled";
     var bg = isPublished ? T.colorSuccessBg : "transparent";
     var cellContent = [];
     if (addition) {
@@ -622,10 +621,15 @@ function PrepaymentSchedulePage(_ref) {
     return React.createElement("div", { style: { background: bg, borderRadius: bg !== "transparent" ? 4 : 0, padding: bg !== "transparent" ? "2px 6px" : 0, display: "inline-flex", flexDirection: "column", gap: 2 } }, cellContent);
   };
 
-  var ActiveBadge = function() {
-    return React.createElement("span", { style: { display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" } },
-      "Active"
-    );
+  var MonthsLeftBadge = function(_ref3) {
+    var item = _ref3.item;
+    var remaining = Object.keys(item.entries).filter(function(k) {
+      return parseInt(k) >= SCHEDULED_MONTH && item.entries[k] && item.entries[k].release;
+    }).length;
+    if (remaining <= 0) {
+      return React.createElement("span", { style: { display: "inline-flex", alignItems: "center", background: "#ECECEC", color: "#757980", borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" } }, "Expired");
+    }
+    return React.createElement("span", { style: { display: "inline-flex", alignItems: "center", background: "#ECECEC", color: "#757980", borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" } }, remaining + " months left");
   };
 
   var ToAllocateBadge = function(_ref2) {
@@ -701,20 +705,20 @@ function PrepaymentSchedulePage(_ref) {
         <table style={{ borderCollapse: "separate", borderSpacing: 0, minWidth: fixedColsWidth + visibleMonths.length * COL_WIDTHS.month, width: "100%", tableLayout: "fixed" }}>
           <colgroup>
             <col style={{ width: COL_WIDTHS.description }} />
-            <col style={{ width: COL_WIDTHS.balance }} />
             <col style={{ width: COL_WIDTHS.account }} />
             <col style={{ width: COL_WIDTHS.invoiceDate }} />
             <col style={{ width: COL_WIDTHS.invoiceAmount }} />
+            <col style={{ width: COL_WIDTHS.balance }} />
             {visibleMonths.map(function(vm) { return <col key={vm.key} style={{ width: COL_WIDTHS.month }} />; })}
           </colgroup>
           <thead>
             <tr>
               <th style={{ ...thStyle, ...stickyCol0, zIndex: 4, width: COL_WIDTHS.description, minWidth: COL_WIDTHS.description }}><div style={{ display: "flex", alignItems: "center" }}>Description <SortIcon /></div></th>
-              <th style={{ ...thStyle, ...stickyCol1, zIndex: 4, width: COL_WIDTHS.balance, minWidth: COL_WIDTHS.balance }}><div style={{ display: "flex", alignItems: "center" }}>Balance forward (Dec 25) <SortIcon /></div></th>
               <th style={{ ...thStyle, width: COL_WIDTHS.account, minWidth: COL_WIDTHS.account }}><div style={{ display: "flex", alignItems: "center" }}>Expense account <SortIcon /></div></th>
               <th style={{ ...thStyle, width: COL_WIDTHS.invoiceDate, minWidth: COL_WIDTHS.invoiceDate }}><div style={{ display: "flex", alignItems: "center" }}>Invoice date <SortIcon /></div></th>
               <th style={{ ...thStyle, width: COL_WIDTHS.invoiceAmount, minWidth: COL_WIDTHS.invoiceAmount }}><div style={{ display: "flex", alignItems: "center" }}>Invoice amount <SortIcon /></div></th>
-              {visibleMonths.map(function(vm) { return <th key={vm.key} style={{ ...thStyle, width: COL_WIDTHS.month, minWidth: COL_WIDTHS.month, textAlign: "right" }}>{vm.label}</th>; })}
+              <th style={{ ...thStyle, width: COL_WIDTHS.balance, minWidth: COL_WIDTHS.balance }}><div style={{ display: "flex", alignItems: "center" }}>Balance forward (Dec 25) <SortIcon /></div></th>
+              {visibleMonths.map(function(vm) { var isCur = vm.key === SCHEDULED_MONTH; return <th key={vm.key} style={{ ...thStyle, width: COL_WIDTHS.month, minWidth: COL_WIDTHS.month, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}><span>{vm.label}</span>{isCur && <span style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", color: "#757980", borderRadius: 4, padding: "1px 5px", fontSize: 10, fontWeight: 600, lineHeight: "15px", whiteSpace: "nowrap" }}>Current</span>}</div></th>; })}
             </tr>
           </thead>
           <tbody>
@@ -728,49 +732,49 @@ function PrepaymentSchedulePage(_ref) {
                   <td data-sticky="1" style={{ ...cellStyle, ...stickyCol0 }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                       <span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ ...T.textXs, color: T.colorTextSecondary }}>{item.period}</span>
-                        {item.isSuggestion ? (item.cardIdx != null && reviewState && reviewState.resolvedArray && reviewState.resolvedArray.indexOf(item.cardIdx) !== -1 ? React.createElement("span", { style: { display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" } }, "Active") : React.createElement("span", { style: { display: "inline-flex", alignItems: "center", gap: 4, background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" } }, "Suggestion")) : <ActiveBadge />}
-                      </div>
-                    </div>
-                  </td>
-                  <td data-sticky="1" style={{ ...cellStyle, ...stickyCol1 }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      <span>{item.balanceForward != null ? fmtGBP(item.balanceForward) : "-"}</span>
-                      {item.toAllocate != null && <ToAllocateBadge amount={item.toAllocate} />}
+                      {(!item.isSuggestion && item.toAllocate != null) ? (
+                        <span style={{ display: "inline-flex", alignItems: "center", alignSelf: "flex-start", background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px", whiteSpace: "nowrap" }}>{fmtGBP(item.toAllocate)} unallocated</span>
+                      ) : (
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <span style={{ ...T.textXs, color: T.colorTextSecondary }}>{item.period}</span>
+                          {item.isSuggestion ? (item.cardIdx != null && reviewState && reviewState.resolvedArray && reviewState.resolvedArray.indexOf(item.cardIdx) !== -1 ? React.createElement("span", { style: { display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" } }, "Active") : React.createElement("span", { style: { display: "inline-flex", alignItems: "center", gap: 4, background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" } }, "Suggestion")) : <MonthsLeftBadge item={item} />}
+                        </div>
+                      )}
                     </div>
                   </td>
                   <td style={{ ...cellStyle, color: T.colorTextPrimary }}>{item.expenseAccount}</td>
                   <td style={{ ...cellStyle, color: T.colorTextPrimary }}>{item.invoiceDate}</td>
                   <td style={{ ...cellStyle, color: T.colorTextPrimary, textAlign: "right" }}>{fmtGBP(item.invoiceAmount)}</td>
-                  {visibleMonths.map(function(vm) { return <td key={vm.key} style={{ ...cellStyle, textAlign: "right" }}>{renderMonthCell(item.entries[vm.key], false)}</td>; })}
+                  <td style={{ ...cellStyle }}>
+                    <span>{item.balanceForward != null ? fmtGBP(item.balanceForward) : "-"}</span>
+                  </td>
+                  {visibleMonths.map(function(vm) { var isCur = vm.key === SCHEDULED_MONTH; return <td key={vm.key} style={{ ...cellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}>{renderMonthCell(item.entries[vm.key], false, vm.key)}</td>; })}
                 </tr>
               );
             })}
           </tbody>
           <tfoot>
             <tr>
-              <td style={{ ...footerCellStyle, ...stickyCol0 }} colSpan={1}>Total releases</td>
-              <td style={{ ...footerCellStyle, ...stickyCol1 }} colSpan={1}></td>
-              <td style={{ ...footerCellStyle }} colSpan={3}></td>
-              {visibleMonths.map(function(vm) { return <td key={vm.key} style={{ ...footerCellStyle, textAlign: "right" }}>{totalReleases[vm.key] ? fmtRelease(totalReleases[vm.key]) : "-"}</td>; })}
+              <td style={{ ...footerCellStyle, ...stickyCol0 }} colSpan={1}>Total additions</td>
+              <td style={{ ...footerCellStyle }} colSpan={4}></td>
+              {visibleMonths.map(function(vm) { var isCur = vm.key === SCHEDULED_MONTH; return <td key={vm.key} style={{ ...footerCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}>{totalAdditions[vm.key] ? fmtAddition(totalAdditions[vm.key]) : "-"}</td>; })}
             </tr>
             <tr>
-              <td style={{ ...footerCellStyle, ...stickyCol0 }} colSpan={1}>Total additions</td>
-              <td style={{ ...footerCellStyle, ...stickyCol1 }} colSpan={1}></td>
-              <td style={{ ...footerCellStyle }} colSpan={3}></td>
-              {visibleMonths.map(function(vm) { return <td key={vm.key} style={{ ...footerCellStyle, textAlign: "right" }}>{totalAdditions[vm.key] ? fmtAddition(totalAdditions[vm.key]) : "-"}</td>; })}
+              <td style={{ ...footerCellStyle, ...stickyCol0 }} colSpan={1}>Total releases</td>
+              <td style={{ ...footerCellStyle }} colSpan={4}></td>
+              {visibleMonths.map(function(vm) { var isCur = vm.key === SCHEDULED_MONTH; return <td key={vm.key} style={{ ...footerCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}>{totalReleases[vm.key] ? fmtRelease(totalReleases[vm.key]) : "-"}</td>; })}
             </tr>
             <tr>
               <td style={{ ...footerCellStyle, ...stickyCol0 }} colSpan={1}>Closing balance</td>
-              <td style={{ ...footerCellStyle, ...stickyCol1 }} colSpan={1}></td>
               <td style={{ ...footerCellStyle }} colSpan={3}></td>
+              <td style={{ ...footerCellStyle }}>{fmtGBP(openingBalance)}</td>
               {visibleMonths.map(function(vm) {
+                var isCur = vm.key === SCHEDULED_MONTH;
                 return (
-                  <td key={vm.key} style={{ ...footerCellStyle, textAlign: "right" }}>
+                  <td key={vm.key} style={{ ...footerCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
                       <span>{fmtGBP(closingBalances[vm.key])}</span>
-                      {vm.key === monthKey(2, 2026) && (
+                      {vm.key === monthKey(3, 2026) && (
                         <span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: "#757980", whiteSpace: "nowrap" }}>
                           GL +£125.00
                         </span>
@@ -923,8 +927,8 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
   const _asFmtMonth = (m, y) => _asMonthNames[m] + " " + String(y).slice(2);
   const _asMonthKey = (m, y) => y * 12 + m;
 
-  const _asPublishedThrough = _asMonthKey(2, 2026);
-  const _asScheduledMonth   = _asMonthKey(3, 2026);
+  const _asPublishedThrough = _asMonthKey(3, 2026);
+  const _asScheduledMonth   = _asMonthKey(4, 2026);
 
   const _asVisibleMonths = [];
   for (let y = 2026, m = 0; _asVisibleMonths.length < 12; m++) {
@@ -962,13 +966,11 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
   const _asThStyle = { ...T.textSm, fontWeight: 400, color: "#757980", padding: "10px 12px", textAlign: "left", whiteSpace: "nowrap", borderBottom: "1px solid " + _asBorderClr, borderRight: "1px solid " + _asBorderClr, position: "sticky", top: 0, background: T.colorSurfacePrimary, zIndex: 2 };
   const _asCellStyle = { ...T.textSm, color: T.colorTextPrimary, padding: "10px 12px", borderBottom: "1px solid " + _asBorderClr, borderRight: "1px solid " + _asBorderClr, whiteSpace: "normal", verticalAlign: "middle" };
   const _asFooterCellStyle = { ..._asCellStyle, fontWeight: 600, height: 72, verticalAlign: "middle" };
-  const _asStickyCol0 = { position: "sticky", left: 0, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _asBorderClr, paddingLeft: 32 };
-  const _asStickyCol1Left = 300;
-  const _asStickyCol1 = { position: "sticky", left: _asStickyCol1Left, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _asBorderClr, boxShadow: "4px 0 8px -2px rgba(0,0,0,0.1)" };
+  const _asStickyCol0 = { position: "sticky", left: 0, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _asBorderClr, paddingLeft: 32, boxShadow: "4px 0 8px -2px rgba(0,0,0,0.1)" };
   const _asColWidths = { description: 300, balance: 200, account: 280, invoiceDate: 130, invoiceAmount: 160, month: 140 };
   const _asFixedColsWidth = _asColWidths.description + _asColWidths.balance + _asColWidths.account + _asColWidths.invoiceDate + _asColWidths.invoiceAmount;
 
-  const _asRenderMonthCell = (entry, isFooter) => { if (!entry) return <span style={{ color: "#B0B3B8" }}>-</span>; const { addition, reversal, status } = entry; const isPublished = status === "published"; const isScheduled = status === "scheduled"; const bg = isPublished ? T.colorSuccessBg : "transparent"; const cellContent = []; if (reversal) { if (isScheduled) { cellContent.push(<div key="rev" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_asFmtReversal(reversal)}<_asClockIcon /></div>); } else { cellContent.push(<div key="rev" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_asFmtReversal(reversal)}</div>); } } if (addition) { if (isScheduled && !reversal) { cellContent.push(<div key="add" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_asFmtAddition(addition)}<_asClockIcon /></div>); } else { cellContent.push(<div key="add" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_asFmtAddition(addition)}</div>); } } if (cellContent.length === 0) return <span style={{ color: "#B0B3B8" }}>-</span>; return (<div style={{ background: bg, borderRadius: bg !== "transparent" ? 4 : 0, padding: bg !== "transparent" ? "2px 6px" : 0, display: "inline-flex", flexDirection: "column", gap: 2 }}>{cellContent}</div>); };
+  const _asRenderMonthCell = (entry, isFooter, mKey) => { if (!entry) return <span style={{ color: "#B0B3B8" }}>-</span>; const { addition, reversal } = entry; const isPublished = mKey != null ? mKey <= _asPublishedThrough : entry.status === "published"; const isScheduled = mKey != null ? mKey === _asScheduledMonth : entry.status === "scheduled"; const bg = isPublished ? T.colorSuccessBg : "transparent"; const cellContent = []; if (reversal) { if (isScheduled) { cellContent.push(<div key="rev" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_asFmtReversal(reversal)}<_asClockIcon /></div>); } else { cellContent.push(<div key="rev" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_asFmtReversal(reversal)}</div>); } } if (addition) { if (isScheduled && !reversal) { cellContent.push(<div key="add" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_asFmtAddition(addition)}<_asClockIcon /></div>); } else { cellContent.push(<div key="add" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_asFmtAddition(addition)}</div>); } } if (cellContent.length === 0) return <span style={{ color: "#B0B3B8" }}>-</span>; return (<div style={{ background: bg, borderRadius: bg !== "transparent" ? 4 : 0, padding: bg !== "transparent" ? "2px 6px" : 0, display: "inline-flex", flexDirection: "column", gap: 2 }}>{cellContent}</div>); };
 
   const _asActiveBadge = () => (<span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Active</span>);
   const _asToAllocateBadge = ({ amount }) => (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px", whiteSpace: "nowrap" }}>{_asFmtGBP(amount)} to allocate</span>);
@@ -1028,29 +1030,29 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
         </div>
         <div style={{ flex: "1 1 auto", minHeight: 0, overflowX: "auto", overflowY: "auto" }}>
         <table style={{ borderCollapse: "separate", borderSpacing: 0, minWidth: _asFixedColsWidth + _asVisibleMonths.length * _asColWidths.month, width: "100%", tableLayout: "fixed" }}>
-          <colgroup><col style={{ width: _asColWidths.description }} /><col style={{ width: _asColWidths.balance }} /><col style={{ width: _asColWidths.account }} /><col style={{ width: _asColWidths.invoiceDate }} /><col style={{ width: _asColWidths.invoiceAmount }} />{_asVisibleMonths.map(vm => (<col key={vm.key} style={{ width: _asColWidths.month }} />))}</colgroup>
+          <colgroup><col style={{ width: _asColWidths.description }} /><col style={{ width: _asColWidths.account }} /><col style={{ width: _asColWidths.invoiceDate }} /><col style={{ width: _asColWidths.invoiceAmount }} /><col style={{ width: _asColWidths.balance }} />{_asVisibleMonths.map(vm => (<col key={vm.key} style={{ width: _asColWidths.month }} />))}</colgroup>
           <thead><tr>
             <th style={{ ..._asThStyle, ..._asStickyCol0, zIndex: 4, width: _asColWidths.description, minWidth: _asColWidths.description }}><div style={{ display: "flex", alignItems: "center" }}>Description <_asSortIcon /></div></th>
-            <th style={{ ..._asThStyle, ..._asStickyCol1, zIndex: 4, width: _asColWidths.balance, minWidth: _asColWidths.balance }}><div style={{ display: "flex", alignItems: "center" }}>Balance forward (Dec 25) <_asSortIcon /></div></th>
             <th style={{ ..._asThStyle, width: _asColWidths.account, minWidth: _asColWidths.account }}><div style={{ display: "flex", alignItems: "center" }}>Expense account <_asSortIcon /></div></th>
             <th style={{ ..._asThStyle, width: _asColWidths.invoiceDate, minWidth: _asColWidths.invoiceDate }}><div style={{ display: "flex", alignItems: "center" }}>Invoice date <_asSortIcon /></div></th>
             <th style={{ ..._asThStyle, width: _asColWidths.invoiceAmount, minWidth: _asColWidths.invoiceAmount }}><div style={{ display: "flex", alignItems: "center" }}>Invoice amount <_asSortIcon /></div></th>
-            {_asVisibleMonths.map(vm => (<th key={vm.key} style={{ ..._asThStyle, width: _asColWidths.month, minWidth: _asColWidths.month, textAlign: "right" }}>{vm.label}</th>))}
+            <th style={{ ..._asThStyle, width: _asColWidths.balance, minWidth: _asColWidths.balance }}><div style={{ display: "flex", alignItems: "center" }}>Balance forward (Dec 25) <_asSortIcon /></div></th>
+            {_asVisibleMonths.map(vm => { const isCur = vm.key === _asScheduledMonth; return (<th key={vm.key} style={{ ..._asThStyle, width: _asColWidths.month, minWidth: _asColWidths.month, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}><span>{vm.label}</span>{isCur && <span style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", color: "#757980", borderRadius: 4, padding: "1px 5px", fontSize: 10, fontWeight: 600, lineHeight: "15px", whiteSpace: "nowrap" }}>Current</span>}</div></th>); })}
           </tr></thead>
           <tbody>{_asFilteredData.map(item => (
             <tr key={item.id} style={{ cursor: "pointer" }} onMouseEnter={e => { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfacePrimary; }); }} onClick={function() { if (item.isSuggestion && item.cardIdx != null && sugCards) { var match = sugCards.filter(function(c) { return c.idx === item.cardIdx; })[0]; if (match) _asSetDrawerCard(match); } }}>
               <td data-sticky="1" style={{ ..._asCellStyle, ..._asStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}>{item.isSuggestion ? (item.cardIdx != null && reviewState && reviewState.resolvedArray && reviewState.resolvedArray.indexOf(item.cardIdx) !== -1 ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Active</span> : <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Suggestion</span>) : <_asActiveBadge />}</div></div></td>
-              <td data-sticky="1" style={{ ..._asCellStyle, ..._asStickyCol1 }}><div style={{ display: "flex", flexDirection: "column", gap: 4 }}><span>{item.balanceForward != null ? _asFmtGBP(item.balanceForward) : "-"}</span>{item.toAllocate != null && <_asToAllocateBadge amount={item.toAllocate} />}</div></td>
               <td style={{ ..._asCellStyle, color: T.colorTextPrimary }}>{item.expenseAccount}</td>
               <td style={{ ..._asCellStyle, color: T.colorTextPrimary }}>{item.invoiceDate}</td>
               <td style={{ ..._asCellStyle, color: T.colorTextPrimary, textAlign: "right" }}>{item.invoiceAmount != null ? _asFmtGBP(item.invoiceAmount) : "-"}</td>
-              {_asVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._asCellStyle, textAlign: "right" }}>{_asRenderMonthCell(item.entries[vm.key], false)}</td>))}
+              <td style={{ ..._asCellStyle }}><span>{item.balanceForward != null ? _asFmtGBP(item.balanceForward) : "-"}</span></td>
+              {_asVisibleMonths.map(vm => { const isCur = vm.key === _asScheduledMonth; return (<td key={vm.key} style={{ ..._asCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}>{_asRenderMonthCell(item.entries[vm.key], false, vm.key)}</td>); })}
             </tr>
           ))}</tbody>
           <tfoot>
-            <tr><td style={{ ..._asFooterCellStyle, ..._asStickyCol0 }} colSpan={1}>Total reversals</td><td style={{ ..._asFooterCellStyle, ..._asStickyCol1 }} colSpan={1}></td><td style={{ ..._asFooterCellStyle }} colSpan={3}></td>{_asVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._asFooterCellStyle, textAlign: "right" }}>{_asTotalReversals[vm.key] ? _asFmtReversal(_asTotalReversals[vm.key]) : "-"}</td>))}</tr>
-            <tr><td style={{ ..._asFooterCellStyle, ..._asStickyCol0 }} colSpan={1}>Total additions</td><td style={{ ..._asFooterCellStyle, ..._asStickyCol1 }} colSpan={1}></td><td style={{ ..._asFooterCellStyle }} colSpan={3}></td>{_asVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._asFooterCellStyle, textAlign: "right" }}>{_asTotalAdditions[vm.key] ? _asFmtAddition(_asTotalAdditions[vm.key]) : "-"}</td>))}</tr>
-            <tr><td style={{ ..._asFooterCellStyle, ..._asStickyCol0 }} colSpan={1}>Closing balance</td><td style={{ ..._asFooterCellStyle, ..._asStickyCol1 }} colSpan={1}></td><td style={{ ..._asFooterCellStyle }} colSpan={3}></td>{_asVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._asFooterCellStyle, textAlign: "right" }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{_asFmtGBP(_asClosingBalances[vm.key])}</span>{vm.key === _asMonthKey(2, 2026) && (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: "#757980", whiteSpace: "nowrap" }}>GL +£340.00</span>)}</div></td>))}</tr>
+            <tr><td style={{ ..._asFooterCellStyle, ..._asStickyCol0 }} colSpan={1}>Total additions</td><td style={{ ..._asFooterCellStyle }} colSpan={4}></td>{_asVisibleMonths.map(vm => { const isCur = vm.key === _asScheduledMonth; return (<td key={vm.key} style={{ ..._asFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}>{_asTotalAdditions[vm.key] ? _asFmtAddition(_asTotalAdditions[vm.key]) : "-"}</td>); })}</tr>
+            <tr><td style={{ ..._asFooterCellStyle, ..._asStickyCol0 }} colSpan={1}>Total reversals</td><td style={{ ..._asFooterCellStyle }} colSpan={4}></td>{_asVisibleMonths.map(vm => { const isCur = vm.key === _asScheduledMonth; return (<td key={vm.key} style={{ ..._asFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}>{_asTotalReversals[vm.key] ? _asFmtReversal(_asTotalReversals[vm.key]) : "-"}</td>); })}</tr>
+            <tr><td style={{ ..._asFooterCellStyle, ..._asStickyCol0 }} colSpan={1}>Closing balance</td><td style={{ ..._asFooterCellStyle }} colSpan={3}></td><td style={{ ..._asFooterCellStyle }}>{_asFmtGBP(_asOpeningBalance)}</td>{_asVisibleMonths.map(vm => { const isCur = vm.key === _asScheduledMonth; return (<td key={vm.key} style={{ ..._asFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{_asFmtGBP(_asClosingBalances[vm.key])}</span>{vm.key === _asMonthKey(3, 2026) && (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: "#757980", whiteSpace: "nowrap" }}>GL +£340.00</span>)}</div></td>); })}</tr>
           </tfoot>
         </table>
         </div>
@@ -1139,8 +1141,8 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
   const _drMonthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const _drFmtMonth = (m, y) => _drMonthNames[m] + " " + String(y).slice(2);
   const _drMonthKey = (m, y) => y * 12 + m;
-  const _drPublishedThrough = _drMonthKey(2, 2026);
-  const _drScheduledMonth   = _drMonthKey(3, 2026);
+  const _drPublishedThrough = _drMonthKey(3, 2026);
+  const _drScheduledMonth   = _drMonthKey(4, 2026);
   const _drVisibleMonths = [];
   for (let y = 2026, m = 0; _drVisibleMonths.length < 12; m++) { if (m > 11) { m = 0; y++; } _drVisibleMonths.push({ m, y, key: _drMonthKey(m, y), label: _drFmtMonth(m, y) }); }
 
@@ -1170,13 +1172,11 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
   const _drThStyle = { ...T.textSm, fontWeight: 400, color: "#757980", padding: "10px 12px", textAlign: "left", whiteSpace: "nowrap", borderBottom: "1px solid " + _drBorderClr, borderRight: "1px solid " + _drBorderClr, position: "sticky", top: 0, background: T.colorSurfacePrimary, zIndex: 2 };
   const _drCellStyle = { ...T.textSm, color: T.colorTextPrimary, padding: "10px 12px", borderBottom: "1px solid " + _drBorderClr, borderRight: "1px solid " + _drBorderClr, whiteSpace: "normal", verticalAlign: "middle" };
   const _drFooterCellStyle = { ..._drCellStyle, fontWeight: 600, height: 72, verticalAlign: "middle" };
-  const _drStickyCol0 = { position: "sticky", left: 0, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _drBorderClr, paddingLeft: 32 };
-  const _drStickyCol1Left = 300;
-  const _drStickyCol1 = { position: "sticky", left: _drStickyCol1Left, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _drBorderClr, boxShadow: "4px 0 8px -2px rgba(0,0,0,0.1)" };
+  const _drStickyCol0 = { position: "sticky", left: 0, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _drBorderClr, paddingLeft: 32, boxShadow: "4px 0 8px -2px rgba(0,0,0,0.1)" };
   const _drColWidths = { description: 300, balance: 200, account: 280, invoiceDate: 130, invoiceAmount: 160, month: 140 };
   const _drFixedColsWidth = _drColWidths.description + _drColWidths.balance + _drColWidths.account + _drColWidths.invoiceDate + _drColWidths.invoiceAmount;
 
-  const _drRenderMonthCell = (entry, isFooter) => { if (!entry) return <span style={{ color: "#B0B3B8" }}>-</span>; const { addition, recognition, status } = entry; const isPublished = status === "published"; const isScheduled = status === "scheduled"; const bg = isPublished ? T.colorSuccessBg : "transparent"; const cellContent = []; if (addition) { cellContent.push(<div key="add" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_drFmtAddition(addition)}</div>); } if (recognition) { if (isScheduled) { cellContent.push(<div key="rec" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_drFmtRecognition(recognition)}<_drClockIcon /></div>); } else { cellContent.push(<div key="rec" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_drFmtRecognition(recognition)}</div>); } } if (cellContent.length === 0) return <span style={{ color: "#B0B3B8" }}>-</span>; return (<div style={{ background: bg, borderRadius: bg !== "transparent" ? 4 : 0, padding: bg !== "transparent" ? "2px 6px" : 0, display: "inline-flex", flexDirection: "column", gap: 2 }}>{cellContent}</div>); };
+  const _drRenderMonthCell = (entry, isFooter, mKey) => { if (!entry) return <span style={{ color: "#B0B3B8" }}>-</span>; const { addition, recognition } = entry; const isPublished = mKey != null ? mKey <= _drPublishedThrough : entry.status === "published"; const isScheduled = mKey != null ? mKey === _drScheduledMonth : entry.status === "scheduled"; const bg = isPublished ? T.colorSuccessBg : "transparent"; const cellContent = []; if (addition) { cellContent.push(<div key="add" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_drFmtAddition(addition)}</div>); } if (recognition) { if (isScheduled) { cellContent.push(<div key="rec" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_drFmtRecognition(recognition)}<_drClockIcon /></div>); } else { cellContent.push(<div key="rec" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_drFmtRecognition(recognition)}</div>); } } if (cellContent.length === 0) return <span style={{ color: "#B0B3B8" }}>-</span>; return (<div style={{ background: bg, borderRadius: bg !== "transparent" ? 4 : 0, padding: bg !== "transparent" ? "2px 6px" : 0, display: "inline-flex", flexDirection: "column", gap: 2 }}>{cellContent}</div>); };
 
   const _drActiveBadge = () => (<span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Active</span>);
   const _drToAllocateBadge = ({ amount }) => (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px", whiteSpace: "nowrap" }}>{_drFmtGBP(amount)} to allocate</span>);
@@ -1236,29 +1236,29 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
         </div>
         <div style={{ overflowX: "auto", overflowY: "auto", flex: "1 1 auto", minHeight: 0 }}>
         <table style={{ borderCollapse: "separate", borderSpacing: 0, minWidth: _drFixedColsWidth + _drVisibleMonths.length * _drColWidths.month, width: "100%", tableLayout: "fixed" }}>
-          <colgroup><col style={{ width: _drColWidths.description }} /><col style={{ width: _drColWidths.balance }} /><col style={{ width: _drColWidths.account }} /><col style={{ width: _drColWidths.invoiceDate }} /><col style={{ width: _drColWidths.invoiceAmount }} />{_drVisibleMonths.map(vm => (<col key={vm.key} style={{ width: _drColWidths.month }} />))}</colgroup>
+          <colgroup><col style={{ width: _drColWidths.description }} /><col style={{ width: _drColWidths.account }} /><col style={{ width: _drColWidths.invoiceDate }} /><col style={{ width: _drColWidths.invoiceAmount }} /><col style={{ width: _drColWidths.balance }} />{_drVisibleMonths.map(vm => (<col key={vm.key} style={{ width: _drColWidths.month }} />))}</colgroup>
           <thead><tr>
             <th style={{ ..._drThStyle, ..._drStickyCol0, zIndex: 4, width: _drColWidths.description, minWidth: _drColWidths.description }}><div style={{ display: "flex", alignItems: "center" }}>Description <_drSortIcon /></div></th>
-            <th style={{ ..._drThStyle, ..._drStickyCol1, zIndex: 4, width: _drColWidths.balance, minWidth: _drColWidths.balance }}><div style={{ display: "flex", alignItems: "center" }}>Balance forward (Dec 25) <_drSortIcon /></div></th>
             <th style={{ ..._drThStyle, width: _drColWidths.account, minWidth: _drColWidths.account }}><div style={{ display: "flex", alignItems: "center" }}>Revenue account <_drSortIcon /></div></th>
             <th style={{ ..._drThStyle, width: _drColWidths.invoiceDate, minWidth: _drColWidths.invoiceDate }}><div style={{ display: "flex", alignItems: "center" }}>Invoice date <_drSortIcon /></div></th>
             <th style={{ ..._drThStyle, width: _drColWidths.invoiceAmount, minWidth: _drColWidths.invoiceAmount }}><div style={{ display: "flex", alignItems: "center" }}>Invoice amount <_drSortIcon /></div></th>
-            {_drVisibleMonths.map(vm => (<th key={vm.key} style={{ ..._drThStyle, width: _drColWidths.month, minWidth: _drColWidths.month, textAlign: "right" }}>{vm.label}</th>))}
+            <th style={{ ..._drThStyle, width: _drColWidths.balance, minWidth: _drColWidths.balance }}><div style={{ display: "flex", alignItems: "center" }}>Balance forward (Dec 25) <_drSortIcon /></div></th>
+            {_drVisibleMonths.map(vm => { const isCur = vm.key === _drScheduledMonth; return (<th key={vm.key} style={{ ..._drThStyle, width: _drColWidths.month, minWidth: _drColWidths.month, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}><span>{vm.label}</span>{isCur && <span style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", color: "#757980", borderRadius: 4, padding: "1px 5px", fontSize: 10, fontWeight: 600, lineHeight: "15px", whiteSpace: "nowrap" }}>Current</span>}</div></th>); })}
           </tr></thead>
           <tbody>{_drFilteredData.map(item => (
             <tr key={item.id} style={{ cursor: "pointer" }} onClick={() => { if (item.isSuggestion && item.cardIdx != null && sugCards) { var match = sugCards.filter(c => c.idx === item.cardIdx)[0]; if (match) _drSetDrawerCard(match); } }} onMouseEnter={e => { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfacePrimary; }); }}>
               <td data-sticky="1" style={{ ..._drCellStyle, ..._drStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ ...T.textXs, color: T.colorTextSecondary }}>{item.period}</span>{item.isSuggestion ? (item.cardIdx != null && reviewState && reviewState.resolvedArray && reviewState.resolvedArray.indexOf(item.cardIdx) !== -1 ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Active</span> : <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Suggestion</span>) : <_drActiveBadge />}</div></div></td>
-              <td data-sticky="1" style={{ ..._drCellStyle, ..._drStickyCol1 }}><div style={{ display: "flex", flexDirection: "column", gap: 4 }}><span>{item.balanceForward != null ? _drFmtGBP(item.balanceForward) : "-"}</span>{item.toAllocate != null && <_drToAllocateBadge amount={item.toAllocate} />}</div></td>
               <td style={{ ..._drCellStyle, color: T.colorTextPrimary }}>{item.revenueAccount}</td>
               <td style={{ ..._drCellStyle, color: T.colorTextPrimary }}>{item.invoiceDate}</td>
               <td style={{ ..._drCellStyle, color: T.colorTextPrimary, textAlign: "right" }}>{_drFmtGBP(item.invoiceAmount)}</td>
-              {_drVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._drCellStyle, textAlign: "right" }}>{_drRenderMonthCell(item.entries[vm.key], false)}</td>))}
+              <td style={{ ..._drCellStyle }}><span>{item.balanceForward != null ? _drFmtGBP(item.balanceForward) : "-"}</span></td>
+              {_drVisibleMonths.map(vm => { const isCur = vm.key === _drScheduledMonth; return (<td key={vm.key} style={{ ..._drCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}>{_drRenderMonthCell(item.entries[vm.key], false, vm.key)}</td>); })}
             </tr>
           ))}</tbody>
           <tfoot>
-            <tr><td style={{ ..._drFooterCellStyle, ..._drStickyCol0 }} colSpan={1}>Total recognitions</td><td style={{ ..._drFooterCellStyle, ..._drStickyCol1 }} colSpan={1}></td><td style={{ ..._drFooterCellStyle }} colSpan={3}></td>{_drVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._drFooterCellStyle, textAlign: "right" }}>{_drTotalRecognitions[vm.key] ? _drFmtRecognition(_drTotalRecognitions[vm.key]) : "-"}</td>))}</tr>
-            <tr><td style={{ ..._drFooterCellStyle, ..._drStickyCol0 }} colSpan={1}>Total additions</td><td style={{ ..._drFooterCellStyle, ..._drStickyCol1 }} colSpan={1}></td><td style={{ ..._drFooterCellStyle }} colSpan={3}></td>{_drVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._drFooterCellStyle, textAlign: "right" }}>{_drTotalAdditions[vm.key] ? _drFmtAddition(_drTotalAdditions[vm.key]) : "-"}</td>))}</tr>
-            <tr><td style={{ ..._drFooterCellStyle, ..._drStickyCol0 }} colSpan={1}>Closing balance</td><td style={{ ..._drFooterCellStyle, ..._drStickyCol1 }} colSpan={1}></td><td style={{ ..._drFooterCellStyle }} colSpan={3}></td>{_drVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._drFooterCellStyle, textAlign: "right" }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{_drFmtGBP(_drClosingBalances[vm.key])}</span>{vm.key === _drMonthKey(2, 2026) && (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: "#757980", whiteSpace: "nowrap" }}>GL +£340.00</span>)}</div></td>))}</tr>
+            <tr><td style={{ ..._drFooterCellStyle, ..._drStickyCol0 }} colSpan={1}>Total additions</td><td style={{ ..._drFooterCellStyle }} colSpan={4}></td>{_drVisibleMonths.map(vm => { const isCur = vm.key === _drScheduledMonth; return (<td key={vm.key} style={{ ..._drFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}>{_drTotalAdditions[vm.key] ? _drFmtAddition(_drTotalAdditions[vm.key]) : "-"}</td>); })}</tr>
+            <tr><td style={{ ..._drFooterCellStyle, ..._drStickyCol0 }} colSpan={1}>Total recognitions</td><td style={{ ..._drFooterCellStyle }} colSpan={4}></td>{_drVisibleMonths.map(vm => { const isCur = vm.key === _drScheduledMonth; return (<td key={vm.key} style={{ ..._drFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}>{_drTotalRecognitions[vm.key] ? _drFmtRecognition(_drTotalRecognitions[vm.key]) : "-"}</td>); })}</tr>
+            <tr><td style={{ ..._drFooterCellStyle, ..._drStickyCol0 }} colSpan={1}>Closing balance</td><td style={{ ..._drFooterCellStyle }} colSpan={3}></td><td style={{ ..._drFooterCellStyle }}>{_drFmtGBP(_drOpeningBalance)}</td>{_drVisibleMonths.map(vm => { const isCur = vm.key === _drScheduledMonth; return (<td key={vm.key} style={{ ..._drFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{_drFmtGBP(_drClosingBalances[vm.key])}</span>{vm.key === _drMonthKey(3, 2026) && (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: "#757980", whiteSpace: "nowrap" }}>GL +£340.00</span>)}</div></td>); })}</tr>
           </tfoot>
         </table>
         </div>
@@ -1378,7 +1378,7 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
 }
 
 
-// ── Accrued Income Schedule ────────────────────────────────────────────────
+// ── Accrued Revenue Schedule ────────────────────────────────────────────────
 function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview, onReviewStateChange, viewMode, onToggleMode, adjComments = {}, onAddAdjComment }) {
   const [_sugPanelOpen, _setSugPanelOpen] = useState(false);
   const [_aiDrawerCard, _aiSetDrawerCard] = useState(null);
@@ -1405,16 +1405,16 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
   const _aiMonthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const _aiFmtMonth = (m, y) => _aiMonthNames[m] + " " + String(y).slice(2);
   const _aiMonthKey = (m, y) => y * 12 + m;
-  const _aiPublishedThrough = _aiMonthKey(2, 2026);
-  const _aiScheduledMonth   = _aiMonthKey(3, 2026);
+  const _aiPublishedThrough = _aiMonthKey(3, 2026);
+  const _aiScheduledMonth   = _aiMonthKey(4, 2026);
   const _aiVisibleMonths = [];
   for (let y = 2026, m = 0; _aiVisibleMonths.length < 12; m++) { if (m > 11) { m = 0; y++; } _aiVisibleMonths.push({ m, y, key: _aiMonthKey(m, y), label: _aiFmtMonth(m, y) }); }
 
   const _aiData = [
-    { id: 1, description: "Unbilled deliveries – Booker Wholesale", period: "Ongoing", status: "Active", balanceForward: 3600.00, toAllocate: null, incomeAccount: "4000 – Sales", invoiceDate: "-", invoiceAmount: null, entries: function() { const e = {}; e[_aiMonthKey(0, 2026)] = { reversal: 3600.00, addition: 1800.00, status: "published" }; e[_aiMonthKey(1, 2026)] = { reversal: 0, addition: 1800.00, status: "published" }; e[_aiMonthKey(2, 2026)] = { reversal: 0, addition: 1800.00, status: "published" }; e[_aiMonthKey(3, 2026)] = { reversal: 0, addition: 1800.00, status: "scheduled" }; e[_aiMonthKey(4, 2026)] = { reversal: 0, addition: 1800.00, status: "future" }; e[_aiMonthKey(5, 2026)] = { reversal: 5400.00, addition: 1800.00, status: "future" }; e[_aiMonthKey(6, 2026)] = { reversal: 0, addition: 1800.00, status: "future" }; e[_aiMonthKey(7, 2026)] = { reversal: 0, addition: 1800.00, status: "future" }; e[_aiMonthKey(8, 2026)] = { reversal: 5400.00, addition: 1800.00, status: "future" }; e[_aiMonthKey(9, 2026)] = { reversal: 0, addition: 1800.00, status: "future" }; e[_aiMonthKey(10, 2026)] = { reversal: 0, addition: 1800.00, status: "future" }; e[_aiMonthKey(11, 2026)] = { reversal: 5400.00, addition: 1800.00, status: "future" }; return e; }(), },
-    { id: 2, description: "Sublease rent – Warehouse unit B tenant", period: "Quarterly, ongoing", status: "Active", balanceForward: 1950.00, toAllocate: null, incomeAccount: "4200 – Rental income", invoiceDate: "-", invoiceAmount: null, entries: function() { const e = {}; e[_aiMonthKey(0, 2026)] = { reversal: 1950.00, addition: 650.00, status: "published" }; e[_aiMonthKey(1, 2026)] = { reversal: 0, addition: 650.00, status: "published" }; e[_aiMonthKey(2, 2026)] = { reversal: 0, addition: 650.00, status: "published" }; e[_aiMonthKey(3, 2026)] = { reversal: 1950.00, addition: 650.00, status: "scheduled" }; e[_aiMonthKey(4, 2026)] = { reversal: 0, addition: 650.00, status: "future" }; e[_aiMonthKey(5, 2026)] = { reversal: 0, addition: 650.00, status: "future" }; e[_aiMonthKey(6, 2026)] = { reversal: 1950.00, addition: 650.00, status: "future" }; e[_aiMonthKey(7, 2026)] = { reversal: 0, addition: 650.00, status: "future" }; e[_aiMonthKey(8, 2026)] = { reversal: 0, addition: 650.00, status: "future" }; e[_aiMonthKey(9, 2026)] = { reversal: 1950.00, addition: 650.00, status: "future" }; e[_aiMonthKey(10, 2026)] = { reversal: 0, addition: 650.00, status: "future" }; e[_aiMonthKey(11, 2026)] = { reversal: 0, addition: 650.00, status: "future" }; return e; }(), },
-    { id: 3, description: "Interest receivable – HSBC deposit account", period: "Ongoing", status: "Active", balanceForward: 1400.00, toAllocate: null, incomeAccount: "4100 – Other income", invoiceDate: "-", invoiceAmount: null, entries: function() { const e = {}; e[_aiMonthKey(0, 2026)] = { reversal: 0, addition: 420.00, status: "published" }; e[_aiMonthKey(1, 2026)] = { reversal: 0, addition: 420.00, status: "published" }; e[_aiMonthKey(2, 2026)] = { reversal: 0, addition: 420.00, status: "published" }; e[_aiMonthKey(3, 2026)] = { reversal: 0, addition: 420.00, status: "scheduled" }; e[_aiMonthKey(4, 2026)] = { reversal: 0, addition: 420.00, status: "future" }; e[_aiMonthKey(5, 2026)] = { reversal: 0, addition: 420.00, status: "future" }; e[_aiMonthKey(6, 2026)] = { reversal: 0, addition: 420.00, status: "future" }; e[_aiMonthKey(7, 2026)] = { reversal: 0, addition: 420.00, status: "future" }; e[_aiMonthKey(8, 2026)] = { reversal: 0, addition: 420.00, status: "future" }; e[_aiMonthKey(9, 2026)] = { reversal: 0, addition: 420.00, status: "future" }; e[_aiMonthKey(10, 2026)] = { reversal: 0, addition: 420.00, status: "future" }; e[_aiMonthKey(11, 2026)] = { reversal: 0, addition: 420.00, status: "future" }; return e; }(), },
-    { id: 4, description: "Innovate UK food innovation grant", period: "Jan 26 – Sep 26", status: "Active", balanceForward: null, toAllocate: null, incomeAccount: "4100 – Other income", invoiceDate: "30 Sep 26", invoiceAmount: 6750.00, entries: function() { const e = {}; e[_aiMonthKey(0, 2026)] = { reversal: 0, addition: 750.00, status: "published" }; e[_aiMonthKey(1, 2026)] = { reversal: 0, addition: 750.00, status: "published" }; e[_aiMonthKey(2, 2026)] = { reversal: 0, addition: 750.00, status: "published" }; e[_aiMonthKey(3, 2026)] = { reversal: 0, addition: 750.00, status: "scheduled" }; e[_aiMonthKey(4, 2026)] = { reversal: 0, addition: 750.00, status: "future" }; e[_aiMonthKey(5, 2026)] = { reversal: 0, addition: 750.00, status: "future" }; e[_aiMonthKey(6, 2026)] = { reversal: 0, addition: 750.00, status: "future" }; e[_aiMonthKey(7, 2026)] = { reversal: 0, addition: 750.00, status: "future" }; e[_aiMonthKey(8, 2026)] = { reversal: 6750.00, addition: 0, status: "future" }; return e; }(), },
+    { id: 1, description: "Booker Wholesale – April deliveries", dateRange: "Apr 26", status: "Active", balanceForward: null, toAllocate: null, accruedAmount: 1800.00, revenueAccount: "4000 – Sales", entries: function() { const e = {}; e[_aiMonthKey(3, 2026)] = { addition: 1800.00, status: "scheduled" }; e[_aiMonthKey(4, 2026)] = { reversal: 1800.00, status: "future" }; return e; }(), },
+    { id: 2, description: "Sublease rent – Warehouse unit B", dateRange: "Mar 26", status: "Active", balanceForward: 650.00, toAllocate: null, accruedAmount: 1950.00, toReverse: 1000.00, revenueAccount: "4200 – Rental income", entries: function() { const e = {}; e[_aiMonthKey(2, 2026)] = { addition: 1950.00, status: "published" }; e[_aiMonthKey(3, 2026)] = { reversal: 950.00, status: "scheduled" }; return e; }(), },
+    { id: 3, description: "Interest receivable – HSBC deposit account", dateRange: "Mar – Jun 26", status: "Active", balanceForward: null, toAllocate: null, accruedAmount: 1260.00, revenueAccount: "4100 – Other income", entries: function() { const e = {}; e[_aiMonthKey(2, 2026)] = { addition: 1260.00, status: "published" }; e[_aiMonthKey(5, 2026)] = { reversal: 1260.00, status: "future" }; return e; }(), },
+    { id: 4, description: "Innovate UK food innovation grant", dateRange: "Mar 26", status: "Active", balanceForward: null, toAllocate: null, accruedAmount: 2250.00, revenueAccount: "4100 – Other income", entries: function() { const e = {}; e[_aiMonthKey(2, 2026)] = { addition: 2250.00, status: "published" }; e[_aiMonthKey(3, 2026)] = { reversal: 2250.00, status: "scheduled" }; return e; }(), },
   ];
 
   const _aiFmtGBP = (v) => { if (v == null) return "-"; const abs = Math.abs(v); const str = "£" + abs.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); return v < 0 ? "(" + str + ")" : str; };
@@ -1436,16 +1436,15 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
   const _aiThStyle = { ...T.textSm, fontWeight: 400, color: "#757980", padding: "10px 12px", textAlign: "left", whiteSpace: "nowrap", borderBottom: "1px solid " + _aiBorderClr, borderRight: "1px solid " + _aiBorderClr, position: "sticky", top: 0, background: T.colorSurfacePrimary, zIndex: 2 };
   const _aiCellStyle = { ...T.textSm, color: T.colorTextPrimary, padding: "10px 12px", borderBottom: "1px solid " + _aiBorderClr, borderRight: "1px solid " + _aiBorderClr, whiteSpace: "normal", verticalAlign: "middle" };
   const _aiFooterCellStyle = { ..._aiCellStyle, fontWeight: 600, height: 72, verticalAlign: "middle" };
-  const _aiStickyCol0 = { position: "sticky", left: 0, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _aiBorderClr, paddingLeft: 32 };
-  const _aiStickyCol1Left = 300;
-  const _aiStickyCol1 = { position: "sticky", left: _aiStickyCol1Left, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _aiBorderClr, boxShadow: "4px 0 8px -2px rgba(0,0,0,0.1)" };
-  const _aiColWidths = { description: 300, balance: 200, account: 280, invoiceDate: 130, invoiceAmount: 160, month: 140 };
-  const _aiFixedColsWidth = _aiColWidths.description + _aiColWidths.balance + _aiColWidths.account + _aiColWidths.invoiceDate + _aiColWidths.invoiceAmount;
+  const _aiStickyCol0 = { position: "sticky", left: 0, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _aiBorderClr, paddingLeft: 32, boxShadow: "4px 0 8px -2px rgba(0,0,0,0.1)" };
+  const _aiColWidths = { description: 300, revenueAccount: 220, balance: 160, accruedAmount: 160, month: 140 };
+  const _aiFixedColsWidth = _aiColWidths.description + _aiColWidths.revenueAccount + _aiColWidths.balance + _aiColWidths.accruedAmount;
 
-  const _aiRenderMonthCell = (entry, isFooter) => { if (!entry) return <span style={{ color: "#B0B3B8" }}>-</span>; const { addition, reversal, status } = entry; const isPublished = status === "published"; const isScheduled = status === "scheduled"; const bg = isPublished ? T.colorSuccessBg : "transparent"; const cellContent = []; if (reversal) { if (isScheduled) { cellContent.push(<div key="rev" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_aiFmtReversal(reversal)}<_aiClockIcon /></div>); } else { cellContent.push(<div key="rev" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_aiFmtReversal(reversal)}</div>); } } if (addition) { if (isScheduled && !reversal) { cellContent.push(<div key="add" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_aiFmtAddition(addition)}<_aiClockIcon /></div>); } else { cellContent.push(<div key="add" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_aiFmtAddition(addition)}</div>); } } if (cellContent.length === 0) return <span style={{ color: "#B0B3B8" }}>-</span>; return (<div style={{ background: bg, borderRadius: bg !== "transparent" ? 4 : 0, padding: bg !== "transparent" ? "2px 6px" : 0, display: "inline-flex", flexDirection: "column", gap: 2 }}>{cellContent}</div>); };
+  const _aiRenderMonthCell = (entry, isFooter, mKey) => { if (!entry) return <span style={{ color: "#B0B3B8" }}>-</span>; const { addition, reversal } = entry; const isPublished = mKey != null ? mKey <= _aiPublishedThrough : entry.status === "published"; const isScheduled = mKey != null ? mKey === _aiScheduledMonth : entry.status === "scheduled"; const bg = isPublished ? T.colorSuccessBg : "transparent"; const cellContent = []; if (reversal) { if (isScheduled) { cellContent.push(<div key="rev" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_aiFmtReversal(reversal)}<_aiClockIcon /></div>); } else { cellContent.push(<div key="rev" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_aiFmtReversal(reversal)}</div>); } } if (addition) { if (isScheduled && !reversal) { cellContent.push(<div key="add" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_aiFmtAddition(addition)}<_aiClockIcon /></div>); } else { cellContent.push(<div key="add" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_aiFmtAddition(addition)}</div>); } } if (cellContent.length === 0) return <span style={{ color: "#B0B3B8" }}>-</span>; return (<div style={{ background: bg, borderRadius: bg !== "transparent" ? 4 : 0, padding: bg !== "transparent" ? "2px 6px" : 0, display: "inline-flex", flexDirection: "column", gap: 2 }}>{cellContent}</div>); };
 
   const _aiActiveBadge = () => (<span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Active</span>);
   const _aiToAllocateBadge = ({ amount }) => (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px", whiteSpace: "nowrap" }}>{_aiFmtGBP(amount)} to allocate</span>);
+  const _aiToReverseBadge = ({ amount }) => (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px", whiteSpace: "nowrap" }}>{_aiFmtGBP(amount)} to reverse</span>);
 
   const _aiSuggestionRows = (reviewState && reviewState.hasResults && sugCards) ? sugCards.map((card, i) => {
     const amt = card.drawer ? parseFloat(card.drawer.amount.replace(/,/g, "")) : (card.tableRow ? _parseSugAmount(card.tableRow.amount) : 0);
@@ -1456,13 +1455,12 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
       isSuggestion: true,
       cardIdx: card.idx,
       description: card.drawer ? card.drawer.description : card.title,
-      period: period,
+      dateRange: period,
       status: "Suggestion",
       balanceForward: null,
       toAllocate: null,
-      incomeAccount: card.drawer ? card.drawer.expenseAccount : (card.tableRow ? card.tableRow.account : ""),
-      invoiceDate: card.drawer ? card.drawer.invoiceDateField : "",
-      invoiceAmount: amt || null,
+      accruedAmount: amt || null,
+      revenueAccount: card.drawer ? card.drawer.incomeAccount : (card.tableRow ? card.tableRow.account : ""),
       entries: _buildSugEntries(period, amt, isReversal ? "reversal" : "addition"),
     };
   }) : [];
@@ -1473,7 +1471,7 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
     if (rs.ignoredArray && rs.ignoredArray.indexOf(idx) !== -1) return false;
     return true;
   });
-  const _aiFilteredData = _aiSearchValue ? _aiData.filter(item => item.description.toLowerCase().includes(_aiSearchValue.toLowerCase()) || item.incomeAccount.toLowerCase().includes(_aiSearchValue.toLowerCase())) : _aiData;
+  const _aiFilteredData = _aiSearchValue ? _aiData.filter(item => item.description.toLowerCase().includes(_aiSearchValue.toLowerCase()) || item.revenueAccount.toLowerCase().includes(_aiSearchValue.toLowerCase())) : _aiData;
 
   return (
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: T.colorSurfacePrimary, zIndex: 310, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: T.fontFamily }}>
@@ -1496,35 +1494,33 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
               <div style={{ flex: 1 }} />
               <Dropdown value="jan-dec-2026" options={[{ label: "1 Jan 2026 - 31 Dec 2026", value: "jan-dec-2026" }]} onChange={() => {}} size="sm" width={230} />
               <Dropdown value="all" options={[{ label: "All income accounts", value: "all" },{ label: "4000 – Sales", value: "4000" },{ label: "4100 – Other income", value: "4100" },{ label: "4200 – Rental income", value: "4200" }]} onChange={() => {}} size="sm" width={220} />
-              <SecondaryButton style={{ height: 36, padding: "0 12px", fontSize: 14, gap: 6 }}><_aiPlusIcon />Add accrued income</SecondaryButton>
+              <SecondaryButton style={{ height: 36, padding: "0 12px", fontSize: 14, gap: 6 }}><_aiPlusIcon />Add accrued revenue</SecondaryButton>
             </Fragment>
           )}
         </div>
         <div style={{ overflowX: "auto", overflowY: "auto", flex: "1 1 auto", minHeight: 0 }}>
         <table style={{ borderCollapse: "separate", borderSpacing: 0, minWidth: _aiFixedColsWidth + _aiVisibleMonths.length * _aiColWidths.month, width: "100%", tableLayout: "fixed" }}>
-          <colgroup><col style={{ width: _aiColWidths.description }} /><col style={{ width: _aiColWidths.balance }} /><col style={{ width: _aiColWidths.account }} /><col style={{ width: _aiColWidths.invoiceDate }} /><col style={{ width: _aiColWidths.invoiceAmount }} />{_aiVisibleMonths.map(vm => (<col key={vm.key} style={{ width: _aiColWidths.month }} />))}</colgroup>
+          <colgroup><col style={{ width: _aiColWidths.description }} /><col style={{ width: _aiColWidths.revenueAccount }} /><col style={{ width: _aiColWidths.accruedAmount }} /><col style={{ width: _aiColWidths.balance }} />{_aiVisibleMonths.map(vm => (<col key={vm.key} style={{ width: _aiColWidths.month }} />))}</colgroup>
           <thead><tr>
             <th style={{ ..._aiThStyle, ..._aiStickyCol0, zIndex: 4, width: _aiColWidths.description, minWidth: _aiColWidths.description }}><div style={{ display: "flex", alignItems: "center" }}>Description <_aiSortIcon /></div></th>
-            <th style={{ ..._aiThStyle, ..._aiStickyCol1, zIndex: 4, width: _aiColWidths.balance, minWidth: _aiColWidths.balance }}><div style={{ display: "flex", alignItems: "center" }}>Balance forward (Dec 25) <_aiSortIcon /></div></th>
-            <th style={{ ..._aiThStyle, width: _aiColWidths.account, minWidth: _aiColWidths.account }}><div style={{ display: "flex", alignItems: "center" }}>Income account <_aiSortIcon /></div></th>
-            <th style={{ ..._aiThStyle, width: _aiColWidths.invoiceDate, minWidth: _aiColWidths.invoiceDate }}><div style={{ display: "flex", alignItems: "center" }}>Invoice date <_aiSortIcon /></div></th>
-            <th style={{ ..._aiThStyle, width: _aiColWidths.invoiceAmount, minWidth: _aiColWidths.invoiceAmount }}><div style={{ display: "flex", alignItems: "center" }}>Invoice amount <_aiSortIcon /></div></th>
-            {_aiVisibleMonths.map(vm => (<th key={vm.key} style={{ ..._aiThStyle, width: _aiColWidths.month, minWidth: _aiColWidths.month, textAlign: "right" }}>{vm.label}</th>))}
+            <th style={{ ..._aiThStyle, width: _aiColWidths.revenueAccount, minWidth: _aiColWidths.revenueAccount }}><div style={{ display: "flex", alignItems: "center" }}>Revenue account <_aiSortIcon /></div></th>
+            <th style={{ ..._aiThStyle, width: _aiColWidths.accruedAmount, minWidth: _aiColWidths.accruedAmount, textAlign: "right" }}><div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>Accrued amount <_aiSortIcon /></div></th>
+            <th style={{ ..._aiThStyle, width: _aiColWidths.balance, minWidth: _aiColWidths.balance }}><div style={{ display: "flex", alignItems: "center" }}>Balance forward (Dec 25) <_aiSortIcon /></div></th>
+            {_aiVisibleMonths.map(vm => { const isCur = vm.key === _aiScheduledMonth; return (<th key={vm.key} style={{ ..._aiThStyle, width: _aiColWidths.month, minWidth: _aiColWidths.month, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}><span>{vm.label}</span>{isCur && <span style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", color: "#757980", borderRadius: 4, padding: "1px 5px", fontSize: 10, fontWeight: 600, lineHeight: "15px", whiteSpace: "nowrap" }}>Current</span>}</div></th>); })}
           </tr></thead>
           <tbody>{_aiFilteredData.map(item => (
             <tr key={item.id} style={{ cursor: "pointer" }} onClick={() => { if (item.isSuggestion && item.cardIdx != null && sugCards) { var match = sugCards.filter(c => c.idx === item.cardIdx)[0]; if (match) _aiSetDrawerCard(match); } }} onMouseEnter={e => { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfacePrimary; }); }}>
-              <td data-sticky="1" style={{ ..._aiCellStyle, ..._aiStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ ...T.textXs, color: T.colorTextSecondary }}>{item.period}</span>{item.isSuggestion ? (item.cardIdx != null && reviewState && reviewState.resolvedArray && reviewState.resolvedArray.indexOf(item.cardIdx) !== -1 ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Active</span> : <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Suggestion</span>) : <_aiActiveBadge />}</div></div></td>
-              <td data-sticky="1" style={{ ..._aiCellStyle, ..._aiStickyCol1 }}><div style={{ display: "flex", flexDirection: "column", gap: 4 }}><span>{item.balanceForward != null ? _aiFmtGBP(item.balanceForward) : "-"}</span>{item.toAllocate != null && <_aiToAllocateBadge amount={item.toAllocate} />}</div></td>
-              <td style={{ ..._aiCellStyle, color: T.colorTextPrimary }}>{item.incomeAccount}</td>
-              <td style={{ ..._aiCellStyle, color: T.colorTextPrimary }}>{item.invoiceDate}</td>
-              <td style={{ ..._aiCellStyle, color: T.colorTextPrimary, textAlign: "right" }}>{item.invoiceAmount != null ? _aiFmtGBP(item.invoiceAmount) : "-"}</td>
-              {_aiVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._aiCellStyle, textAlign: "right" }}>{_aiRenderMonthCell(item.entries[vm.key], false)}</td>))}
+              <td data-sticky="1" style={{ ..._aiCellStyle, ..._aiStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 2 }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ ...T.textXs, color: T.colorTextSecondary }}>{item.dateRange}</span>{item.isSuggestion ? (item.cardIdx != null && reviewState && reviewState.resolvedArray && reviewState.resolvedArray.indexOf(item.cardIdx) !== -1 ? <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Active</span> : <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Suggestion</span>) : <_aiActiveBadge />}</div></div></td>
+              <td style={{ ..._aiCellStyle, color: T.colorTextPrimary }}>{item.revenueAccount}</td>
+              <td style={{ ..._aiCellStyle, color: T.colorTextPrimary, textAlign: "right" }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{item.accruedAmount != null ? _aiFmtGBP(item.accruedAmount) : "-"}</span>{item.toReverse != null && <_aiToReverseBadge amount={item.toReverse} />}</div></td>
+              <td style={{ ..._aiCellStyle, color: T.colorTextPrimary }}><span>{item.balanceForward != null ? _aiFmtGBP(item.balanceForward) : "-"}</span></td>
+              {_aiVisibleMonths.map(vm => { const isCur = vm.key === _aiScheduledMonth; return (<td key={vm.key} style={{ ..._aiCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}>{_aiRenderMonthCell(item.entries[vm.key], false, vm.key)}</td>); })}
             </tr>
           ))}</tbody>
           <tfoot>
-            <tr><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol0 }} colSpan={1}>Total reversals</td><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol1 }} colSpan={1}></td><td style={{ ..._aiFooterCellStyle }} colSpan={3}></td>{_aiVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._aiFooterCellStyle, textAlign: "right" }}>{_aiTotalReversals[vm.key] ? _aiFmtReversal(_aiTotalReversals[vm.key]) : "-"}</td>))}</tr>
-            <tr><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol0 }} colSpan={1}>Total additions</td><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol1 }} colSpan={1}></td><td style={{ ..._aiFooterCellStyle }} colSpan={3}></td>{_aiVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._aiFooterCellStyle, textAlign: "right" }}>{_aiTotalAdditions[vm.key] ? _aiFmtAddition(_aiTotalAdditions[vm.key]) : "-"}</td>))}</tr>
-            <tr><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol0 }} colSpan={1}>Closing balance</td><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol1 }} colSpan={1}></td><td style={{ ..._aiFooterCellStyle }} colSpan={3}></td>{_aiVisibleMonths.map(vm => (<td key={vm.key} style={{ ..._aiFooterCellStyle, textAlign: "right" }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{_aiFmtGBP(_aiClosingBalances[vm.key])}</span>{vm.key === _aiMonthKey(2, 2026) && (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: "#757980", whiteSpace: "nowrap" }}>GL +£340.00</span>)}</div></td>))}</tr>
+            <tr><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol0 }} colSpan={1}>Total additions</td><td style={{ ..._aiFooterCellStyle }} colSpan={3}></td>{_aiVisibleMonths.map(vm => { const isCur = vm.key === _aiScheduledMonth; return (<td key={vm.key} style={{ ..._aiFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}>{_aiTotalAdditions[vm.key] ? _aiFmtAddition(_aiTotalAdditions[vm.key]) : "-"}</td>); })}</tr>
+            <tr><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol0 }} colSpan={1}>Total reversals</td><td style={{ ..._aiFooterCellStyle }} colSpan={3}></td>{_aiVisibleMonths.map(vm => { const isCur = vm.key === _aiScheduledMonth; return (<td key={vm.key} style={{ ..._aiFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}>{_aiTotalReversals[vm.key] ? _aiFmtReversal(_aiTotalReversals[vm.key]) : "-"}</td>); })}</tr>
+            <tr><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol0 }} colSpan={1}>Closing balance</td><td style={{ ..._aiFooterCellStyle }} colSpan={2}></td><td style={{ ..._aiFooterCellStyle }}>{_aiFmtGBP(_aiOpeningBalance)}</td>{_aiVisibleMonths.map(vm => { const isCur = vm.key === _aiScheduledMonth; return (<td key={vm.key} style={{ ..._aiFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{_aiFmtGBP(_aiClosingBalances[vm.key])}</span>{vm.key === _aiMonthKey(3, 2026) && (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: "#757980", whiteSpace: "nowrap" }}>GL +£0.10</span>)}</div></td>); })}</tr>
           </tfoot>
         </table>
         </div>
@@ -1561,7 +1557,7 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
               React.createElement("span", null, "Adjustment type"),
               React.createElement("span", { style: { color: "#DC5C40" } }, "*")
             ),
-            React.createElement(Dropdown, { value: _aiDrawerCard.drawer.adjType, options: [{ value: "accrue_income", label: "Accrue income" }, { value: "write_off", label: "Write off accrued income" }], onChange: function() {} })
+            React.createElement(Dropdown, { value: _aiDrawerCard.drawer.adjType, options: [{ value: "accrue_income", label: "Accrue income" }, { value: "write_off", label: "Write off accrued revenue" }], onChange: function() {} })
           ),
           React.createElement(Input, { label: "Description", mandatory: true, value: _aiDrawerCard.drawer.description, onChange: function() {} }),
           React.createElement(Input, { label: "Accrual Amount", mandatory: true, value: _aiDrawerCard.drawer.amount, onChange: function() {}, leftSlotType: "currency", currencySymbol: "£" }),
@@ -2868,21 +2864,21 @@ function DeferredRevenueReviewFlow(_ref) {
   );
 }
 
-// ── Accrued Income Review Flow ────────────────────────────────────────────
+// ── Accrued Revenue Review Flow ────────────────────────────────────────────
 
 var _AIR_STEPS = [
-  { title: "Reading accrued income schedule",                    subtext: null,                                              duration: 800  },
+  { title: "Reading accrued revenue schedule",                    subtext: null,                                              duration: 800  },
   { title: "Scanning Xero sales records for unbilled revenue",   subtext: "Reviewed 37 records from the last 90 days.",      duration: 1200 },
-  { title: "Comparing with prior-year accrued income",           subtext: "Matched 4 of 5 prior-year items.",                duration: 1000 },
+  { title: "Comparing with prior-year accrued revenue",           subtext: "Matched 4 of 5 prior-year items.",                duration: 1000 },
   { title: "Checking recognition patterns",                     subtext: "Flagged 1 item with no invoice raised.",           duration: 900  },
   { title: "Generating suggestions",                            subtext: null,                                               duration: 600  },
 ];
 
 var _AIR_CARDS = [
-  { idx: 0, key: "unbilled", title: "Accrue unbilled April deliveries to Booker", contact: "Booker Wholesale – monthly deliveries", description: "Booker Wholesale received £1,800.00 of product deliveries during April 2026 based on delivery notes and dispatch records. The sales invoice has not yet been raised as the customer is on a monthly billing cycle with invoices issued in the first week of the following month. Prior months show the accrual has been posted consistently at month-end.", tableRow: { account: "1104 – Accrued income", amount: "£1,800.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Booker Wholesale", aiInsight: "Product deliveries were made in April based on delivery notes, but the sales invoice has not yet been raised.", adjType: "accrue_income", description: "April deliveries – Booker", amount: "1,800.00", incomeAccount: "1104 – Accrued income", period: "Apr 2026", accrualDate: "30/04/2026", reversalDate: "31/05/2026" } },
-  { idx: 1, key: "rent", title: "Accrue April sublease rent from warehouse tenant", contact: "Warehouse unit B tenant – sublease", description: "The warehouse unit B sublease generates £650.00 per month in rental income. The tenant pays quarterly in arrears and the next invoice is due in July 2026 covering April to June. The April rent has been earned but not yet billed. An accrual should be posted to match the income to the period.", tableRow: { account: "1104 – Accrued income", amount: "£650.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Warehouse unit B tenant", aiInsight: "April sublease rent has been earned but the tenant pays quarterly in arrears. Next invoice due July.", adjType: "accrue_income", description: "Sublease rent – Warehouse B", amount: "650.00", incomeAccount: "1104 – Accrued income", period: "Apr 2026", accrualDate: "30/04/2026", reversalDate: "31/07/2026" } },
-  { idx: 2, key: "stale", title: "Write off £340.00 stale receivable for Morrisons", contact: "Morrisons – disputed delivery", description: "Accrued income of £340.00 was recognised in November 2025 for a partial delivery to Morrisons. The customer subsequently rejected the goods due to a packaging defect and the delivery was not invoiced. The accrual has been sitting on the balance sheet for six months with no movement. It should be written off against sales.", tableRow: { account: "4000 – Sales", amount: "£340.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Morrisons", aiInsight: "The goods were rejected due to a packaging defect and the delivery was never invoiced. The six-month-old accrual is stale.", adjType: "write_off", description: "Disputed delivery – Morrisons", amount: "340.00", incomeAccount: "4000 – Sales", period: "Apr 2026", accrualDate: "30/04/2026", reversalDate: "31/05/2026" } },
-  { idx: 3, key: "pattern", title: "Post missed April accrual for Innovate UK grant", contact: "Innovate UK – food innovation grant", description: "The Innovate UK food innovation grant accrues £750.00 of income each month based on the project milestones schedule. The accrual has been posted consistently since January 2026, but the April entry is missing. The schedule shows it as due but it was not included in the April close.", tableRow: { account: "1104 – Accrued income", amount: "£750.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Innovate UK", aiInsight: "The April accrual was due per the grant milestones schedule but was not posted during the April period close.", adjType: "accrue_income", description: "Innovation grant – Innovate UK", amount: "750.00", incomeAccount: "1104 – Accrued income", period: "Apr 2026", accrualDate: "30/04/2026", reversalDate: "31/05/2026" } },
+  { idx: 0, key: "unbilled", title: "Accrue unbilled April deliveries to Booker", contact: "Booker Wholesale – monthly deliveries", description: "Booker Wholesale received £1,800.00 of product deliveries during April 2026 based on delivery notes and dispatch records. The sales invoice has not yet been raised as the customer is on a monthly billing cycle with invoices issued in the first week of the following month. Prior months show the accrual has been posted consistently at month-end.", tableRow: { account: "1104 – Accrued revenue", amount: "£1,800.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Booker Wholesale", aiInsight: "Product deliveries were made in April based on delivery notes, but the sales invoice has not yet been raised.", adjType: "accrue_income", description: "April deliveries – Booker", amount: "1,800.00", incomeAccount: "1104 – Accrued revenue", period: "Apr 2026", accrualDate: "30/04/2026", reversalDate: "31/05/2026" } },
+  { idx: 1, key: "rent", title: "Accrue April sublease rent from warehouse tenant", contact: "Warehouse unit B tenant – sublease", description: "The warehouse unit B sublease generates £650.00 per month in rental income. The tenant pays quarterly in arrears and the next invoice is due in July 2026 covering April to June. The April rent has been earned but not yet billed. An accrual should be posted to match the income to the period.", tableRow: { account: "1104 – Accrued revenue", amount: "£650.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Warehouse unit B tenant", aiInsight: "April sublease rent has been earned but the tenant pays quarterly in arrears. Next invoice due July.", adjType: "accrue_income", description: "Sublease rent – Warehouse B", amount: "650.00", incomeAccount: "1104 – Accrued revenue", period: "Apr 2026", accrualDate: "30/04/2026", reversalDate: "31/07/2026" } },
+  { idx: 2, key: "stale", title: "Write off £340.00 stale receivable for Morrisons", contact: "Morrisons – disputed delivery", description: "Accrued revenue of £340.00 was recognised in November 2025 for a partial delivery to Morrisons. The customer subsequently rejected the goods due to a packaging defect and the delivery was not invoiced. The accrual has been sitting on the balance sheet for six months with no movement. It should be written off against sales.", tableRow: { account: "4000 – Sales", amount: "£340.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Morrisons", aiInsight: "The goods were rejected due to a packaging defect and the delivery was never invoiced. The six-month-old accrual is stale.", adjType: "write_off", description: "Disputed delivery – Morrisons", amount: "340.00", incomeAccount: "4000 – Sales", period: "Apr 2026", accrualDate: "30/04/2026", reversalDate: "31/05/2026" } },
+  { idx: 3, key: "pattern", title: "Post missed April accrual for Innovate UK grant", contact: "Innovate UK – food innovation grant", description: "The Innovate UK food innovation grant accrues £750.00 of income each month based on the project milestones schedule. The accrual has been posted consistently since January 2026, but the April entry is missing. The schedule shows it as due but it was not included in the April close.", tableRow: { account: "1104 – Accrued revenue", amount: "£750.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Innovate UK", aiInsight: "The April accrual was due per the grant milestones schedule but was not posted during the April period close.", adjType: "accrue_income", description: "Innovation grant – Innovate UK", amount: "750.00", incomeAccount: "1104 – Accrued revenue", period: "Apr 2026", accrualDate: "30/04/2026", reversalDate: "31/05/2026" } },
 ];
 
 var _AIR_NAV_CATS = [
@@ -2933,7 +2929,7 @@ function AccruedIncomeReviewFlow(_ref) {
 
   useEffect(function() { if (onStateChange && _aiCanvasReady) onStateChange({ resolved: _aiResolvedCount, total: _aiTotalSuggestions, hasResults: true, resolvedArray: Array.from(_aiResolvedCards), ignoredArray: Array.from(_aiIgnoredCards), cardActions: _aiCardActions }); }, [_aiResolvedCount, _aiCanvasReady, _aiCardActions]);
 
-  var _aiLine1Segments = [{ text: "I'll review your accrued income for ", bold: false }, { text: selectedPeriod, bold: true }, { text: ", cross-reference Xero sales records, and compare against prior-year recognition patterns to surface anything that's missing or needs attention.", bold: false }];
+  var _aiLine1Segments = [{ text: "I'll review your accrued revenue for ", bold: false }, { text: selectedPeriod, bold: true }, { text: ", cross-reference Xero sales records, and compare against prior-year recognition patterns to surface anything that's missing or needs attention.", bold: false }];
   var _aiLine1Full = _aiLine1Segments.map(function(s) { return s.text; }).join("");
   var _aiTw = useTypewriter(_aiLine1Full + (_aiRestartKey > 0 ? "​".repeat(_aiRestartKey) : ""), 18, _aiIsResume);
   var _aiLine1Done = _aiTw.done;
@@ -2968,7 +2964,7 @@ function AccruedIncomeReviewFlow(_ref) {
     <div style={embedded ? { display: "flex", flex: 1, flexDirection: "column", overflow: "hidden", background: T.colorSurfaceContrast } : { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
       <style>{`@keyframes _aiFadeIn{from{opacity:0}to{opacity:1}} @keyframes _aiStepReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes _aiStepPop{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}} @keyframes _aiTextShimmer{0%{background-position:200% center}100%{background-position:-200% center}}`}</style>
       {!embedded && (<div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
-        <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-1px", flexShrink: 0 }}>Accrued income review</span>
+        <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-1px", flexShrink: 0 }}>Accrued revenue review</span>
         <div ref={_aiPeriodDropRef} style={{ position: "relative" }}>
           <button onClick={function() { _aiSetPeriodDropOpen(function(o) { return !o; }); }} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 12px", height: 48, border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap" }}>
             <span>{_aiActivePeriod}</span>
@@ -2999,7 +2995,7 @@ function AccruedIncomeReviewFlow(_ref) {
                   <div style={{ animation: "_aiFadeIn 0.3s ease both" }}>
                     <button onClick={function() { _aiSetStepsCollapsed(function(c) { return !c; }); }} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: _aiStepsCollapsed ? 0 : 20, cursor: "pointer", background: "none", border: "none", padding: 0, width: "100%", textAlign: "left" }}>
                       <div style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#8C8C8B" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
-                      <div style={{ flex: 1 }}><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 15, fontWeight: 600, color: T.colorTextPrimary }}>Accrued income review</span><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ transition: "transform 0.2s ease", transform: _aiStepsCollapsed ? "rotate(180deg)" : "rotate(0deg)" }}><path d="M3 8.5L7 4.5L11 8.5" stroke="#8C8C8B" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></div><span style={{ fontSize: 13, color: T.colorTextSecondary }}>{_aiStepsComplete ? "Completed" : "In progress"}</span></div>
+                      <div style={{ flex: 1 }}><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 15, fontWeight: 600, color: T.colorTextPrimary }}>Accrued revenue review</span><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ transition: "transform 0.2s ease", transform: _aiStepsCollapsed ? "rotate(180deg)" : "rotate(0deg)" }}><path d="M3 8.5L7 4.5L11 8.5" stroke="#8C8C8B" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></div><span style={{ fontSize: 13, color: T.colorTextSecondary }}>{_aiStepsComplete ? "Completed" : "In progress"}</span></div>
                     </button>
                     {!_aiStepsCollapsed && _AIR_STEPS.map(function(step, i) {
                       if (i >= _aiVisibleSteps) return null;
@@ -3013,7 +3009,7 @@ function AccruedIncomeReviewFlow(_ref) {
               </div>
             </div>
           </div>
-          {!_aiStepsComplete && _aiLine1Done && !_aiIsResume && (<div style={{ padding: "0 24px 20px", flexShrink: 0 }}><div style={{ maxWidth: 680, margin: "0 auto" }}><div style={{ borderRadius: 8, padding: "14px 14px 12px", background: T.colorSurfacePrimary, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04), 0 0 0 1px " + T.colorBorderDark }}><div style={{ display: "flex", alignItems: "center" }}><div style={{ fontSize: 14, lineHeight: "22px", flex: 1 }}><span style={{ background: "linear-gradient(90deg, #9D9D9E 0%, #9D9D9E 30%, #2A2A2A 50%, #9D9D9E 70%, " + T.colorTextDisabled + " 100%)", backgroundSize: "200% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", animation: "_aiTextShimmer 2s linear infinite", display: "inline-block" }}>Reviewing accrued income...</span></div><button style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 36, padding: "0 10px", border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 13, fontWeight: 500, color: T.colorTextPrimary, flexShrink: 0, boxSizing: "border-box", fontFamily: "'Inter', sans-serif" }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorBorderLight; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; }}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="10" height="10" rx="1.5" stroke="#080908" strokeWidth="1.25" /></svg>Stop</button></div></div></div></div>)}
+          {!_aiStepsComplete && _aiLine1Done && !_aiIsResume && (<div style={{ padding: "0 24px 20px", flexShrink: 0 }}><div style={{ maxWidth: 680, margin: "0 auto" }}><div style={{ borderRadius: 8, padding: "14px 14px 12px", background: T.colorSurfacePrimary, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04), 0 0 0 1px " + T.colorBorderDark }}><div style={{ display: "flex", alignItems: "center" }}><div style={{ fontSize: 14, lineHeight: "22px", flex: 1 }}><span style={{ background: "linear-gradient(90deg, #9D9D9E 0%, #9D9D9E 30%, #2A2A2A 50%, #9D9D9E 70%, " + T.colorTextDisabled + " 100%)", backgroundSize: "200% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", animation: "_aiTextShimmer 2s linear infinite", display: "inline-block" }}>Reviewing accrued revenue...</span></div><button style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 36, padding: "0 10px", border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 13, fontWeight: 500, color: T.colorTextPrimary, flexShrink: 0, boxSizing: "border-box", fontFamily: "'Inter', sans-serif" }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorBorderLight; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; }}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="10" height="10" rx="1.5" stroke="#080908" strokeWidth="1.25" /></svg>Stop</button></div></div></div></div>)}
           {_aiCanvasReady && (<div style={{ padding: "60px 12px 16px", flexShrink: 0, background: "linear-gradient(to bottom, rgba(251,251,251,0) 0%, rgba(251,251,251,1) 60px)", marginTop: -60 }}><div style={{ maxWidth: 680, margin: "0 auto" }}><button onClick={_aiHandleRestart} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10, height: 40, padding: "0 16px", marginBottom: 10, border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04)", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.style.borderColor = T.colorBorderHover; }} onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; e.currentTarget.style.borderColor = T.colorBorderDark; }}><PlayCircleIcon color={T.colorTextPrimary} size={20} />Restart review</button><div style={{ borderRadius: 8, padding: "14px 14px 12px", background: T.colorSurfacePrimary, boxShadow: "0 12px 24px 0 rgba(0,0,0,0.04), 0 0 0 1px " + T.colorBorderDark }}><textarea value={_aiInputValue} onChange={function(e) { _aiSetInputValue(e.target.value); }} placeholder="Ask for changes or information..." rows={3} style={{ width: "100%", border: "none", outline: "none", resize: "none", fontSize: 14, color: T.colorTextPrimary, lineHeight: "22px", background: "transparent", fontFamily: "'Inter', sans-serif", display: "block" }} /><div style={{ display: "flex", alignItems: "center", marginTop: 8 }}><button style={{ width: 32, height: 32, border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 6, color: T.colorTextSecondary, padding: 0 }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorBorderLight; }} onMouseLeave={function(e) { e.currentTarget.style.background = "none"; }}><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15.5 8.5L8.5 15.5C7.12 16.88 4.88 16.88 3.5 15.5C2.12 14.12 2.12 11.88 3.5 10.5L10.5 3.5C11.33 2.67 12.67 2.67 13.5 3.5C14.33 4.33 14.33 5.67 13.5 6.5L6.5 13.5C6.08 13.92 5.42 13.92 5 13.5C4.58 13.08 4.58 12.42 5 12L11.5 5.5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></button><div style={{ flex: 1 }} /><button style={{ width: 36, height: 36, marginLeft: 6, border: "1px solid " + T.colorBorderDark, borderRadius: 10, background: _aiInputValue.trim() ? T.colorBrandPrimary : T.colorSurfaceSecondary, cursor: _aiInputValue.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.15s", padding: 0 }}><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M9.99984 15.8346V4.16797M9.99984 4.16797L4.1665 10.0013M9.99984 4.16797L15.8332 10.0013" stroke={_aiInputValue.trim() ? "#FFFFFF" : "#8C8C8B"} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></button></div></div></div></div>)}
         </div>)}
         {_aiResultsVisible && !hideChat && (<div onMouseDown={_aiHandleDragStart} style={{ position: "absolute", top: 0, bottom: 0, left: _aiChatWidth + 16, width: 16, cursor: "col-resize", zIndex: 5, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ width: 4, height: 40, borderRadius: 2, background: _aiIsDragging ? T.colorBorderHover : "transparent", transition: "background 0.15s" }} /></div>)}
@@ -3023,8 +3019,8 @@ function AccruedIncomeReviewFlow(_ref) {
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
                 <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Overview</h2>
                 {(function() {
-                  var _aiGlImpacts = { 2: 890.00, 3: 1650.00 };
-                  var _aiGlInitial = -2540.00;
+                  var _aiGlImpacts = {};
+                  var _aiGlInitial = 0.10;
                   var _aiResImpact = Array.from(_aiResolvedCards).reduce(function(s, i) { return s + (_aiGlImpacts[i] || 0); }, 0);
                   var _aiClosingDiff = _aiGlInitial + _aiResImpact;
                   var _aiOpeningMimo = 9800.00;
@@ -3057,7 +3053,7 @@ function AccruedIncomeReviewFlow(_ref) {
                   <div onClick={function() { _aiSetAnalysisOpen(function(o) { return !o; }); }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 67, padding: "0 20px", cursor: "pointer" }}><span style={{ fontSize: 14, fontWeight: 500, color: T.colorTextPrimary }}>Analysis & key findings</span><div style={{ display: "flex", transform: _aiAnalysisOpen ? "rotate(0deg)" : "rotate(180deg)", transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1)", flexShrink: 0, marginLeft: 12 }}><ChevronUpIcon /></div></div>
                   <div style={{ overflow: "hidden", maxHeight: _aiAnalysisOpen ? 400 : 0, opacity: _aiAnalysisOpen ? 1 : 0, transition: "max-height 0.5s cubic-bezier(0.16,1,0.3,1), opacity 0.4s ease" }}>
                     <div style={{ fontSize: 14, color: T.colorTextBody, lineHeight: "20px", margin: "0 20px 16px", borderTop: "1px solid " + T.colorBorderSubtle, paddingTop: 14 }}>
-                      <p style={{ margin: "0 0 10px" }}>The accrued income review for {selectedPeriod} cross-referenced your current schedule against 37 Xero sales records and 5 prior-year accrued income items.</p>
+                      <p style={{ margin: "0 0 10px" }}>The accrued revenue review for {selectedPeriod} cross-referenced your current schedule against 37 Xero sales records and 5 prior-year accrued revenue items.</p>
                       <p style={{ margin: "0 0 10px" }}>The most significant finding is unbilled deliveries to Booker Wholesale. April dispatch records show £1,800.00 of product shipped but the invoice has not yet been raised – prior months show a consistent monthly accrual pattern that has not been followed this period.</p>
                       <p style={{ margin: "0 0 10px" }}>The warehouse unit B sublease rent of £650.00 for April has been earned but not yet billed as the tenant pays quarterly in arrears. A Morrisons accrual of £340.00 from November 2025 relates to a disputed delivery that was never invoiced and should be written off.</p>
                       <p style={{ margin: 0 }}>The Innovate UK food innovation grant is missing its April accrual of £750.00, breaking a consistent pattern that has been running since January 2026.</p>
@@ -3086,14 +3082,14 @@ function AccruedIncomeReviewFlow(_ref) {
               <div style={{ borderTop: "1px solid " + T.colorSurfaceActive, padding: "12px 10px 16px" }}>
                 <button onClick={function() { _aiSetScheduleOpen(true); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "9px 10px", border: "none", background: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", borderRadius: 6 }} onMouseEnter={function(e) { e.currentTarget.style.background = T.colorSurfaceTertiary; }} onMouseLeave={function(e) { e.currentTarget.style.background = "none"; }}>
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0 }}><path d="M17.5 8.33H2.5M13.33 1.67V5M6.67 1.67V5M6.5 18.33H13.5C14.9 18.33 15.6 18.33 16.14 18.06C16.61 17.82 16.99 17.44 17.23 16.97C17.5 16.43 17.5 15.73 17.5 14.33V7.33C17.5 5.93 17.5 5.23 17.23 4.7C16.99 4.23 16.61 3.85 16.14 3.61C15.6 3.33 14.9 3.33 13.5 3.33H6.5C5.1 3.33 4.4 3.33 3.87 3.61C3.39 3.85 3.01 4.23 2.77 4.7C2.5 5.23 2.5 5.93 2.5 7.33V14.33C2.5 15.73 2.5 16.43 2.77 16.97C3.01 17.44 3.39 17.82 3.87 18.06C4.4 18.33 5.1 18.33 6.5 18.33Z" stroke={T.colorTextSecondary} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  <span style={{ fontSize: 14, fontWeight: 500, color: T.colorTextPrimary }}>Accrued income schedule</span>
+                  <span style={{ fontSize: 14, fontWeight: 500, color: T.colorTextPrimary }}>Accrued revenue schedule</span>
                 </button>
               </div>
             </div>
             <SuggestionsBox isCleanReconcile={false} allJustResolved={_aiAllDone} accountStatus={null} resolvedCount={_aiResolvedCount} totalSuggestions={_aiTotalSuggestions} matchedTotal={null}
               navCategories={_AIR_NAV_CATS.map(function(cat) { return Object.assign({}, cat, { items: cat.items.map(function(item) { return Object.assign({}, item); }) }); })}
               resolvedCards={_aiResolvedCards} ignoredCards={_aiIgnoredCards}
-              completedTitle="Accrued income review complete" completedDescription={"All suggestions have been reviewed. Your accrued income schedule is up to date for " + selectedPeriod + "."} completedColor={T.colorBrandPrimary} />
+              completedTitle="Accrued revenue review complete" completedDescription={"All suggestions have been reviewed. Your accrued revenue schedule is up to date for " + selectedPeriod + "."} completedColor={T.colorBrandPrimary} />
           </div>
         )}
       </div>
@@ -3114,7 +3110,7 @@ function AccruedIncomeReviewFlow(_ref) {
               React.createElement("span", null, "Adjustment type"),
               React.createElement("span", { style: { color: "#DC5C40" } }, "*")
             ),
-            React.createElement(Dropdown, { value: _aiRDrawerCard.drawer.adjType, options: [{ value: "accrue_income", label: "Accrue income" }, { value: "write_off", label: "Write off accrued income" }], onChange: function() {} })
+            React.createElement(Dropdown, { value: _aiRDrawerCard.drawer.adjType, options: [{ value: "accrue_income", label: "Accrue income" }, { value: "write_off", label: "Write off accrued revenue" }], onChange: function() {} })
           ),
           React.createElement(Input, { label: "Description", mandatory: true, value: _aiRDrawerCard.drawer.description, onChange: function() {} }),
           React.createElement(Input, { label: "Accrual Amount", mandatory: true, value: _aiRDrawerCard.drawer.amount, onChange: function() {}, leftSlotType: "currency", currencySymbol: "£" }),
@@ -3133,6 +3129,162 @@ function AccruedIncomeReviewFlow(_ref) {
         )
       )}
       <AccruedIncomeSchedulePage open={_aiScheduleOpen} onClose={function() { _aiSetScheduleOpen(false); }} activeScheduleType="accrued_income" onScheduleTypeChange={function() {}} suggestionsCount={null} />
+    </div>
+  );
+}
+
+
+// ── Depreciation (FAR) Schedule Page ──────────────────────────────────────
+
+function DepreciationSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, reviewState, onReviewStateChange, viewMode, onToggleMode, adjComments = {}, onAddAdjComment }) {
+  const [_dpSearchValue, _dpSetSearchValue] = useState("");
+  const [_dpShowDisposed, _dpSetShowDisposed] = useState(true);
+  const [_dpAccountFilter, _dpSetAccountFilter] = useState("all");
+
+  if (!open) return null;
+
+  const _dpMonthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const _dpFmtMonth = (m, y) => _dpMonthNames[m] + " " + String(y).slice(2);
+  const _dpMonthKey = (m, y) => y * 12 + m;
+  const _dpScheduleStartKey = _dpMonthKey(2, 2026);
+  const _dpVisibleMonths = [];
+  for (let m = 2; m <= 11; m++) _dpVisibleMonths.push({ m, y: 2026, key: _dpMonthKey(m, 2026), label: _dpFmtMonth(m, 2026) });
+
+  const _dpData = [
+    { id: 1, asset: "Dell laptops",        status: "active",             assetAccount: "Computer equipment (720)", acquired: "10 Sep 25", cost: 4800.00,  usefulLife: "4 years",  nbvForward: 3200.00, monthlyDep: 100.00, acquisitionMonthKey: null,                  disposalMonthKey: null,                disposalDate: null },
+    { id: 2, asset: "Office fit-out",       status: "active",             assetAccount: "Fixtures & fittings (740)", acquired: "4 Mar 26",  cost: 12000.00, usefulLife: "10 years", nbvForward: null,    monthlyDep: 100.00, acquisitionMonthKey: _dpMonthKey(2, 2026), disposalMonthKey: null,                disposalDate: null },
+    { id: 3, asset: "Server rack",          status: "fully_depreciated",  assetAccount: "Computer equipment (720)", acquired: "15 Jun 22", cost: 3600.00,  usefulLife: "3 years",  nbvForward: 0.00,    monthlyDep: 0.00,   acquisitionMonthKey: null,                  disposalMonthKey: null,                disposalDate: null },
+    { id: 4, asset: "Ford Transit van",     status: "disposed",           assetAccount: "Motor vehicles (760)",     acquired: "1 Apr 23",  cost: 18000.00, usefulLife: "6 years",  nbvForward: 9000.00, monthlyDep: 250.00, acquisitionMonthKey: null,                  disposalMonthKey: _dpMonthKey(3, 2026), disposalDate: "12 Apr 26" },
+    { id: 5, asset: "Warehouse racking",    status: "active",             assetAccount: "Plant & machinery (730)", acquired: "1 Oct 22",  cost: 18000.00, usefulLife: "10 years", nbvForward: 9150.00, monthlyDep: 150.00, acquisitionMonthKey: null,                  disposalMonthKey: null,                disposalDate: null },
+  ];
+
+  const _dpFmtGBP = (v) => "£" + Math.abs(v).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const _dpTotalDep = {}, _dpTotalAdditions = {}, _dpTotalDisposals = {};
+  _dpVisibleMonths.forEach(vm => {
+    let dep = 0, add = 0, disposal = 0;
+    _dpData.forEach(item => {
+      if (item.status === "fully_depreciated") return;
+      if (item.acquisitionMonthKey !== null && vm.key < item.acquisitionMonthKey) return;
+      if (item.disposalMonthKey !== null && vm.key > item.disposalMonthKey) return;
+      if (item.disposalMonthKey !== null && vm.key === item.disposalMonthKey) {
+        const startKey = item.acquisitionMonthKey !== null ? item.acquisitionMonthKey : _dpScheduleStartKey;
+        const monthsCharged = vm.key - startKey;
+        const nbvStart = (item.acquisitionMonthKey !== null && item.acquisitionMonthKey >= _dpScheduleStartKey) ? item.cost : (item.nbvForward || 0);
+        disposal += Math.max(0, nbvStart - monthsCharged * item.monthlyDep);
+        if (item.acquisitionMonthKey !== null && item.acquisitionMonthKey === vm.key) add += item.cost;
+        return;
+      }
+      if (item.acquisitionMonthKey !== null && vm.key === item.acquisitionMonthKey) add += item.cost;
+      dep += item.monthlyDep;
+    });
+    _dpTotalDep[vm.key] = dep;
+    _dpTotalAdditions[vm.key] = add;
+    _dpTotalDisposals[vm.key] = disposal;
+  });
+
+  const _dpOpeningNBV = _dpData.reduce((sum, item) => {
+    if (item.status === "fully_depreciated") return sum;
+    if (item.acquisitionMonthKey !== null && item.acquisitionMonthKey >= _dpScheduleStartKey) return sum;
+    return sum + (item.nbvForward || 0);
+  }, 0);
+  let _dpRunningNBV = _dpOpeningNBV;
+  const _dpClosingNBVs = {};
+  _dpVisibleMonths.forEach(vm => { _dpRunningNBV += (_dpTotalAdditions[vm.key] || 0) - (_dpTotalDep[vm.key] || 0) - (_dpTotalDisposals[vm.key] || 0); _dpClosingNBVs[vm.key] = Math.round(_dpRunningNBV * 100) / 100; });
+
+  const _dpFilteredData = _dpData.filter(item => {
+    if (!_dpShowDisposed && item.status === "disposed") return false;
+    if (_dpAccountFilter !== "all" && item.assetAccount !== _dpAccountFilter) return false;
+    if (_dpSearchValue && !item.asset.toLowerCase().includes(_dpSearchValue.toLowerCase())) return false;
+    return true;
+  });
+
+  const _dpBorderClr = "#EFF1F4";
+  const _dpThStyle = { ...T.textSm, fontWeight: 400, color: "#757980", padding: "10px 12px", textAlign: "left", whiteSpace: "nowrap", borderBottom: "1px solid " + _dpBorderClr, borderRight: "1px solid " + _dpBorderClr, position: "sticky", top: 0, background: T.colorSurfacePrimary, zIndex: 2 };
+  const _dpCellStyle = { ...T.textSm, color: T.colorTextPrimary, padding: "10px 12px", borderBottom: "1px solid " + _dpBorderClr, borderRight: "1px solid " + _dpBorderClr, whiteSpace: "nowrap", verticalAlign: "middle" };
+  const _dpFooterCellStyle = { ..._dpCellStyle, fontWeight: 600, height: 72, verticalAlign: "middle" };
+  const _dpStickyCol0 = { position: "sticky", left: 0, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _dpBorderClr, paddingLeft: 32, boxShadow: "4px 0 8px -2px rgba(0,0,0,0.1)" };
+  const _dpColWidths = { asset: 260, assetAccount: 210, acquired: 130, cost: 120, usefulLife: 100, nbvForward: 170, month: 130 };
+  const _dpFixedColsWidth = _dpColWidths.asset + _dpColWidths.assetAccount + _dpColWidths.acquired + _dpColWidths.cost + _dpColWidths.usefulLife + _dpColWidths.nbvForward;
+
+  const _dpPublishedThrough = _dpMonthKey(3, 2026);
+  const _dpScheduledMonth   = _dpMonthKey(4, 2026);
+  const _dpSortIcon = () => (<svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ marginLeft: 4, flexShrink: 0, opacity: 0.45 }}><path d="M4.5 5.5L7 3L9.5 5.5" stroke="#757980" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/><path d="M4.5 8.5L7 11L9.5 8.5" stroke="#757980" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>);
+  const _dpClockIcon = () => (<svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ marginLeft: 3, flexShrink: 0 }}><circle cx="6.5" cy="6.5" r="5.5" stroke="#757980" strokeWidth="1"/><path d="M6.5 3.5V6.5L8.5 8" stroke="#757980" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/></svg>);
+  const _dpStatusBadge = (item) => { if (item.status === "active") return <span style={{ display: "inline-flex", alignItems: "center", background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Active</span>; if (item.status === "fully_depreciated") return <span style={{ display: "inline-flex", alignItems: "center", background: T.colorWarningBg, color: T.colorWarning, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Fully depreciated</span>; if (item.status === "disposed") return <span style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", color: "#757980", borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px", whiteSpace: "nowrap" }}>{"Disposed " + item.disposalDate}</span>; return null; };
+  const _dpRenderMonthCell = (item, monthKey) => {
+    if (item.status === "fully_depreciated") return <span style={{ color: "#B0B3B8" }}>-</span>;
+    if (item.acquisitionMonthKey !== null && monthKey < item.acquisitionMonthKey) return <span style={{ color: "#B0B3B8" }}>-</span>;
+    if (item.disposalMonthKey !== null && monthKey > item.disposalMonthKey) return <span style={{ color: "#B0B3B8" }}>-</span>;
+    if (item.disposalMonthKey !== null && monthKey === item.disposalMonthKey) {
+      if (monthKey <= _dpPublishedThrough) return <span style={{ display: "inline-flex", alignItems: "center", background: T.colorSuccessBg, borderRadius: 4, padding: "2px 6px", fontSize: 12, color: "#757980", fontWeight: 500 }}>Disposed</span>;
+      return <span style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", fontSize: 12, color: "#757980", fontWeight: 500 }}>Disposed</span>;
+    }
+    const isPublished = monthKey <= _dpPublishedThrough;
+    const isScheduled = monthKey === _dpScheduledMonth;
+    const isAcq = item.acquisitionMonthKey !== null && monthKey === item.acquisitionMonthKey;
+    const parts = [];
+    if (isAcq) { if (isScheduled) { parts.push(<div key="add" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{_dpFmtGBP(item.cost)}<_dpClockIcon /></div>); } else { parts.push(<div key="add" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_dpFmtGBP(item.cost)}</div>); } }
+    if (item.monthlyDep > 0) { if (isScheduled) { parts.push(<div key="dep" style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", gap: 2, ...T.textSm }}>{"(" + _dpFmtGBP(item.monthlyDep) + ")"}<_dpClockIcon /></div>); } else { parts.push(<div key="dep" style={{ ...T.textSm, color: T.colorTextPrimary }}>{"(" + _dpFmtGBP(item.monthlyDep) + ")"}</div>); } }
+    if (parts.length === 0) return <span style={{ color: "#B0B3B8" }}>-</span>;
+    const bg = isPublished ? T.colorSuccessBg : "transparent";
+    return <div style={{ background: bg, borderRadius: bg !== "transparent" ? 4 : 0, padding: bg !== "transparent" ? "2px 6px" : 0, display: "inline-flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>{parts}</div>;
+  };
+  const _dpToggleEl = (<button onClick={() => _dpSetShowDisposed(v => !v)} style={{ width: 40, height: 24, borderRadius: 12, border: "none", background: _dpShowDisposed ? T.colorBrandPrimary : "#C7C9CD", cursor: "pointer", position: "relative", padding: 0, flexShrink: 0, transition: "background 0.2s" }}><div style={{ position: "absolute", top: 2, left: _dpShowDisposed ? 18 : 2, width: 20, height: 20, borderRadius: 10, background: "white", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }} /></button>);
+
+  return (
+    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: T.colorSurfacePrimary, zIndex: 310, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: T.fontFamily }}>
+      <_ScheduleTopBar activeType={activeScheduleType} onTypeChange={onScheduleTypeChange} onClose={onClose} suggestionsCount={suggestionsCount} onSuggestionsClick={function() {}} sugPanelOpen={false} viewMode={viewMode} onToggleMode={onToggleMode} aiProgress={null} />
+      {viewMode === "ai" ? (
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12 }}>
+          <span style={{ fontSize: 16, fontWeight: 500, color: T.colorTextPrimary }}>AI mode</span>
+          <span style={{ fontSize: 14, color: T.colorTextSecondary }}>Review flow will be wired here</span>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}>
+          <div style={{ display: "flex", flexDirection: "column", flex: "1 1 auto", minWidth: 0, overflow: "hidden" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 32px", flexShrink: 0, flexWrap: "wrap", borderBottom: "1px solid " + _dpBorderClr }}>
+              <input type="text" placeholder="Search..." value={_dpSearchValue} onChange={e => _dpSetSearchValue(e.target.value)} style={{ height: 36, padding: "0 12px", border: "1px solid " + T.colorBorderDark, borderRadius: 6, fontSize: 14, fontFamily: T.fontFamily, outline: "none", width: 200, color: T.colorTextPrimary, background: T.colorSurfacePrimary }} onFocus={e => { e.target.style.borderColor = T.colorBrandPrimary; e.target.style.borderWidth = "2px"; e.target.style.padding = "0 11px"; }} onBlur={e => { e.target.style.borderColor = T.colorBorderDark; e.target.style.borderWidth = "1px"; e.target.style.padding = "0 12px"; }} />
+              <div style={{ flex: 1 }} />
+              <Dropdown value="mar-dec-2026" options={[{ label: "1 Mar 2026 – 31 Dec 2026", value: "mar-dec-2026" }]} onChange={function() {}} size="sm" width={240} />
+              <Dropdown value={_dpAccountFilter} options={[{ label: "All asset accounts", value: "all" }, { label: "Computer equipment (720)", value: "Computer equipment (720)" }, { label: "Fixtures & fittings (740)", value: "Fixtures & fittings (740)" }, { label: "Motor vehicles (760)", value: "Motor vehicles (760)" }, { label: "Plant & machinery (730)", value: "Plant & machinery (730)" }]} onChange={_dpSetAccountFilter} size="sm" width={240} />
+              <div style={{ display: "flex", alignItems: "center", gap: 8, border: "1px solid " + T.colorBorderDark, borderRadius: 6, padding: "0 12px", height: 36 }}>{_dpToggleEl}<span style={{ fontSize: 14, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>Show disposed</span></div>
+              <SecondaryButton style={{ height: 36, padding: "0 12px", fontSize: 14, gap: 6 }}><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d={_MM_PATHS.plus} stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg>Add asset</SecondaryButton>
+            </div>
+            <div style={{ overflowX: "auto", overflowY: "auto", flex: "1 1 auto", minHeight: 0 }}>
+              <table style={{ borderCollapse: "separate", borderSpacing: 0, minWidth: _dpFixedColsWidth + _dpVisibleMonths.length * _dpColWidths.month, width: "100%", tableLayout: "fixed" }}>
+                <colgroup><col style={{ width: _dpColWidths.asset }} /><col style={{ width: _dpColWidths.assetAccount }} /><col style={{ width: _dpColWidths.acquired }} /><col style={{ width: _dpColWidths.cost }} /><col style={{ width: _dpColWidths.usefulLife }} /><col style={{ width: _dpColWidths.nbvForward }} />{_dpVisibleMonths.map(vm => <col key={vm.key} style={{ width: _dpColWidths.month }} />)}</colgroup>
+                <thead><tr>
+                  <th style={{ ..._dpThStyle, ..._dpStickyCol0, zIndex: 4, width: _dpColWidths.asset, minWidth: _dpColWidths.asset }}><div style={{ display: "flex", alignItems: "center" }}>Asset <_dpSortIcon /></div></th>
+                  <th style={{ ..._dpThStyle, width: _dpColWidths.assetAccount, minWidth: _dpColWidths.assetAccount }}><div style={{ display: "flex", alignItems: "center" }}>Asset account <_dpSortIcon /></div></th>
+                  <th style={{ ..._dpThStyle, width: _dpColWidths.acquired, minWidth: _dpColWidths.acquired }}><div style={{ display: "flex", alignItems: "center" }}>Acquired <_dpSortIcon /></div></th>
+                  <th style={{ ..._dpThStyle, width: _dpColWidths.cost, minWidth: _dpColWidths.cost, textAlign: "right" }}><div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>Cost <_dpSortIcon /></div></th>
+                  <th style={{ ..._dpThStyle, width: _dpColWidths.usefulLife, minWidth: _dpColWidths.usefulLife }}><div style={{ display: "flex", alignItems: "center" }}>Useful life <_dpSortIcon /></div></th>
+                  <th style={{ ..._dpThStyle, width: _dpColWidths.nbvForward, minWidth: _dpColWidths.nbvForward, textAlign: "right", whiteSpace: "normal", lineHeight: "1.3" }}><div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>NBV forward (Mar 26) <_dpSortIcon /></div></th>
+                  {_dpVisibleMonths.map(vm => { const isCur = vm.key === _dpScheduledMonth; return (<th key={vm.key} style={{ ..._dpThStyle, width: _dpColWidths.month, minWidth: _dpColWidths.month, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}><span>{vm.label}</span>{isCur && <span style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", color: "#757980", borderRadius: 4, padding: "1px 5px", fontSize: 10, fontWeight: 600, lineHeight: "15px", whiteSpace: "nowrap" }}>Current</span>}</div></th>); })}
+                </tr></thead>
+                <tbody>{_dpFilteredData.map(item => (
+                  <tr key={item.id} onMouseEnter={e => { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll("[data-sticky]").forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll("[data-sticky]").forEach(td => { td.style.background = T.colorSurfacePrimary; }); }}>
+                    <td data-sticky="1" style={{ ..._dpCellStyle, ..._dpStickyCol0 }}><div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-start" }}><span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.asset}</span>{_dpStatusBadge(item)}</div></td>
+                    <td style={{ ..._dpCellStyle, color: T.colorTextPrimary }}>{item.assetAccount}</td>
+                    <td style={{ ..._dpCellStyle }}>{item.acquired}</td>
+                    <td style={{ ..._dpCellStyle, textAlign: "right" }}>{_dpFmtGBP(item.cost)}</td>
+                    <td style={{ ..._dpCellStyle }}>{item.usefulLife}</td>
+                    <td style={{ ..._dpCellStyle, textAlign: "right" }}>{item.nbvForward != null ? _dpFmtGBP(item.nbvForward) : "-"}</td>
+                    {_dpVisibleMonths.map(vm => { const isCur = vm.key === _dpScheduledMonth; return (<td key={vm.key} style={{ ..._dpCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}>{_dpRenderMonthCell(item, vm.key)}</td>); })}
+                  </tr>
+                ))}</tbody>
+                <tfoot>
+                  <tr><td style={{ ..._dpFooterCellStyle, ..._dpStickyCol0 }} colSpan={1}>Total additions</td><td style={{ ..._dpFooterCellStyle }} colSpan={5}></td>{_dpVisibleMonths.map(vm => { const isCur = vm.key === _dpScheduledMonth; return (<td key={vm.key} style={{ ..._dpFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}>{_dpTotalAdditions[vm.key] ? _dpFmtGBP(_dpTotalAdditions[vm.key]) : "-"}</td>); })}</tr>
+                  <tr><td style={{ ..._dpFooterCellStyle, ..._dpStickyCol0 }} colSpan={1}>Total depreciation</td><td style={{ ..._dpFooterCellStyle }} colSpan={5}></td>{_dpVisibleMonths.map(vm => { const isCur = vm.key === _dpScheduledMonth; return (<td key={vm.key} style={{ ..._dpFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}>{_dpTotalDep[vm.key] ? "(" + _dpFmtGBP(_dpTotalDep[vm.key]) + ")" : "-"}</td>); })}</tr>
+                  <tr><td style={{ ..._dpFooterCellStyle, ..._dpStickyCol0 }} colSpan={1}>Total disposals</td><td style={{ ..._dpFooterCellStyle }} colSpan={5}></td>{_dpVisibleMonths.map(vm => { const isCur = vm.key === _dpScheduledMonth; return (<td key={vm.key} style={{ ..._dpFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}>{_dpTotalDisposals[vm.key] ? _dpFmtGBP(_dpTotalDisposals[vm.key]) : "-"}</td>); })}</tr>
+                  <tr><td style={{ ..._dpFooterCellStyle, ..._dpStickyCol0 }} colSpan={1}>Closing NBV</td><td style={{ ..._dpFooterCellStyle }} colSpan={5}></td>{_dpVisibleMonths.map(vm => { const isCur = vm.key === _dpScheduledMonth; return (<td key={vm.key} style={{ ..._dpFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : undefined }}>{_dpFmtGBP(_dpClosingNBVs[vm.key] || 0)}</td>); })}</tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -3982,11 +4134,11 @@ registerPage("Adjustments", {
 
         } else if (category === "accrued_income") {
           if (adjType === "write_off") {
-            // Write-off: Dr Sales (reverse revenue) / Cr Accrued income (remove asset)
-            _scheduledJournals.push({ description: desc, debitAccount: "4000 – Sales", creditAccount: "1104 – Accrued income", amount: card.drawer.amount });
+            // Write-off: Dr Sales (reverse revenue) / Cr Accrued revenue (remove asset)
+            _scheduledJournals.push({ description: desc, debitAccount: "4000 – Sales", creditAccount: "1104 – Accrued revenue", amount: card.drawer.amount });
           } else {
-            // New accrual: Dr Accrued income (recognise asset) / Cr Sales (recognise revenue)
-            _scheduledJournals.push({ description: desc, debitAccount: "1104 – Accrued income", creditAccount: "4000 – Sales", amount: card.drawer.amount });
+            // New accrual: Dr Accrued revenue (recognise asset) / Cr Sales (recognise revenue)
+            _scheduledJournals.push({ description: desc, debitAccount: "1104 – Accrued revenue", creditAccount: "4000 – Sales", amount: card.drawer.amount });
           }
         }
       });
@@ -4096,32 +4248,22 @@ registerPage("Adjustments", {
     };
 
     var OverviewCard = function(_ref2) {
-      var title = _ref2.title, workflow = _ref2.workflow, metrics = _ref2.metrics, onViewSchedule = _ref2.onViewSchedule, onRun = _ref2.onRun;
+      var title = _ref2.title, updatedAt = _ref2.updatedAt, workflow = _ref2.workflow, metrics = _ref2.metrics, onViewSchedule = _ref2.onViewSchedule, onRun = _ref2.onRun;
 
       var hasSuggestions = workflow.status === "suggestions";
       var remaining = hasSuggestions ? workflow.total - workflow.resolved : 0;
 
       var _sugBadge = null;
       if (hasSuggestions) {
-        if (remaining > 0) {
-          _sugBadge = (
-            <span style={{
-              display: "inline-flex", alignItems: "center", justifyContent: "center",
-              minWidth: 20, height: 20, padding: "0 5px", borderRadius: 6,
-              background: T.colorErrorBg, color: T.colorError,
-              fontSize: 12, fontWeight: 600, lineHeight: "20px", letterSpacing: "0.1px",
-            }}>{remaining}</span>
-          );
-        } else {
-          _sugBadge = (
-            <span style={{
-              display: "inline-flex", alignItems: "center", justifyContent: "center",
-              minWidth: 20, height: 20, padding: "0 5px", borderRadius: 6,
-              background: T.colorInfoBg, color: T.colorInfo,
-              fontSize: 12, fontWeight: 600, lineHeight: "20px", letterSpacing: "0.1px",
-            }}>0</span>
-          );
-        }
+        _sugBadge = (
+          <span style={{
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            minWidth: 20, height: 20, padding: "0 5px", borderRadius: 6,
+            background: remaining > 0 ? T.colorErrorBg : T.colorInfoBg,
+            color: remaining > 0 ? T.colorError : T.colorInfo,
+            fontSize: 12, fontWeight: 600, lineHeight: "20px", letterSpacing: "0.1px",
+          }}>{remaining}</span>
+        );
       }
 
       return (
@@ -4129,67 +4271,68 @@ registerPage("Adjustments", {
           background: T.colorSurfacePrimary, border: "1px solid " + T.colorBorderDark,
           borderRadius: 16, padding: 24, display: "flex", flexDirection: "column", gap: 20,
         }}>
-          {/* Header row */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            {/* Left: title */}
-            <span style={{ fontSize: 20, fontWeight: 500, color: T.colorTextPrimary, lineHeight: "28px", letterSpacing: "0.2px" }}>{title}</span>
+          {/* Title + subtitle */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <span style={{ fontSize: 24, fontWeight: 600, color: T.colorTextPrimary, lineHeight: "32px", letterSpacing: "-0.3px" }}>{title}</span>
+            {updatedAt && <span style={{ ...T.textSm, color: T.colorTextSecondary }}>{"Updated " + updatedAt}</span>}
+          </div>
 
-            {/* Right: Run button + divider + View full schedule */}
-            <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
-              {/* Run button with label + optional badge */}
-              <SecondaryButton onClick={onRun} style={{ height: 44, padding: "8px 16px 8px 12px", fontSize: 14, gap: 8, whiteSpace: "nowrap" }}>
-                <PlayCircleIcon color="currentColor" size={20} />
-                {workflow.label}
-                {_sugBadge}
-              </SecondaryButton>
+          {/* 2×2 metrics grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", rowGap: 16, columnGap: 32 }}>
+            {/* Opening balance */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <span style={{ ...T.textSm, fontWeight: 400, color: T.colorTextSecondary }}>Opening balance</span>
+                {_ovInfoIcon}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 20, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{metrics.opening}</span>
+                {_ovGlBadge(metrics.openingGl)}
+              </div>
+            </div>
 
-              {/* Vertical divider */}
-              <div style={{ width: 1, height: 44, background: T.colorBorderDark, margin: "0 24px", flexShrink: 0 }} />
+            {/* Closing balance */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <span style={{ ...T.textSm, fontWeight: 400, color: T.colorTextSecondary }}>Closing balance</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 20, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{metrics.closing}</span>
+                {_ovGlBadge(metrics.closingGl)}
+              </div>
+            </div>
 
-              {/* View full schedule */}
-              <SecondaryButton onClick={onViewSchedule} style={{ height: 44, padding: "8px 16px 8px 12px", fontSize: 14, gap: 8, whiteSpace: "nowrap" }}>
-                {calendarBtnIcon}
-                View full schedule
-              </SecondaryButton>
+            {/* Additions */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <span style={{ ...T.textSm, fontWeight: 400, color: T.colorTextSecondary }}>Additions</span>
+                {_ovInfoIcon}
+              </div>
+              <span style={{ fontSize: 20, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{metrics.additions}</span>
+            </div>
+
+            {/* Releases */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <span style={{ ...T.textSm, fontWeight: 400, color: T.colorTextSecondary }}>{metrics.releasesLabel || "Releases"}</span>
+              <span style={{ fontSize: 20, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{metrics.releases}</span>
             </div>
           </div>
 
           {/* Divider */}
           <div style={{ height: 1, background: T.colorBorderDark }} />
 
-          {/* Metrics row */}
-          <div style={{ display: "flex", gap: 32 }}>
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <span style={{ ...T.textSm, fontWeight: 400, color: T.colorTextSecondary }}>Opening balance</span>
-                {_ovInfoIcon}
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 18, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{metrics.opening}</span>
-                {_ovGlBadge(metrics.openingGl)}
-              </div>
+          {/* Bottom buttons — no wrap so the review button shrinks and truncates */}
+          <div style={{ display: "flex", gap: 12, minWidth: 0, overflow: "hidden" }}>
+            {/* flex:1 1 0 grows to fill space, shrinks when tight; minWidth:0 lets it go below content size */}
+            <div style={{ flex: "1 1 0", minWidth: 0, overflow: "hidden" }}>
+              <SecondaryButton onClick={onRun} style={{ height: 44, padding: "8px 16px 8px 12px", fontSize: 14, gap: 8, overflow: "hidden", width: "100%", boxSizing: "border-box" }}>
+                <PlayCircleIcon color="currentColor" size={20} style={{ flexShrink: 0 }} />
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{workflow.label}</span>
+                {_sugBadge && <span style={{ flexShrink: 0 }}>{_sugBadge}</span>}
+              </SecondaryButton>
             </div>
-
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <span style={{ ...T.textSm, fontWeight: 400, color: T.colorTextSecondary }}>Additions</span>
-                {_ovInfoIcon}
-              </div>
-              <span style={{ fontSize: 18, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{metrics.additions}</span>
-            </div>
-
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
-              <span style={{ ...T.textSm, fontWeight: 400, color: T.colorTextSecondary }}>Releases</span>
-              <span style={{ fontSize: 18, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{metrics.releases}</span>
-            </div>
-
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
-              <span style={{ ...T.textSm, fontWeight: 400, color: T.colorTextSecondary }}>Closing balance</span>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 18, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{metrics.closing}</span>
-                {_ovGlBadge(metrics.closingGl)}
-              </div>
-            </div>
+            <SecondaryButton onClick={onViewSchedule} style={{ height: 44, padding: "8px 16px 8px 12px", fontSize: 14, gap: 8, whiteSpace: "nowrap", flexShrink: 0 }}>
+              {calendarBtnIcon}
+              View full schedule
+            </SecondaryButton>
           </div>
         </div>
       );
@@ -4243,9 +4386,10 @@ registerPage("Adjustments", {
             </div>
           )}
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))", gap: 16 }}>
             <OverviewCard
               title="Prepayments"
+              updatedAt="5 Mar, 09:41"
               onViewSchedule={function() { setActiveScheduleType("prepayments"); setScheduleViewMode("schedule"); }}
               onRun={function() { setActiveScheduleType("prepayments"); setScheduleViewMode("ai"); }}
               workflow={prepaymentReviewState && prepaymentReviewState.hasResults
@@ -4263,6 +4407,7 @@ registerPage("Adjustments", {
 
             <OverviewCard
               title="Accruals"
+              updatedAt="5 Mar, 09:43"
               onViewSchedule={function() { setActiveScheduleType("accruals"); setScheduleViewMode("schedule"); }}
               onRun={function() { setActiveScheduleType("accruals"); setScheduleViewMode("ai"); }}
               workflow={accrualReviewState && accrualReviewState.hasResults
@@ -4280,6 +4425,7 @@ registerPage("Adjustments", {
 
             <OverviewCard
               title="Deferred revenue"
+              updatedAt="5 Mar, 09:45"
               onViewSchedule={function() { setActiveScheduleType("deferred_revenue"); setScheduleViewMode("schedule"); }}
               onRun={function() { setActiveScheduleType("deferred_revenue"); setScheduleViewMode("ai"); }}
               workflow={deferredRevenueReviewState && deferredRevenueReviewState.hasResults
@@ -4296,12 +4442,13 @@ registerPage("Adjustments", {
             />
 
             <OverviewCard
-              title="Accrued income"
+              title="Accrued revenue"
+              updatedAt="5 Mar, 09:47"
               onViewSchedule={function() { setActiveScheduleType("accrued_income"); setScheduleViewMode("schedule"); }}
               onRun={function() { setActiveScheduleType("accrued_income"); setScheduleViewMode("ai"); }}
               workflow={accruedIncomeReviewState && accruedIncomeReviewState.hasResults
-                ? { label: "Review accrued income", status: "suggestions", resolved: accruedIncomeReviewState.resolved, total: accruedIncomeReviewState.total }
-                : { label: "Review accrued income", status: "not_started" }}
+                ? { label: "Review accrued revenue", status: "suggestions", resolved: accruedIncomeReviewState.resolved, total: accruedIncomeReviewState.total }
+                : { label: "Review accrued revenue", status: "not_started" }}
               metrics={{
                 opening: "£9,800.00",
                 openingGl: null,
@@ -4313,7 +4460,26 @@ registerPage("Adjustments", {
             />
 
             <OverviewCard
+              title="Depreciation (FAR)"
+              updatedAt="5 Mar, 10:02"
+              onViewSchedule={function() { setActiveScheduleType("depreciation"); setScheduleViewMode("schedule"); }}
+              onRun={function() { setDepreciationReviewOpen(true); }}
+              workflow={depreciationReviewState && depreciationReviewState.hasResults
+                ? { label: "Review depreciation charges", status: "suggestions", resolved: depreciationReviewState.resolved, total: depreciationReviewState.total }
+                : { label: "Review depreciation charges", status: "not_started" }}
+              metrics={{
+                opening: "£644,462.00",
+                openingGl: null,
+                additions: "£8,012.00",
+                releases: "£0.00",
+                closing: "£636,450.00",
+                closingGl: _computeGlBadge(_glConfig.depreciation, depreciationReviewState),
+              }}
+            />
+
+            <OverviewCard
               title="Loan amortisation"
+              updatedAt="5 Mar, 10:15"
               onViewSchedule={function() {}}
               onRun={function() { setLoanReviewOpen(true); }}
               workflow={loanReviewState && loanReviewState.hasResults
@@ -4326,23 +4492,6 @@ registerPage("Adjustments", {
                 releases: "(£4,400.00)",
                 closing: "£202,400.00",
                 closingGl: _computeGlBadge(_glConfig.loanAmort, loanReviewState),
-              }}
-            />
-
-            <OverviewCard
-              title="Depreciation (FAR)"
-              onViewSchedule={function() {}}
-              onRun={function() { setDepreciationReviewOpen(true); }}
-              workflow={depreciationReviewState && depreciationReviewState.hasResults
-                ? { label: "Review depreciation charges", status: "suggestions", resolved: depreciationReviewState.resolved, total: depreciationReviewState.total }
-                : { label: "Review depreciation charges", status: "not_started" }}
-              metrics={{
-                opening: "£644,462.00",
-                openingGl: null,
-                additions: "£8,012.00",
-                releases: "£0.00",
-                closing: "£636,450.00",
-                closingGl: _computeGlBadge(_glConfig.depreciation, depreciationReviewState),
               }}
             />
           </div>
@@ -4361,7 +4510,7 @@ registerPage("Adjustments", {
                 { value: "prepayment_expense", label: "Prepayment expense" },
                 { value: "prepayment_income", label: "Prepayment income" },
                 { value: "accrued_expense", label: "Accrued expense" },
-                { value: "accrued_income", label: "Accrued income" },
+                { value: "accrued_income", label: "Accrued revenue" },
               ]} />
 
               <RadioGroup label="Prepayment expense" value={prepaymentMode} onChange={setPrepaymentMode} direction="horizontal" options={[
@@ -4490,6 +4639,7 @@ registerPage("Adjustments", {
             accruals: accrualReviewState && accrualReviewState.hasResults ? accrualReviewState.total - accrualReviewState.resolved : null,
             deferred_revenue: deferredRevenueReviewState && deferredRevenueReviewState.hasResults ? deferredRevenueReviewState.total - deferredRevenueReviewState.resolved : null,
             accrued_income: accruedIncomeReviewState && accruedIncomeReviewState.hasResults ? accruedIncomeReviewState.total - accruedIncomeReviewState.resolved : null,
+            depreciation: depreciationReviewState && depreciationReviewState.hasResults ? depreciationReviewState.total - depreciationReviewState.resolved : null,
           };
           var _schSugCount = activeScheduleType ? _schSugMap[activeScheduleType] : null;
           return (
@@ -4497,7 +4647,8 @@ registerPage("Adjustments", {
               <PrepaymentSchedulePage open={activeScheduleType === "prepayments"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_PR_CARDS} reviewState={prepaymentReviewState} onReviewStateChange={setPrepaymentReviewState} reviewTitle="Prepayments review" onRunReview={function() { setScheduleViewMode("ai"); }} viewMode={activeScheduleType === "prepayments" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
               <AccrualSchedulePage open={activeScheduleType === "accruals"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_AR_CARDS} reviewState={accrualReviewState} onReviewStateChange={setAccrualReviewState} reviewTitle="Accruals review" onRunReview={function() { setScheduleViewMode("ai"); }} viewMode={activeScheduleType === "accruals" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
               <DeferredRevenueSchedulePage open={activeScheduleType === "deferred_revenue"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_DRR_CARDS} reviewState={deferredRevenueReviewState} onReviewStateChange={setDeferredRevenueReviewState} reviewTitle="Deferred revenue review" onRunReview={function() { setScheduleViewMode("ai"); }} viewMode={activeScheduleType === "deferred_revenue" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
-              <AccruedIncomeSchedulePage open={activeScheduleType === "accrued_income"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_AIR_CARDS} reviewState={accruedIncomeReviewState} onReviewStateChange={setAccruedIncomeReviewState} reviewTitle="Accrued income review" onRunReview={function() { setScheduleViewMode("ai"); }} viewMode={activeScheduleType === "accrued_income" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
+              <AccruedIncomeSchedulePage open={activeScheduleType === "accrued_income"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_AIR_CARDS} reviewState={accruedIncomeReviewState} onReviewStateChange={setAccruedIncomeReviewState} reviewTitle="Accrued revenue review" onRunReview={function() { setScheduleViewMode("ai"); }} viewMode={activeScheduleType === "accrued_income" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
+              <DepreciationSchedulePage open={activeScheduleType === "depreciation"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} reviewState={depreciationReviewState} onReviewStateChange={setDepreciationReviewState} viewMode={activeScheduleType === "depreciation" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
             </Fragment>
           );
         })()}
