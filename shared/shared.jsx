@@ -2157,6 +2157,40 @@ function ReconciliationCard({ status, date, suggestionCount, onClick }) {
   );
 }
 
+// ── LinkCard ─────────────────────────────────────────────────────────────────
+function LinkCard({ label, badge, checked, onClick }) {
+  var hasBadge = badge != null && badge > 0;
+  var arrowSvg = React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none", flexShrink: 0 },
+    React.createElement("path", { d: "M6 3l5 5-5 5", stroke: T.colorTextSecondary, strokeWidth: 1.5, strokeLinecap: "round", strokeLinejoin: "round" })
+  );
+  return React.createElement("div", {
+    onClick: onClick ? function(e) { e.stopPropagation(); onClick(); } : undefined,
+    onMouseEnter: onClick ? function(e) { e.currentTarget.style.background = T.colorSurfaceSecondary; } : undefined,
+    onMouseLeave: onClick ? function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; } : undefined,
+    style: {
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      padding: "12px 24px", background: T.colorSurfacePrimary,
+      borderTop: "1px solid " + T.colorBorderLight,
+      cursor: onClick ? "pointer" : "default",
+      transition: "background 0.15s",
+    },
+  },
+    React.createElement("span", {
+      style: { fontSize: 14, fontWeight: 400, color: T.colorTextPrimary, lineHeight: "22px", letterSpacing: "0.15px" },
+    }, label),
+    React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, flexShrink: 0 } },
+      hasBadge && React.createElement("span", {
+        style: {
+          minWidth: 22, height: 22, padding: "0 6px", borderRadius: 11,
+          background: T.colorSurfaceActive, color: T.colorTextSecondary,
+          fontSize: 12, fontWeight: 600, lineHeight: "22px", textAlign: "center",
+        },
+      }, String(badge)),
+      arrowSvg
+    )
+  );
+}
+
 // ── AdjWorkflowCard (DS WorkflowCard) ───────────────────────────────────────
 function AdjWorkflowCard({
   label, subtitle, subtitleColor, color, icon, hideIcon = false,

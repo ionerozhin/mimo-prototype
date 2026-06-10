@@ -260,10 +260,11 @@ function _buildSugEntries(periodStr, totalAmount, entryKey) {
 // ── Prepayment Schedule ────────────────────────────────────────────────────
 function PrepaymentSchedulePage(_ref) {
   var open = _ref.open, onClose = _ref.onClose, activeScheduleType = _ref.activeScheduleType, onScheduleTypeChange = _ref.onScheduleTypeChange, suggestionsCount = _ref.suggestionsCount, sugCards = _ref.sugCards, reviewState = _ref.reviewState, onReviewStateChange = _ref.onReviewStateChange, reviewTitle = _ref.reviewTitle, addLabel = _ref.addLabel, onRunReview = _ref.onRunReview, viewMode = _ref.viewMode, onToggleMode = _ref.onToggleMode, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment;
-  if (!open) return null;
-
   var _spSt = useState(false); var _sugPanelOpen = _spSt[0], _setSugPanelOpen = _spSt[1];
   var _psDrSt = useState(null); var _psDrawerCard = _psDrSt[0], _psSetDrawerCard = _psDrSt[1];
+  var _psSearchState = useState(""); var searchValue = _psSearchState[0], setSearchValue = _psSearchState[1];
+
+  if (!open) return null;
 
   var _psUpdateReviewState = function(action, cardIdx) {
     var rs = reviewState || { resolved: 0, total: sugCards ? sugCards.length : 0, hasResults: true, resolvedArray: [], ignoredArray: [], cardActions: {} };
@@ -632,9 +633,6 @@ function PrepaymentSchedulePage(_ref) {
     return React.createElement("span", { style: { display: "inline-flex", alignItems: "center", width: "fit-content", background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px", whiteSpace: "nowrap" } }, fmtGBP(amount) + " to allocate");
   };
 
-  var _psSearchState = useState("");
-  var searchValue = _psSearchState[0], setSearchValue = _psSearchState[1];
-
   var suggestionRows = (reviewState && reviewState.hasResults && sugCards) ? sugCards.map(function(card, i) {
     var amt = card.drawer ? parseFloat(card.drawer.amount.replace(/,/g, "")) : (card.tableRow ? _parseSugAmount(card.tableRow.amount) : 0);
     var period = card.tableRow ? card.tableRow.period : "";
@@ -900,10 +898,11 @@ function PrepaymentSchedulePage(_ref) {
 
 // ── Accrual Schedule ───────────────────────────────────────────────────────
 function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview, onReviewStateChange, viewMode, onToggleMode, adjComments = {}, onAddAdjComment }) {
-  if (!open) return null;
-
   const [_sugPanelOpen, _setSugPanelOpen] = useState(false);
   const [_asDrawerCard, _asSetDrawerCard] = useState(null);
+  const [_asSearchValue, _asSetSearchValue] = useState("");
+
+  if (!open) return null;
   var _asUpdateReviewState = function(action, cardIdx) {
     var rs = reviewState || { resolved: 0, total: sugCards ? sugCards.length : 0, hasResults: true, resolvedArray: [], ignoredArray: [], cardActions: {} };
     var resolvedArr = (rs.resolvedArray || []).slice();
@@ -973,8 +972,6 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
 
   const _asActiveBadge = () => (<span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Active</span>);
   const _asToAllocateBadge = ({ amount }) => (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px", whiteSpace: "nowrap" }}>{_asFmtGBP(amount)} to allocate</span>);
-
-  const [_asSearchValue, _asSetSearchValue] = useState("");
 
   const _asSuggestionRows = (reviewState && reviewState.hasResults && sugCards) ? sugCards.map((card, i) => {
     const amt = card.drawer ? parseFloat(card.drawer.amount.replace(/,/g, "")) : (card.tableRow ? _parseSugAmount(card.tableRow.amount) : 0);
@@ -1117,10 +1114,11 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
 
 // ── Deferred Revenue Schedule ──────────────────────────────────────────────
 function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview, onReviewStateChange, viewMode, onToggleMode, adjComments = {}, onAddAdjComment }) {
-  if (!open) return null;
-
   const [_sugPanelOpen, _setSugPanelOpen] = useState(false);
   const [_drDrawerCard, _drSetDrawerCard] = useState(null);
+  const [_drSearchValue, _drSetSearchValue] = useState("");
+
+  if (!open) return null;
 
   var _drUpdateReviewState = function(action, cardIdx) {
     var rs = reviewState || { resolved: 0, total: sugCards ? sugCards.length : 0, hasResults: true, resolvedArray: [], ignoredArray: [], cardActions: {} };
@@ -1182,8 +1180,6 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
 
   const _drActiveBadge = () => (<span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Active</span>);
   const _drToAllocateBadge = ({ amount }) => (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px", whiteSpace: "nowrap" }}>{_drFmtGBP(amount)} to allocate</span>);
-
-  const [_drSearchValue, _drSetSearchValue] = useState("");
 
   const _drSuggestionRows = (reviewState && reviewState.hasResults && sugCards) ? sugCards.map((card, i) => {
     const amt = card.drawer ? parseFloat(card.drawer.amount.replace(/,/g, "")) : (card.tableRow ? _parseSugAmount(card.tableRow.amount) : 0);
@@ -1384,10 +1380,11 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
 
 // ── Accrued Income Schedule ────────────────────────────────────────────────
 function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, sugCards, reviewState, reviewTitle, addLabel, onRunReview, onReviewStateChange, viewMode, onToggleMode, adjComments = {}, onAddAdjComment }) {
-  if (!open) return null;
-
   const [_sugPanelOpen, _setSugPanelOpen] = useState(false);
   const [_aiDrawerCard, _aiSetDrawerCard] = useState(null);
+  const [_aiSearchValue, _aiSetSearchValue] = useState("");
+
+  if (!open) return null;
 
   var _aiUpdateReviewState = function(action, cardIdx) {
     var rs = reviewState || { resolved: 0, total: sugCards ? sugCards.length : 0, hasResults: true, resolvedArray: [], ignoredArray: [], cardActions: {} };
@@ -1449,8 +1446,6 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
 
   const _aiActiveBadge = () => (<span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: T.colorSuccessBg, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>Active</span>);
   const _aiToAllocateBadge = ({ amount }) => (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: T.colorInfoBg, color: T.colorInfo, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px", whiteSpace: "nowrap" }}>{_aiFmtGBP(amount)} to allocate</span>);
-
-  const [_aiSearchValue, _aiSetSearchValue] = useState("");
 
   const _aiSuggestionRows = (reviewState && reviewState.hasResults && sugCards) ? sugCards.map((card, i) => {
     const amt = card.drawer ? parseFloat(card.drawer.amount.replace(/,/g, "")) : (card.tableRow ? _parseSugAmount(card.tableRow.amount) : 0);
@@ -1943,7 +1938,7 @@ function PrepaymentReviewFlow(_ref) {
           {_prCanvasReady ? (
             <div style={{ animation: "_prFadeIn 0.4s ease 0.1s both", height: "100%", overflowY: "auto" }}>
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
-                <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Results</h2>
+                <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Overview</h2>
                 {(function() {
                   var _prGlImpacts = { 2: 145.20, 3: 195.00, 4: 4800.00 };
                   var _prGlInitial = -5140.20;
@@ -2412,7 +2407,7 @@ function AccrualReviewFlow(_ref) {
           {_arCanvasReady ? (
             <div style={{ animation: "_arFadeIn 0.4s ease 0.1s both", height: "100%", overflowY: "auto" }}>
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
-                <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Results</h2>
+                <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Overview</h2>
                 {(function() {
                   var _arGlImpacts = { 0: 3200.00 };
                   var _arGlInitial = -3200.00;
@@ -2698,7 +2693,7 @@ function DeferredRevenueReviewFlow(_ref) {
           {_drCanvasReady ? (
             <div style={{ animation: "_drFadeIn 0.4s ease 0.1s both", height: "100%", overflowY: "auto" }}>
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
-                <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Results</h2>
+                <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Overview</h2>
                 {(function() {
                   var _drGlImpacts = { 3: 2800.00 };
                   var _drGlInitial = -2800.00;
@@ -3026,7 +3021,7 @@ function AccruedIncomeReviewFlow(_ref) {
           {_aiCanvasReady ? (
             <div style={{ animation: "_aiFadeIn 0.4s ease 0.1s both", height: "100%", overflowY: "auto" }}>
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
-                <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Results</h2>
+                <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Overview</h2>
                 {(function() {
                   var _aiGlImpacts = { 2: 890.00, 3: 1650.00 };
                   var _aiGlInitial = -2540.00;
