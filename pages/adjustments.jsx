@@ -145,7 +145,7 @@ function _ScheduleTopBar(_ref) {
   return (
     <div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
       <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-1px", flexShrink: 0 }}>Adjustments</span>
-      <Dropdown value={activeType} onChange={onTypeChange} options={_SCHEDULE_TYPES} size="lg" width={200} />
+      <Dropdown value={activeType} onChange={onTypeChange} options={_SCHEDULE_TYPES} size="md" width={200} />
       {onToggleMode && (
         <button onClick={onToggleMode} style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 44, padding: "0 14px", border: "1px solid " + T.colorBorderMedium, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap", flexShrink: 0, transition: "border-color 0.15s, background 0.15s" }}
           onMouseEnter={function(e) { e.currentTarget.style.borderColor = "#A5A5A5"; e.currentTarget.style.background = T.colorSurfaceSecondary; }}
@@ -194,13 +194,6 @@ function _ScheduleTopBar(_ref) {
             )}
           </button>
         )}
-
-        {/* Comment */}
-        <button style={_stIconBtn} onMouseEnter={_stIconHover} onMouseLeave={_stIconLeave}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M21 15C21 15.53 20.79 16.04 20.41 16.41C20.04 16.79 19.53 17 19 17H7L3 21V5C3 4.47 3.21 3.96 3.59 3.59C3.96 3.21 4.47 3 5 3H19C19.53 3 20.04 3.21 20.41 3.59C20.79 3.96 21 4.47 21 5V15Z" stroke={T.colorTextPrimary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
 
         {/* Download */}
         <button style={_stIconBtn} onMouseEnter={_stIconHover} onMouseLeave={_stIconLeave}>
@@ -775,9 +768,7 @@ function PrepaymentSchedulePage(_ref) {
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
                       <span>{fmtGBP(closingBalances[vm.key])}</span>
                       {vm.key === monthKey(3, 2026) && (
-                        <span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: "#757980", whiteSpace: "nowrap" }}>
-                          GL +£125.00
-                        </span>
+                        <span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: "#757980", whiteSpace: "nowrap" }}>GL –£0.06</span>
                       )}
                     </div>
                   </td>
@@ -1086,7 +1077,7 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
           <tfoot>
             <tr><td style={{ ..._asFooterCellStyle, ..._asStickyCol0 }}>Total additions</td><td style={{ ..._asFooterCellStyle }} colSpan={3}></td>{_asVisibleMonths.map(vm => { const isCur = vm.key === _asScheduledMonth; return (<td key={vm.key} style={{ ..._asFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}>{_asTotalAdditions[vm.key] ? _asFmtAddition(_asTotalAdditions[vm.key]) : "-"}</td>); })}</tr>
             <tr><td style={{ ..._asFooterCellStyle, ..._asStickyCol0 }}>Total reversals</td><td style={{ ..._asFooterCellStyle }} colSpan={3}></td>{_asVisibleMonths.map(vm => { const isCur = vm.key === _asScheduledMonth; return (<td key={vm.key} style={{ ..._asFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}>{_asTotalReversals[vm.key] ? _asFmtReversal(_asTotalReversals[vm.key]) : "-"}</td>); })}</tr>
-            <tr><td style={{ ..._asFooterCellStyle, ..._asStickyCol0 }}>Closing balance</td><td style={{ ..._asFooterCellStyle }} colSpan={2}></td><td style={{ ..._asFooterCellStyle, textAlign: "right" }}>{_asFmtGBP(_asOpeningBalance)}</td>{_asVisibleMonths.map(vm => { const isCur = vm.key === _asScheduledMonth; return (<td key={vm.key} style={{ ..._asFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{_asFmtGBP(_asClosingBalances[vm.key])}</span>{vm.key === _asMonthKey(3, 2026) && (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: "#757980", whiteSpace: "nowrap" }}>GL +£340.00</span>)}</div></td>); })}</tr>
+            <tr><td style={{ ..._asFooterCellStyle, ..._asStickyCol0 }}>Closing balance</td><td style={{ ..._asFooterCellStyle }} colSpan={2}></td><td style={{ ..._asFooterCellStyle, textAlign: "right" }}>{_asFmtGBP(_asOpeningBalance)}</td>{_asVisibleMonths.map(vm => { const isCur = vm.key === _asScheduledMonth; return (<td key={vm.key} style={{ ..._asFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{_asFmtGBP(_asClosingBalances[vm.key])}</span>{vm.key === _asMonthKey(3, 2026) && (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: T.colorErrorBg, borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: T.colorError, whiteSpace: "nowrap" }}>GL –£130.00</span>)}</div></td>); })}</tr>
           </tfoot>
         </table>
         </div>
@@ -1307,7 +1298,7 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
           <tfoot>
             <tr><td style={{ ..._drFooterCellStyle, ..._drStickyCol0 }} colSpan={1}>Total additions</td><td style={{ ..._drFooterCellStyle }} colSpan={4}></td>{_drVisibleMonths.map(vm => { const isCur = vm.key === _drScheduledMonth; return (<td key={vm.key} style={{ ..._drFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}>{_drTotalAdditions[vm.key] ? _drFmtAddition(_drTotalAdditions[vm.key]) : "-"}</td>); })}</tr>
             <tr><td style={{ ..._drFooterCellStyle, ..._drStickyCol0 }} colSpan={1}>Total recognitions</td><td style={{ ..._drFooterCellStyle }} colSpan={4}></td>{_drVisibleMonths.map(vm => { const isCur = vm.key === _drScheduledMonth; return (<td key={vm.key} style={{ ..._drFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}>{_drTotalRecognitions[vm.key] ? _drFmtRecognition(_drTotalRecognitions[vm.key]) : "-"}</td>); })}</tr>
-            <tr><td style={{ ..._drFooterCellStyle, ..._drStickyCol0 }} colSpan={1}>Closing balance</td><td style={{ ..._drFooterCellStyle }} colSpan={3}></td><td style={{ ..._drFooterCellStyle }}>{_drFmtGBP(_drOpeningBalance)}</td>{_drVisibleMonths.map(vm => { const isCur = vm.key === _drScheduledMonth; return (<td key={vm.key} style={{ ..._drFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{_drFmtGBP(_drClosingBalances[vm.key])}</span>{vm.key === _drMonthKey(3, 2026) && (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: "#757980", whiteSpace: "nowrap" }}>GL +£340.00</span>)}</div></td>); })}</tr>
+            <tr><td style={{ ..._drFooterCellStyle, ..._drStickyCol0 }} colSpan={1}>Closing balance</td><td style={{ ..._drFooterCellStyle }} colSpan={3}></td><td style={{ ..._drFooterCellStyle }}>{_drFmtGBP(_drOpeningBalance)}</td>{_drVisibleMonths.map(vm => { const isCur = vm.key === _drScheduledMonth; return (<td key={vm.key} style={{ ..._drFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{_drFmtGBP(_drClosingBalances[vm.key])}</span>{null}</div></td>); })}</tr>
           </tfoot>
         </table>
         </div>
@@ -1582,7 +1573,7 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
           <tfoot>
             <tr><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol0 }} colSpan={1}>Total additions</td><td style={{ ..._aiFooterCellStyle }} colSpan={3}></td>{_aiVisibleMonths.map(vm => { const isCur = vm.key === _aiScheduledMonth; return (<td key={vm.key} style={{ ..._aiFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}>{_aiTotalAdditions[vm.key] ? _aiFmtAddition(_aiTotalAdditions[vm.key]) : "-"}</td>); })}</tr>
             <tr><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol0 }} colSpan={1}>Total reversals</td><td style={{ ..._aiFooterCellStyle }} colSpan={3}></td>{_aiVisibleMonths.map(vm => { const isCur = vm.key === _aiScheduledMonth; return (<td key={vm.key} style={{ ..._aiFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}>{_aiTotalReversals[vm.key] ? _aiFmtReversal(_aiTotalReversals[vm.key]) : "-"}</td>); })}</tr>
-            <tr><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol0 }} colSpan={1}>Closing balance</td><td style={{ ..._aiFooterCellStyle }} colSpan={2}></td><td style={{ ..._aiFooterCellStyle }}>{_aiFmtGBP(_aiOpeningBalance)}</td>{_aiVisibleMonths.map(vm => { const isCur = vm.key === _aiScheduledMonth; return (<td key={vm.key} style={{ ..._aiFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{_aiFmtGBP(_aiClosingBalances[vm.key])}</span>{vm.key === _aiMonthKey(3, 2026) && (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: "#757980", whiteSpace: "nowrap" }}>GL +£0.10</span>)}</div></td>); })}</tr>
+            <tr><td style={{ ..._aiFooterCellStyle, ..._aiStickyCol0 }} colSpan={1}>Closing balance</td><td style={{ ..._aiFooterCellStyle }} colSpan={2}></td><td style={{ ..._aiFooterCellStyle }}>{_aiFmtGBP(_aiOpeningBalance)}</td>{_aiVisibleMonths.map(vm => { const isCur = vm.key === _aiScheduledMonth; return (<td key={vm.key} style={{ ..._aiFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{_aiFmtGBP(_aiClosingBalances[vm.key])}</span>{null}</div></td>); })}</tr>
           </tfoot>
         </table>
         </div>
@@ -1998,8 +1989,8 @@ function PrepaymentReviewFlow(_ref) {
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
                 <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Overview</h2>
                 {(function() {
-                  var _prGlImpacts = { 2: 145.20, 3: 195.00, 4: 4800.00 };
-                  var _prGlInitial = -5140.20;
+                  var _prGlImpacts = {};
+                  var _prGlInitial = -0.06;
                   var _prResImpact = Array.from(_prResolvedCards).reduce(function(s, i) { return s + (_prGlImpacts[i] || 0); }, 0);
                   var _prClosingDiff = _prGlInitial + _prResImpact;
                   var _prOpeningMimo = 22615.00;
@@ -2467,8 +2458,8 @@ function AccrualReviewFlow(_ref) {
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
                 <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Overview</h2>
                 {(function() {
-                  var _arGlImpacts = { 0: 3200.00 };
-                  var _arGlInitial = -3200.00;
+                  var _arGlImpacts = {};
+                  var _arGlInitial = -130.00;
                   var _arResImpact = Array.from(_arResolvedCards).reduce(function(s, i) { return s + (_arGlImpacts[i] || 0); }, 0);
                   var _arClosingDiff = _arGlInitial + _arResImpact;
                   var _arOpeningMimo = 28315.00;
@@ -2826,8 +2817,8 @@ function DeferredRevenueReviewFlow(_ref) {
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
                 <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Overview</h2>
                 {(function() {
-                  var _drGlImpacts = { 3: 2800.00 };
-                  var _drGlInitial = -2800.00;
+                  var _drGlImpacts = {};
+                  var _drGlInitial = 0;
                   var _drResImpact = Array.from(_drResolvedCards).reduce(function(s, i) { return s + (_drGlImpacts[i] || 0); }, 0);
                   var _drClosingDiff = _drGlInitial + _drResImpact;
                   var _drOpeningMimo = 21600.00;
@@ -3237,7 +3228,7 @@ function AccruedIncomeReviewFlow(_ref) {
                 <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Overview</h2>
                 {(function() {
                   var _aiGlImpacts = {};
-                  var _aiGlInitial = 0.10;
+                  var _aiGlInitial = 0;
                   var _aiResImpact = Array.from(_aiResolvedCards).reduce(function(s, i) { return s + (_aiGlImpacts[i] || 0); }, 0);
                   var _aiClosingDiff = _aiGlInitial + _aiResImpact;
                   var _aiOpeningMimo = 9800.00;
@@ -3793,8 +3784,8 @@ function LoanAmortisationReviewFlow(_ref) {
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
                 <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Results</h2>
                 {(function() {
-                  var _laGlImpacts = { 0: 3000.00 };
-                  var _laGlInitial = -3000.00;
+                  var _laGlImpacts = {};
+                  var _laGlInitial = 0;
                   var _laResImpact = Array.from(_laResolvedCards).reduce(function(s, i) { return s + (_laGlImpacts[i] || 0); }, 0);
                   var _laClosingDiff = _laGlInitial + _laResImpact;
                   var _laOpeningMimo = 205800.00;
@@ -4165,8 +4156,8 @@ function DepreciationReviewFlow(_ref) {
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
                 <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Results</h2>
                 {(function() {
-                  var _dpGlImpacts = { 0: 2180.00, 1: 1740.00, 2: 5200.00, 3: 3200.00, 4: 750.00 };
-                  var _dpGlInitial = -13070.00;
+                  var _dpGlImpacts = {};
+                  var _dpGlInitial = 0;
                   var _dpResImpact = Array.from(_dpResolvedCards).reduce(function(s, i) { return s + (_dpGlImpacts[i] || 0); }, 0);
                   var _dpClosingDiff = _dpGlInitial + _dpResImpact;
                   var _dpOpeningMimo = 644462.00;
@@ -4296,12 +4287,12 @@ registerPage("Adjustments", {
 
     // GL impact per suggestion card
     var _glConfig = {
-      prepayments:      { initial: -5140.20, impacts: { 2: 145.20, 3: 195.00, 4: 4800.00 } },
-      accruals:         { initial: -3200.00, impacts: { 0: 3200.00 } },
-      deferredRevenue:  { initial: -2800.00, impacts: { 3: 2800.00 } },
-      accruedIncome:    { initial: -2540.00, impacts: { 2: 890.00, 3: 1650.00 } },
-      loanAmort:        { initial: -3000.00, impacts: { 0: 3000.00 } },
-      depreciation:     { initial: -13070.00, impacts: { 0: 2180.00, 1: 1740.00, 2: 5200.00, 3: 3200.00, 4: 750.00 } },
+      prepayments:     { initial: -0.06, impacts: {} },
+      accruals:        { initial: -130.00, impacts: {} },
+      deferredRevenue: { initial: 0, impacts: {} },
+      accruedIncome:   { initial: 0, impacts: {} },
+      loanAmort:       { initial: 0, impacts: {} },
+      depreciation:    { initial: 0, impacts: {} },
     };
     var _computeGlBadge = function(config, reviewState) {
       if (!config) return null;
@@ -4311,7 +4302,8 @@ registerPage("Adjustments", {
       if (Math.abs(remaining) < 0.01) return null;
       var abs = Math.abs(remaining);
       var label = (remaining > 0 ? "GL +£" : "GL –£") + abs.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      return { label: label, color: T.colorError, bg: T.colorErrorBg };
+      var isMinor = abs < 5.00;
+      return { label: label, color: isMinor ? T.colorTextThird : T.colorError, bg: isMinor ? T.colorBorderLight : T.colorErrorBg };
     };
 
     // Compute scheduled journal entries from all review states
