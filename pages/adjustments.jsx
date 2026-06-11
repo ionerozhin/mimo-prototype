@@ -4274,6 +4274,8 @@ registerPage("Adjustments", {
     var _s32 = useState(false); var depreciationReviewOpen = _s32[0], setDepreciationReviewOpen = _s32[1];
     var _s33 = useState(null); var depreciationReviewState = _s33[0], setDepreciationReviewState = _s33[1];
     var _s34 = useState(false); var journalModalOpen = _s34[0], setJournalModalOpen = _s34[1];
+    var _s35 = useState(true); var _sjPublishAuto = _s35[0], _sjSetPublishAuto = _s35[1];
+    var _s36 = useState("journals"); var _sjPublishAs = _s36[0], _sjSetPublishAs = _s36[1];
 
     // Lock body scroll when journal modal is open
     useEffect(function() {
@@ -4368,7 +4370,7 @@ registerPage("Adjustments", {
     _sjCollectEntries(accruedIncomeReviewState, _AIR_CARDS, "accrued_income");
     var _sjTotalDebit = _scheduledJournals.reduce(function(sum, j) { return sum + parseFloat(j.amount.replace(/,/g, "")); }, 0);
     var _sjTotalCredit = _sjTotalDebit;
-    var _sjCount = _scheduledJournals.length;
+    var _sjCount = _scheduledJournals.length > 0 ? 1 : 0;
 
     // Suggestion card comments (shared across all review flows)
     var _scm = useState({}); var adjComments = _scm[0]; var setAdjComments = _scm[1];
@@ -4592,11 +4594,10 @@ registerPage("Adjustments", {
                 </svg>
               </div>
               <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 1 }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: T.colorTextPrimary }}>{"1 scheduled journal"}</span>
-                <span style={{ fontSize: 13, color: T.colorTextSecondary }}>Will be published to Xero today around 8 PM</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: T.colorTextPrimary }}>{_sjPublishAuto ? (_sjCount === 1 ? "1 scheduled journal" : _sjCount + " scheduled journals") : (_sjCount === 1 ? "1 journal is ready to publish" : _sjCount + " journals are ready to publish")}</span>
+                <span style={{ fontSize: 13, color: T.colorTextSecondary }}>{_sjPublishAuto ? "Will be published to Xero today at 8 PM" : "Auto-publishing turned off"}</span>
               </div>
               <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-                <PrimaryButton onClick={function() {}} style={{ height: 40, padding: "8px 16px", fontSize: 14 }}>Publish now</PrimaryButton>
                 <SecondaryButton onClick={function() { setJournalModalOpen(true); }} style={{ height: 40, padding: "8px 16px", fontSize: 14 }}>View journals</SecondaryButton>
               </div>
             </div>
@@ -4886,10 +4887,36 @@ registerPage("Adjustments", {
             width: 860,
             showClose: true,
             showDivider: false,
-            title: "Scheduled journals",
-            footer: React.createElement(Fragment, null,
-              React.createElement(SecondaryButton, { onClick: function() { setJournalModalOpen(false); }, style: { height: 40, padding: "8px 16px", fontSize: 14 } }, "Close"),
-              React.createElement(PrimaryButton, { onClick: function() {}, style: { height: 40, padding: "8px 16px", fontSize: 14 } }, "Publish now")
+            title: "Journals",
+            footer: React.createElement("div", { style: { display: "flex", alignItems: "center", width: "100%", gap: 16 } },
+              /* Toggle + subtitle */
+              React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12, flex: 1 } },
+                React.createElement("button", {
+                  onClick: function() { _sjSetPublishAuto(function(v) { return !v; }); },
+                  style: { position: "relative", width: 44, height: 24, borderRadius: 12, border: "none", cursor: "pointer", background: _sjPublishAuto ? T.colorBrandPrimary : T.colorBorderDark, transition: "background 0.2s", padding: 0, flexShrink: 0 }
+                },
+                  React.createElement("span", { style: { position: "absolute", top: 2, left: _sjPublishAuto ? 22 : 2, width: 20, height: 20, borderRadius: "50%", background: "#fff", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.2)" } })
+                ),
+                React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 1 } },
+                  React.createElement("span", { style: { fontSize: 14, fontWeight: 500, color: T.colorTextPrimary } }, "Publish automatically"),
+                  _sjPublishAuto
+                    ? React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary } },
+                        "Journals are automatically published to Xero at 8 PM. ",
+                        React.createElement("a", { href: "#", onClick: function(e) { e.preventDefault(); }, style: { color: T.colorTextSecondary, textDecoration: "underline", cursor: "pointer" } }, "Publish now")
+                      )
+                    : React.createElement("span", { style: { fontSize: 12, color: T.colorTextSecondary } }, "Journals won't be published until you do so manually")
+                )
+              ),
+              /* Right side: selector (auto on) or publish buttons (auto off) */
+              _sjPublishAuto
+                ? React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, flexShrink: 0 } },
+                    React.createElement("span", { style: { fontSize: 14, color: T.colorTextSecondary, whiteSpace: "nowrap" } }, "Publish as"),
+                    React.createElement(Dropdown, { value: _sjPublishAs, onChange: _sjSetPublishAs, options: [{ value: "journals", label: "Journals" }, { value: "drafts", label: "Drafts" }], size: "md", width: 140 })
+                  )
+                : React.createElement("div", { style: { display: "flex", gap: 8, flexShrink: 0 } },
+                    React.createElement(PrimaryButton, { onClick: function() {}, style: { height: 44, padding: "8px 16px", fontSize: 14, whiteSpace: "nowrap" } }, "Publish now"),
+                    React.createElement(SecondaryButton, { onClick: function() {}, style: { height: 44, padding: "8px 16px", fontSize: 14, whiteSpace: "nowrap" } }, "Publish now as drafts")
+                  )
             ),
           },
             React.createElement("div", { style: { margin: "0 -24px", display: "flex", flexDirection: "column", maxHeight: "calc(70vh - 200px)" } },
