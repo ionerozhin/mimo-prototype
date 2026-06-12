@@ -159,29 +159,9 @@ function _ScheduleTopBar(_ref) {
       )}
       <div style={{ flex: 1 }} />
 
-      {(viewMode !== "ai" || aiProgress) && (<div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        {/* Review suggestions / AI progress button */}
-        {(viewMode === "ai" && aiProgress) ? (
-          /* Progress counter (bank-rec style) — shown in AI mode when results exist */
-          <button onClick={onSuggestionsClick}
-            style={{ display: "flex", alignItems: "center", gap: 0, cursor: "pointer", fontFamily: "inherit", border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, height: 44, minWidth: 44, padding: sugPanelOpen ? 0 : "0 12px 0 0", overflow: "hidden", justifyContent: "center", flexShrink: 0, transition: "padding 0.35s cubic-bezier(0.16,1,0.3,1), background 0.15s" }}
-            onMouseEnter={function(e) { e.currentTarget.style.background = T.colorSurfaceSecondary; }}
-            onMouseLeave={function(e) { e.currentTarget.style.background = T.colorSurfacePrimary; }}>
-            <div style={{ maxWidth: sugPanelOpen ? 0 : 200, opacity: sugPanelOpen ? 0 : 1, overflow: "hidden", transition: "max-width 0.35s cubic-bezier(0.16,1,0.3,1), opacity 0.2s", display: "flex", flexDirection: "column", gap: 4, paddingLeft: sugPanelOpen ? 0 : 12, paddingRight: sugPanelOpen ? 0 : 10 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                <span style={{ fontSize: 14, fontWeight: 500, color: T.colorTextThird, whiteSpace: "nowrap" }}>Suggestions</span>
-                <span style={{ fontSize: 14, fontWeight: 600, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{aiProgress.resolved}/{aiProgress.total}</span>
-              </div>
-              <div style={{ height: 2, background: T.colorBorderDark, borderRadius: 1, overflow: "hidden" }}>
-                <div style={{ height: "100%", width: Math.round((aiProgress.resolved / aiProgress.total) * 100) + "%", background: aiProgress.resolved >= aiProgress.total ? T.colorInfo : T.colorBrandPrimary, borderRadius: 1, transition: "width 0.4s ease" }} />
-              </div>
-            </div>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-              <path d="M15 21L15 3M16.2 21H7.8C6.12 21 5.28 21 4.64 20.673C4.07 20.385 3.61 19.927 3.33 19.362C3 18.72 3 17.88 3 16.2V7.8C3 6.12 3 5.28 3.33 4.638C3.61 4.074 4.07 3.615 4.64 3.327C5.28 3 6.12 3 7.8 3H16.2C17.88 3 18.72 3 19.362 3.327C19.927 3.615 20.385 4.074 20.673 4.638C21 5.28 21 6.12 21 7.8V16.2C21 17.88 21 18.72 20.673 19.362C20.385 19.927 19.927 20.385 19.362 20.673C18.72 21 17.88 21 16.2 21Z" stroke={T.colorTextPrimary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-        ) : (
-          /* Regular "Review suggestions" button — schedule mode or AI mode without results */
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        {/* Review suggestions button — schedule mode only */}
+        {viewMode !== "ai" && (
           <button onClick={onSuggestionsClick} style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 44, padding: "8px 16px 8px 12px", border: "1px solid " + (sugPanelOpen ? T.colorTextPrimary : T.colorBorderMedium), borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap", flexShrink: 0, transition: "border-color 0.15s, background 0.15s" }}
             onMouseEnter={function(e) { e.currentTarget.style.borderColor = T.colorBorderHover; e.currentTarget.style.background = T.colorSurfaceSecondary; }}
             onMouseLeave={function(e) { e.currentTarget.style.borderColor = sugPanelOpen ? T.colorTextPrimary : T.colorBorderMedium; e.currentTarget.style.background = T.colorSurfacePrimary; }}>
@@ -194,14 +174,13 @@ function _ScheduleTopBar(_ref) {
             )}
           </button>
         )}
-
         {/* Download */}
         <button style={_stIconBtn} onMouseEnter={_stIconHover} onMouseLeave={_stIconLeave}>
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path d={_MM_PATHS.download} stroke={T.colorTextPrimary} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
-      </div>)}
+      </div>
 
       {/* Close */}
       <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", padding: 0 }}>
