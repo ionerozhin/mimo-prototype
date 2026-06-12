@@ -230,6 +230,100 @@ function _buildSugEntries(periodStr, totalAmount, entryKey) {
   return entries;
 }
 
+// ── GL diff badge with hover tooltip ──────────────────────────────────────
+var _glLine = function(lbl, val) {
+  return React.createElement("div", null, lbl + ": " + val);
+};
+var _buildGlTooltipContent = function(mimoStr, xeroStr, diffStr, diffColor, text) {
+  return React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 3, color: "#fff" } },
+    _glLine("Per Mimo", mimoStr),
+    _glLine("Per Xero", xeroStr),
+    React.createElement("div", null, "Difference: ", React.createElement("span", { style: { color: diffColor } }, diffStr)),
+    text ? React.createElement("div", null,
+      React.createElement("div", { style: { height: 8 } }),
+      React.createElement("span", { style: { color: "rgba(255,255,255,0.85)" } }, text)
+    ) : null
+  );
+};
+var _buildReconciledTooltipContent = function(mimoStr, isOpening) {
+  return React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 3, color: "#fff" } },
+    _glLine("Per Mimo", mimoStr),
+    _glLine("Per Xero", mimoStr),
+    _glLine("Difference", "£0.00"),
+    React.createElement("div", null,
+      React.createElement("div", { style: { height: 8 } }),
+      React.createElement("span", null, (isOpening ? "Opening" : "Closing") + " balance is reconciled.")
+    )
+  );
+};
+var _positionTooltip = function(wrapper, tt) {
+  var trigger = wrapper.getBoundingClientRect();
+  var ttH = tt.getBoundingClientRect().height; // includes paddingBottom bridge
+  var W = 256;
+  var PAD = 12;
+  var triggerCX = trigger.left + trigger.width / 2;
+  var preferredLeft = triggerCX - W / 2;
+  var clampedLeft = Math.max(PAD, Math.min(preferredLeft, window.innerWidth - W - PAD));
+  // Position: tooltip div bottom = trigger top (bridge padding fills the gap)
+  tt.style.top = (trigger.top - ttH) + "px";
+  tt.style.left = clampedLeft + "px";
+  var caret = tt.querySelector("[data-gl-caret]");
+  if (caret) {
+    var caretX = Math.max(10, Math.min(triggerCX - clampedLeft, W - 10));
+    caret.style.left = caretX + "px";
+    caret.style.transform = "translateX(-50%)";
+  }
+};
+var _glTtEnter = function(e) {
+  var wrapper = e.currentTarget;
+  var tt = wrapper.querySelector("[data-gl-tt]");
+  if (!tt) return;
+  tt.style.visibility = "hidden";
+  tt.style.display = "block";
+  _positionTooltip(wrapper, tt);
+  tt.style.visibility = "visible";
+};
+var _glTtLeaveWrapper = function(e) {
+  var tt = e.currentTarget.querySelector("[data-gl-tt]");
+  if (tt && tt.contains(e.relatedTarget)) return;
+  if (tt) tt.style.display = "none";
+};
+var _glTtLeaveTooltip = function(e) { e.currentTarget.style.display = "none"; };
+var _glTtStyle = { display: "none", position: "fixed", top: 0, left: 0, paddingBottom: 8, zIndex: 9999, pointerEvents: "auto" };
+var _glTtInner = { position: "relative", background: "#1A1A2E", color: "#fff", borderRadius: 8, padding: "10px 14px 12px", fontSize: 12, lineHeight: "18px", width: 256, boxShadow: "0 4px 16px rgba(0,0,0,0.18)", whiteSpace: "normal", textAlign: "left" };
+var _glTtCaret = { position: "absolute", bottom: 2, left: "50%", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "5px solid #1A1A2E" };
+var _makeGlTooltipBadge = function(label, color, bg, tooltip, extraStyle) {
+  return React.createElement("div", {
+    style: { position: "relative", display: "inline-flex" },
+    onMouseEnter: _glTtEnter,
+    onMouseLeave: _glTtLeaveWrapper,
+  },
+    React.createElement("span", { style: Object.assign({ display: "inline-flex", alignItems: "center", width: "fit-content", borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: color, background: bg, whiteSpace: "nowrap", cursor: "default" }, extraStyle || {}) }, label),
+    tooltip ? React.createElement("div", { "data-gl-tt": "1", onMouseLeave: _glTtLeaveTooltip, style: _glTtStyle },
+      React.createElement("div", { style: _glTtInner }, tooltip),
+      React.createElement("div", { "data-gl-caret": "1", style: _glTtCaret })
+    ) : null
+  );
+};
+var _makeInfoTooltip = function(tooltipContent, iconColor) {
+  var c = iconColor || "#757980";
+  return React.createElement("div", {
+    style: { position: "relative", display: "inline-flex" },
+    onMouseEnter: _glTtEnter,
+    onMouseLeave: _glTtLeaveWrapper,
+  },
+    React.createElement("svg", { width: 14, height: 14, viewBox: "0 0 16 16", fill: "none", style: { cursor: "default", flexShrink: 0 } },
+      React.createElement("circle", { cx: 8, cy: 8, r: 7, stroke: c, strokeWidth: 1.3 }),
+      React.createElement("path", { d: "M8 7v4", stroke: c, strokeWidth: 1.3, strokeLinecap: "round" }),
+      React.createElement("circle", { cx: 8, cy: 5, r: 0.8, fill: c })
+    ),
+    tooltipContent ? React.createElement("div", { "data-gl-tt": "1", onMouseLeave: _glTtLeaveTooltip, style: _glTtStyle },
+      React.createElement("div", { style: _glTtInner }, tooltipContent),
+      React.createElement("div", { "data-gl-caret": "1", style: _glTtCaret })
+    ) : null
+  );
+};
+
 // ── Prepayment Schedule ────────────────────────────────────────────────────
 function PrepaymentSchedulePage(_ref) {
   var open = _ref.open, onClose = _ref.onClose, activeScheduleType = _ref.activeScheduleType, onScheduleTypeChange = _ref.onScheduleTypeChange, suggestionsCount = _ref.suggestionsCount, sugCards = _ref.sugCards, reviewState = _ref.reviewState, onReviewStateChange = _ref.onReviewStateChange, reviewTitle = _ref.reviewTitle, addLabel = _ref.addLabel, onRunReview = _ref.onRunReview, viewMode = _ref.viewMode, onToggleMode = _ref.onToggleMode, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment;
@@ -698,8 +792,8 @@ function PrepaymentSchedulePage(_ref) {
               return (
                 <tr key={item.id} style={{ cursor: "pointer" }}
                   onClick={function() { if (item.isSuggestion && item.cardIdx != null && sugCards) { var match = sugCards.filter(function(c) { return c.idx === item.cardIdx; })[0]; if (match) _psSetDrawerCard(match); } }}
-                  onMouseEnter={function(e) { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll('[data-sticky]').forEach(function(td) { td.style.background = T.colorSurfaceSecondary; }); }}
-                  onMouseLeave={function(e) { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll('[data-sticky]').forEach(function(td) { td.style.background = T.colorSurfacePrimary; }); }}
+                  onMouseEnter={function(e) { e.currentTarget.querySelectorAll('td').forEach(function(td) { td.style.background = T.colorSurfaceSecondary; }); }}
+                  onMouseLeave={function(e) { e.currentTarget.querySelectorAll('td').forEach(function(td) { td.style.background = td.dataset.current ? T.colorSurfaceSecondary : T.colorSurfacePrimary; }); }}
                 >
                   <td data-sticky="1" style={{ ...cellStyle, ...stickyCol0 }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -720,7 +814,7 @@ function PrepaymentSchedulePage(_ref) {
                   <td style={{ ...cellStyle }}>
                     <span>{item.balanceForward != null ? fmtGBP(item.balanceForward) : "-"}</span>
                   </td>
-                  {visibleMonths.map(function(vm) { var isCur = vm.key === SCHEDULED_MONTH; return <td key={vm.key} style={{ ...cellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}>{renderMonthCell(item.entries[vm.key], false, vm.key)}</td>; })}
+                  {visibleMonths.map(function(vm) { var isCur = vm.key === SCHEDULED_MONTH; return <td key={vm.key} data-current={isCur ? "1" : undefined} style={{ ...cellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}>{renderMonthCell(item.entries[vm.key], false, vm.key)}</td>; })}
                 </tr>
               );
             })}
@@ -747,7 +841,7 @@ function PrepaymentSchedulePage(_ref) {
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
                       <span>{fmtGBP(closingBalances[vm.key])}</span>
                       {vm.key === monthKey(3, 2026) && (
-                        <span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: "#ECECEC", borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: "#757980", whiteSpace: "nowrap" }}>GL –£0.06</span>
+                        _makeGlTooltipBadge("GL –£0.06", "#757980", "#ECECEC", _buildGlTooltipContent("£23,400.00", "£23,399.94", "–£0.06", "rgba(255,255,255,0.7)", "£0.06 rounding residual on 1103 – Prepayments from the ISS Facility Services write-off. Will self-correct on the next reconciliation."), null)
                       )}
                     </div>
                   </td>
@@ -1032,7 +1126,7 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
             {_asVisibleMonths.map(vm => { const isCur = vm.key === _asScheduledMonth; return (<th key={vm.key} style={{ ..._asThStyle, width: _asColWidths.month, minWidth: _asColWidths.month, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}><span>{vm.label}</span>{isCur && <span style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", color: "#757980", borderRadius: 4, padding: "1px 5px", fontSize: 10, fontWeight: 600, lineHeight: "15px", whiteSpace: "nowrap" }}>Current</span>}</div></th>); })}
           </tr></thead>
           <tbody>{_asFilteredData.map(item => (
-            <tr key={item.id} style={{ cursor: "pointer" }} onMouseEnter={e => { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfacePrimary; }); }} onClick={function() { if (item.isSuggestion && item.cardIdx != null && sugCards) { var match = sugCards.filter(function(c) { return c.idx === item.cardIdx; })[0]; if (match) _asSetDrawerCard(match); } }}>
+            <tr key={item.id} style={{ cursor: "pointer" }} onMouseEnter={e => { e.currentTarget.querySelectorAll('td').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.querySelectorAll('td').forEach(td => { td.style.background = td.dataset.current ? T.colorSurfaceSecondary : T.colorSurfacePrimary; }); }} onClick={function() { if (item.isSuggestion && item.cardIdx != null && sugCards) { var match = sugCards.filter(function(c) { return c.idx === item.cardIdx; })[0]; if (match) _asSetDrawerCard(match); } }}>
               <td data-sticky="1" style={{ ..._asCellStyle, ..._asStickyCol0 }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                   <span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span>
@@ -1050,13 +1144,13 @@ function AccrualSchedulePage({ open, onClose, activeScheduleType, onScheduleType
               <td style={{ ..._asCellStyle, color: T.colorTextPrimary }}>{item.expenseAccount}</td>
               <td style={{ ..._asCellStyle, textAlign: "right" }}>{item.accrualAmount != null ? _asFmtGBP(item.accrualAmount) : "-"}</td>
               <td style={{ ..._asCellStyle, textAlign: "right" }}>{item.balanceForward != null && item.balanceForward > 0 ? _asFmtGBP(item.balanceForward) : "-"}</td>
-              {_asVisibleMonths.map(vm => { const isCur = vm.key === _asScheduledMonth; return (<td key={vm.key} style={{ ..._asCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}>{_asRenderMonthCell(item.entries[vm.key], false, vm.key)}</td>); })}
+              {_asVisibleMonths.map(vm => { const isCur = vm.key === _asScheduledMonth; return (<td key={vm.key} data-current={isCur ? "1" : undefined} style={{ ..._asCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}>{_asRenderMonthCell(item.entries[vm.key], false, vm.key)}</td>); })}
             </tr>
           ))}</tbody>
           <tfoot>
             <tr><td style={{ ..._asFooterCellStyle, ..._asStickyCol0 }}>Total additions</td><td style={{ ..._asFooterCellStyle }} colSpan={3}></td>{_asVisibleMonths.map(vm => { const isCur = vm.key === _asScheduledMonth; return (<td key={vm.key} style={{ ..._asFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}>{_asTotalAdditions[vm.key] ? _asFmtAddition(_asTotalAdditions[vm.key]) : "-"}</td>); })}</tr>
             <tr><td style={{ ..._asFooterCellStyle, ..._asStickyCol0 }}>Total reversals</td><td style={{ ..._asFooterCellStyle }} colSpan={3}></td>{_asVisibleMonths.map(vm => { const isCur = vm.key === _asScheduledMonth; return (<td key={vm.key} style={{ ..._asFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}>{_asTotalReversals[vm.key] ? _asFmtReversal(_asTotalReversals[vm.key]) : "-"}</td>); })}</tr>
-            <tr><td style={{ ..._asFooterCellStyle, ..._asStickyCol0 }}>Closing balance</td><td style={{ ..._asFooterCellStyle }} colSpan={2}></td><td style={{ ..._asFooterCellStyle, textAlign: "right" }}>{_asFmtGBP(_asOpeningBalance)}</td>{_asVisibleMonths.map(vm => { const isCur = vm.key === _asScheduledMonth; return (<td key={vm.key} style={{ ..._asFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{_asFmtGBP(_asClosingBalances[vm.key])}</span>{vm.key === _asMonthKey(3, 2026) && (<span style={{ display: "inline-flex", alignItems: "center", width: "fit-content", background: T.colorErrorBg, borderRadius: 4, padding: "2px 6px", fontSize: 11, fontWeight: 500, color: T.colorError, whiteSpace: "nowrap" }}>GL –£130.00</span>)}</div></td>); })}</tr>
+            <tr><td style={{ ..._asFooterCellStyle, ..._asStickyCol0 }}>Closing balance</td><td style={{ ..._asFooterCellStyle }} colSpan={2}></td><td style={{ ..._asFooterCellStyle, textAlign: "right" }}>{_asFmtGBP(_asOpeningBalance)}</td>{_asVisibleMonths.map(vm => { const isCur = vm.key === _asScheduledMonth; return (<td key={vm.key} style={{ ..._asFooterCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}><span>{_asFmtGBP(_asClosingBalances[vm.key])}</span>{vm.key === _asMonthKey(3, 2026) && (_makeGlTooltipBadge("GL –£130.00", T.colorError, T.colorErrorBg, _buildGlTooltipContent("£31,200.00", "£31,070.00", "–£130.00", "#FCA5A5", "2109 – Accruals is £130.00 below the schedule total, likely from a manual Xero journal that adjusted the Thames Water balance outside of Mimo."), null))}</div></td>); })}</tr>
           </tfoot>
         </table>
         </div>
@@ -1249,7 +1343,7 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
             {_drVisibleMonths.map(vm => { const isCur = vm.key === _drScheduledMonth; return (<th key={vm.key} style={{ ..._drThStyle, width: _drColWidths.month, minWidth: _drColWidths.month, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}><span>{vm.label}</span>{isCur && <span style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", color: "#757980", borderRadius: 4, padding: "1px 5px", fontSize: 10, fontWeight: 600, lineHeight: "15px", whiteSpace: "nowrap" }}>Current</span>}</div></th>); })}
           </tr></thead>
           <tbody>{_drFilteredData.map(item => (
-            <tr key={item.id} style={{ cursor: "pointer" }} onClick={() => { if (item.isSuggestion && item.cardIdx != null && sugCards) { var match = sugCards.filter(c => c.idx === item.cardIdx)[0]; if (match) _drSetDrawerCard(match); } }} onMouseEnter={e => { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfacePrimary; }); }}>
+            <tr key={item.id} style={{ cursor: "pointer" }} onClick={() => { if (item.isSuggestion && item.cardIdx != null && sugCards) { var match = sugCards.filter(c => c.idx === item.cardIdx)[0]; if (match) _drSetDrawerCard(match); } }} onMouseEnter={e => { e.currentTarget.querySelectorAll('td').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.querySelectorAll('td').forEach(td => { td.style.background = td.dataset.current ? T.colorSurfaceSecondary : T.colorSurfacePrimary; }); }}>
               <td data-sticky="1" style={{ ..._drCellStyle, ..._drStickyCol0 }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                   <span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span>
@@ -1271,7 +1365,7 @@ function DeferredRevenueSchedulePage({ open, onClose, activeScheduleType, onSche
               <td style={{ ..._drCellStyle, color: T.colorTextPrimary }}>{item.invoiceDate}</td>
               <td style={{ ..._drCellStyle, color: T.colorTextPrimary, textAlign: "right" }}>{_drFmtGBP(item.invoiceAmount)}</td>
               <td style={{ ..._drCellStyle }}><span>{item.balanceForward != null ? _drFmtGBP(item.balanceForward) : "-"}</span></td>
-              {_drVisibleMonths.map(vm => { const isCur = vm.key === _drScheduledMonth; return (<td key={vm.key} style={{ ..._drCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}>{_drRenderMonthCell(item.entries[vm.key], false, vm.key)}</td>); })}
+              {_drVisibleMonths.map(vm => { const isCur = vm.key === _drScheduledMonth; return (<td key={vm.key} data-current={isCur ? "1" : undefined} style={{ ..._drCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}>{_drRenderMonthCell(item.entries[vm.key], false, vm.key)}</td>); })}
             </tr>
           ))}</tbody>
           <tfoot>
@@ -1512,7 +1606,7 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
               <input type="text" placeholder="Search..." value={_aiSearchValue} onChange={e => _aiSetSearchValue(e.target.value)} style={{ height: 36, padding: "0 12px", border: "1px solid " + T.colorBorderDark, borderRadius: 6, fontSize: 14, fontFamily: T.fontFamily, outline: "none", width: 220, color: T.colorTextPrimary, background: T.colorSurfacePrimary }} onFocus={e => { e.target.style.borderColor = T.colorBrandPrimary; e.target.style.borderWidth = "2px"; e.target.style.padding = "0 11px"; }} onBlur={e => { e.target.style.borderColor = T.colorBorderDark; e.target.style.borderWidth = "1px"; e.target.style.padding = "0 12px"; }} />
               <div style={{ flex: 1 }} />
               <Dropdown value="jan-dec-2026" options={[{ label: "1 Jan 2026 - 31 Dec 2026", value: "jan-dec-2026" }]} onChange={() => {}} size="sm" width={230} />
-              <Dropdown value="all" options={[{ label: "All income accounts", value: "all" },{ label: "4000 – Sales", value: "4000" },{ label: "4100 – Other income", value: "4100" },{ label: "4200 – Rental income", value: "4200" }]} onChange={() => {}} size="sm" width={220} />
+              <Dropdown value="all" options={[{ label: "All revenue accounts", value: "all" },{ label: "4000 – Sales", value: "4000" },{ label: "4100 – Other income", value: "4100" },{ label: "4200 – Rental income", value: "4200" }]} onChange={() => {}} size="sm" width={220} />
               <SecondaryButton style={{ height: 36, padding: "0 12px", fontSize: 14, gap: 6 }}><_aiPlusIcon />Add accrued revenue</SecondaryButton>
             </Fragment>
           )}
@@ -1528,7 +1622,7 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
             {_aiVisibleMonths.map(vm => { const isCur = vm.key === _aiScheduledMonth; return (<th key={vm.key} style={{ ..._aiThStyle, width: _aiColWidths.month, minWidth: _aiColWidths.month, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}><div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}><span>{vm.label}</span>{isCur && <span style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", color: "#757980", borderRadius: 4, padding: "1px 5px", fontSize: 10, fontWeight: 600, lineHeight: "15px", whiteSpace: "nowrap" }}>Current</span>}</div></th>); })}
           </tr></thead>
           <tbody>{_aiFilteredData.map(item => (
-            <tr key={item.id} style={{ cursor: "pointer" }} onClick={() => { if (item.isSuggestion && item.cardIdx != null && sugCards) { var match = sugCards.filter(c => c.idx === item.cardIdx)[0]; if (match) _aiSetDrawerCard(match); } }} onMouseEnter={e => { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll('[data-sticky]').forEach(td => { td.style.background = T.colorSurfacePrimary; }); }}>
+            <tr key={item.id} style={{ cursor: "pointer" }} onClick={() => { if (item.isSuggestion && item.cardIdx != null && sugCards) { var match = sugCards.filter(c => c.idx === item.cardIdx)[0]; if (match) _aiSetDrawerCard(match); } }} onMouseEnter={e => { e.currentTarget.querySelectorAll('td').forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }} onMouseLeave={e => { e.currentTarget.querySelectorAll('td').forEach(td => { td.style.background = td.dataset.current ? T.colorSurfaceSecondary : T.colorSurfacePrimary; }); }}>
               <td data-sticky="1" style={{ ..._aiCellStyle, ..._aiStickyCol0 }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                   <span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{item.description}</span>
@@ -1546,7 +1640,7 @@ function AccruedIncomeSchedulePage({ open, onClose, activeScheduleType, onSchedu
               <td style={{ ..._aiCellStyle, color: T.colorTextPrimary }}>{item.revenueAccount}</td>
               <td style={{ ..._aiCellStyle, color: T.colorTextPrimary, textAlign: "right" }}>{item.accruedAmount != null ? _aiFmtGBP(item.accruedAmount) : "-"}</td>
               <td style={{ ..._aiCellStyle, color: T.colorTextPrimary }}><span>{item.balanceForward != null ? _aiFmtGBP(item.balanceForward) : "-"}</span></td>
-              {_aiVisibleMonths.map(vm => { const isCur = vm.key === _aiScheduledMonth; return (<td key={vm.key} style={{ ..._aiCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}>{_aiRenderMonthCell(item.entries[vm.key], false, vm.key)}</td>); })}
+              {_aiVisibleMonths.map(vm => { const isCur = vm.key === _aiScheduledMonth; return (<td key={vm.key} data-current={isCur ? "1" : undefined} style={{ ..._aiCellStyle, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}>{_aiRenderMonthCell(item.entries[vm.key], false, vm.key)}</td>); })}
             </tr>
           ))}</tbody>
           <tfoot>
@@ -1968,32 +2062,27 @@ function PrepaymentReviewFlow(_ref) {
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
                 <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Overview</h2>
                 {(function() {
-                  var _prGlImpacts = {};
-                  var _prGlInitial = -0.06;
-                  var _prResImpact = Array.from(_prResolvedCards).reduce(function(s, i) { return s + (_prGlImpacts[i] || 0); }, 0);
-                  var _prClosingDiff = _prGlInitial + _prResImpact;
-                  var _prOpeningMimo = 22615.00;
-                  var _prOpeningXero = 22615.00;
-                  var _prOpeningDiff = 0;
                   var _prClosingMimo = 23400.00;
-                  var _prClosingXero = _prClosingMimo - _prClosingDiff;
+                  var _prClosingXero = 23399.94;
                   var _fmt = function(v) { return (v < 0 ? "–" : "") + "£" + Math.abs(v).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
                   var _diffCell = function(v) {
                     if (Math.abs(v) < 0.01) return _fmt(0);
                     return React.createElement("span", { style: { fontWeight: 600, color: T.colorTextPrimary } }, _fmt(v));
                   };
+                  var _prClosingDiff = _prClosingMimo - _prClosingXero;
+                  var _prDiffValue = React.createElement("div", { style: { display: "inline-flex", alignItems: "center", gap: 5 } },
+                    React.createElement("span", { style: { fontWeight: 600, color: T.colorTextPrimary } }, (_prClosingDiff > 0 ? "+" : "") + _fmt(_prClosingDiff)),
+                    _makeInfoTooltip(_buildGlTooltipContent(_fmt(_prClosingMimo), _fmt(_prClosingXero), "+£0.06", "rgba(255,255,255,0.7)", "£0.06 rounding residual on 1103 – Prepayments from the ISS Facility Services write-off. Unrelated to the suggestions above — will self-correct on the next reconciliation."), T.colorTextSecondary)
+                  );
                   return React.createElement("div", { style: { marginBottom: 12 } },
                     React.createElement(DataTable, {
                       columns: [{ key: "description", label: "Description", width: "1fr" }, { key: "value", label: "Amount", width: "160px", align: "right" }],
                       rows: [
-                        { description: "Opening balance per Mimo", value: _fmt(_prOpeningMimo) },
-                        { description: "Opening balance per Xero", value: _fmt(_prOpeningXero) },
-                        { description: "Opening balance difference", value: _diffCell(_prOpeningDiff) },
-                        { description: "Additions", value: "£4,560.00" },
-                        { description: "Releases", value: "(£3,775.00)" },
-                        { description: "Closing balance per Mimo", value: _fmt(_prClosingMimo) },
-                        { description: "Closing balance per Xero", value: _fmt(_prClosingXero) },
-                        { description: "Closing balance difference", value: _diffCell(_prClosingDiff) },
+                        { description: "Suggested additions", value: "£19,200.00" },
+                        { description: "Suggested releases", value: "(£5,140.20)" },
+                        { description: "Closing balance (with suggestions)", value: _fmt(_prClosingMimo) },
+                        { description: "Closing balance per Xero (with suggestions)", value: _fmt(_prClosingXero) },
+                        { description: "Closing balance difference", value: _prDiffValue },
                       ]
                     })
                   );
@@ -2437,32 +2526,27 @@ function AccrualReviewFlow(_ref) {
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
                 <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Overview</h2>
                 {(function() {
-                  var _arGlImpacts = {};
-                  var _arGlInitial = -130.00;
-                  var _arResImpact = Array.from(_arResolvedCards).reduce(function(s, i) { return s + (_arGlImpacts[i] || 0); }, 0);
-                  var _arClosingDiff = _arGlInitial + _arResImpact;
-                  var _arOpeningMimo = 28315.00;
-                  var _arOpeningXero = 28315.00;
-                  var _arOpeningDiff = 0;
                   var _arClosingMimo = 31200.00;
-                  var _arClosingXero = _arClosingMimo - _arClosingDiff;
+                  var _arClosingXero = 31330.00;
                   var _fmt = function(v) { return (v < 0 ? "–" : "") + "£" + Math.abs(v).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
                   var _diffCell = function(v) {
                     if (Math.abs(v) < 0.01) return _fmt(0);
                     return React.createElement("span", { style: { fontWeight: 600, color: T.colorTextPrimary } }, _fmt(v));
                   };
+                  var _arClosingDiff = _arClosingMimo - _arClosingXero;
+                  var _arDiffValue = React.createElement("div", { style: { display: "inline-flex", alignItems: "center", gap: 5 } },
+                    _diffCell(_arClosingDiff),
+                    _makeInfoTooltip(_buildGlTooltipContent(_fmt(_arClosingMimo), _fmt(_arClosingXero), "–£130.00", "#FCA5A5", "2109 – Accruals is £130.00 above the schedule total, likely from a manual Xero journal that adjusted the Thames Water balance outside of Mimo. Unrelated to the suggestions above."), T.colorTextSecondary)
+                  );
                   return React.createElement("div", { style: { marginBottom: 12 } },
                     React.createElement(DataTable, {
                       columns: [{ key: "description", label: "Description", width: "1fr" }, { key: "value", label: "Amount", width: "160px", align: "right" }],
                       rows: [
-                        { description: "Opening balance per Mimo", value: _fmt(_arOpeningMimo) },
-                        { description: "Opening balance per Xero", value: _fmt(_arOpeningXero) },
-                        { description: "Opening balance difference", value: _diffCell(_arOpeningDiff) },
-                        { description: "Additions", value: "£8,285.00" },
-                        { description: "Releases", value: "(£5,400.00)" },
-                        { description: "Closing balance per Mimo", value: _fmt(_arClosingMimo) },
-                        { description: "Closing balance per Xero", value: _fmt(_arClosingXero) },
-                        { description: "Closing balance difference", value: _diffCell(_arClosingDiff) },
+                        { description: "Suggested additions", value: "£7,700.00" },
+                        { description: "Suggested releases", value: "(£2,230.00)" },
+                        { description: "Closing balance (with suggestions)", value: _fmt(_arClosingMimo) },
+                        { description: "Closing balance per Xero (with suggestions)", value: _fmt(_arClosingXero) },
+                        { description: "Closing balance difference", value: _arDiffValue },
                       ]
                     })
                   );
@@ -2796,32 +2880,26 @@ function DeferredRevenueReviewFlow(_ref) {
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
                 <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Overview</h2>
                 {(function() {
-                  var _drGlImpacts = {};
-                  var _drGlInitial = 0;
-                  var _drResImpact = Array.from(_drResolvedCards).reduce(function(s, i) { return s + (_drGlImpacts[i] || 0); }, 0);
-                  var _drClosingDiff = _drGlInitial + _drResImpact;
-                  var _drOpeningMimo = 21600.00;
-                  var _drOpeningXero = 21600.00;
-                  var _drOpeningDiff = 0;
                   var _drClosingMimo = 18000.00;
-                  var _drClosingXero = _drClosingMimo - _drClosingDiff;
+                  var _drClosingXero = _drClosingMimo;
                   var _fmt = function(v) { return (v < 0 ? "–" : "") + "£" + Math.abs(v).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
                   var _diffCell = function(v) {
                     if (Math.abs(v) < 0.01) return _fmt(0);
                     return React.createElement("span", { style: { fontWeight: 600, color: T.colorTextPrimary } }, _fmt(v));
                   };
+                  var _drDiffValue = React.createElement("div", { style: { display: "inline-flex", alignItems: "center", gap: 5 } },
+                    _diffCell(0),
+                    _makeInfoTooltip(_buildGlTooltipContent(_fmt(_drClosingMimo), _fmt(_drClosingXero), "£0.00", "rgba(255,255,255,0.7)", "Closing balances shown with all suggestions applied. Difference will resolve in Xero once the deferred revenue journals (net £17,200.00) are posted to 2210 – Deferred revenue."), T.colorTextSecondary)
+                  );
                   return React.createElement("div", { style: { marginBottom: 12 } },
                     React.createElement(DataTable, {
                       columns: [{ key: "description", label: "Description", width: "1fr" }, { key: "value", label: "Amount", width: "160px", align: "right" }],
                       rows: [
-                        { description: "Opening balance per Mimo", value: _fmt(_drOpeningMimo) },
-                        { description: "Opening balance per Xero", value: _fmt(_drOpeningXero) },
-                        { description: "Opening balance difference", value: _diffCell(_drOpeningDiff) },
-                        { description: "Additions", value: "£3,200.00" },
-                        { description: "Releases", value: "(£6,800.00)" },
-                        { description: "Closing balance per Mimo", value: _fmt(_drClosingMimo) },
-                        { description: "Closing balance per Xero", value: _fmt(_drClosingXero) },
-                        { description: "Closing balance difference", value: _diffCell(_drClosingDiff) },
+                        { description: "Suggested additions", value: "£18,000.00" },
+                        { description: "Suggested releases", value: "(£800.00)" },
+                        { description: "Closing balance (with suggestions)", value: _fmt(_drClosingMimo) },
+                        { description: "Closing balance per Xero (with suggestions)", value: _fmt(_drClosingXero) },
+                        { description: "Closing balance difference", value: _drDiffValue },
                       ]
                     })
                   );
@@ -3206,32 +3284,26 @@ function AccruedIncomeReviewFlow(_ref) {
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
                 <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Overview</h2>
                 {(function() {
-                  var _aiGlImpacts = {};
-                  var _aiGlInitial = 0;
-                  var _aiResImpact = Array.from(_aiResolvedCards).reduce(function(s, i) { return s + (_aiGlImpacts[i] || 0); }, 0);
-                  var _aiClosingDiff = _aiGlInitial + _aiResImpact;
-                  var _aiOpeningMimo = 9800.00;
-                  var _aiOpeningXero = 9800.00;
-                  var _aiOpeningDiff = 0;
                   var _aiClosingMimo = 11250.00;
-                  var _aiClosingXero = _aiClosingMimo - _aiClosingDiff;
+                  var _aiClosingXero = _aiClosingMimo;
                   var _fmt = function(v) { return (v < 0 ? "–" : "") + "£" + Math.abs(v).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
                   var _diffCell = function(v) {
                     if (Math.abs(v) < 0.01) return _fmt(0);
                     return React.createElement("span", { style: { fontWeight: 600, color: T.colorTextPrimary } }, _fmt(v));
                   };
+                  var _aiDiffValue = React.createElement("div", { style: { display: "inline-flex", alignItems: "center", gap: 5 } },
+                    _diffCell(0),
+                    _makeInfoTooltip(_buildGlTooltipContent(_fmt(_aiClosingMimo), _fmt(_aiClosingXero), "£0.00", "rgba(255,255,255,0.7)", "Closing balances shown with all suggestions applied. Difference will resolve in Xero once the accrued income journals (net £2,860.00) are posted to 1150 – Accrued income."), T.colorTextSecondary)
+                  );
                   return React.createElement("div", { style: { marginBottom: 12 } },
                     React.createElement(DataTable, {
                       columns: [{ key: "description", label: "Description", width: "1fr" }, { key: "value", label: "Amount", width: "160px", align: "right" }],
                       rows: [
-                        { description: "Opening balance per Mimo", value: _fmt(_aiOpeningMimo) },
-                        { description: "Opening balance per Xero", value: _fmt(_aiOpeningXero) },
-                        { description: "Opening balance difference", value: _diffCell(_aiOpeningDiff) },
-                        { description: "Additions", value: "£5,200.00" },
-                        { description: "Releases", value: "(£3,750.00)" },
-                        { description: "Closing balance per Mimo", value: _fmt(_aiClosingMimo) },
-                        { description: "Closing balance per Xero", value: _fmt(_aiClosingXero) },
-                        { description: "Closing balance difference", value: _diffCell(_aiClosingDiff) },
+                        { description: "Suggested additions", value: "£3,200.00" },
+                        { description: "Suggested releases", value: "(£340.00)" },
+                        { description: "Closing balance (with suggestions)", value: _fmt(_aiClosingMimo) },
+                        { description: "Closing balance per Xero (with suggestions)", value: _fmt(_aiClosingXero) },
+                        { description: "Closing balance difference", value: _aiDiffValue },
                       ]
                     })
                   );
@@ -3327,6 +3399,7 @@ function DepreciationSchedulePage({ open, onClose, activeScheduleType, onSchedul
   const [_dpSearchValue, _dpSetSearchValue] = useState("");
   const [_dpShowDisposed, _dpSetShowDisposed] = useState(true);
   const [_dpAccountFilter, _dpSetAccountFilter] = useState("all");
+  const [_sugPanelOpen, _setSugPanelOpen] = useState(false);
 
   if (!open) return null;
 
@@ -3343,6 +3416,9 @@ function DepreciationSchedulePage({ open, onClose, activeScheduleType, onSchedul
     { id: 3, asset: "Server rack",          status: "fully_depreciated",  assetAccount: "Computer equipment (720)", acquired: "15 Jun 22", cost: 3600.00,  usefulLife: "3 years",  nbvForward: 0.00,    monthlyDep: 0.00,   acquisitionMonthKey: null,                  disposalMonthKey: null,                disposalDate: null },
     { id: 4, asset: "Ford Transit van",     status: "disposed",           assetAccount: "Motor vehicles (760)",     acquired: "1 Apr 23",  cost: 18000.00, usefulLife: "6 years",  nbvForward: 9000.00, monthlyDep: 250.00, acquisitionMonthKey: null,                  disposalMonthKey: _dpMonthKey(3, 2026), disposalDate: "12 Apr 26" },
     { id: 5, asset: "Warehouse racking",    status: "active",             assetAccount: "Plant & machinery (730)", acquired: "1 Oct 22",  cost: 18000.00, usefulLife: "10 years", nbvForward: 9150.00, monthlyDep: 150.00, acquisitionMonthKey: null,                  disposalMonthKey: null,                disposalDate: null },
+    { id: 6, asset: "Dell XPS 15 laptops × 3", status: "suggested",      assetAccount: "Computer equipment (720)", acquired: "10 Mar 26", cost: 7200.00,  usefulLife: "3 years",  nbvForward: null,    monthlyDep: 200.00, acquisitionMonthKey: _dpMonthKey(2, 2026),  disposalMonthKey: null,                disposalDate: null },
+    { id: 7, asset: "Warehouse racking expansion", status: "suggested",   assetAccount: "Plant & machinery (730)", acquired: "4 Mar 26",  cost: 8500.00,  usefulLife: "10 years", nbvForward: null,    monthlyDep: 70.83,  acquisitionMonthKey: _dpMonthKey(2, 2026),  disposalMonthKey: null,                disposalDate: null },
+    { id: 8, asset: "Height-adjustable desks × 6", status: "suggested",  assetAccount: "Fixtures & fittings (740)", acquired: "12 Feb 26", cost: 4500.00, usefulLife: "5 years",  nbvForward: null,    monthlyDep: 75.00,  acquisitionMonthKey: _dpMonthKey(1, 2026),  disposalMonthKey: null,                disposalDate: null },
   ];
 
   const _dpFmtGBP = (v) => "£" + Math.abs(v).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -3351,7 +3427,7 @@ function DepreciationSchedulePage({ open, onClose, activeScheduleType, onSchedul
   _dpVisibleMonths.forEach(vm => {
     let dep = 0, add = 0, disposal = 0;
     _dpData.forEach(item => {
-      if (item.status === "fully_depreciated") return;
+      if (item.status === "fully_depreciated" || item.status === "suggested") return;
       if (item.acquisitionMonthKey !== null && vm.key < item.acquisitionMonthKey) return;
       if (item.disposalMonthKey !== null && vm.key > item.disposalMonthKey) return;
       if (item.disposalMonthKey !== null && vm.key === item.disposalMonthKey) {
@@ -3371,7 +3447,7 @@ function DepreciationSchedulePage({ open, onClose, activeScheduleType, onSchedul
   });
 
   const _dpOpeningNBV = _dpData.reduce((sum, item) => {
-    if (item.status === "fully_depreciated") return sum;
+    if (item.status === "fully_depreciated" || item.status === "suggested") return sum;
     if (item.acquisitionMonthKey !== null && item.acquisitionMonthKey >= _dpScheduleStartKey) return sum;
     return sum + (item.nbvForward || 0);
   }, 0);
@@ -3401,6 +3477,7 @@ function DepreciationSchedulePage({ open, onClose, activeScheduleType, onSchedul
   const _dpDateRange = (item) => { const mIdx = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11}; const p = item.acquired.split(' '); const sm = mIdx[p[1]], sy = 2000 + parseInt(p[2]); const years = parseInt(item.usefulLife); const ey = sy + years; return _dpMonthNames[sm] + ' ' + String(sy).slice(2) + ' – ' + _dpMonthNames[sm] + ' ' + String(ey).slice(2); };
   const _dpMonthsLeft = (item) => { if (item.status !== "active" || item.monthlyDep <= 0) return 0; const startKey = item.acquisitionMonthKey !== null ? item.acquisitionMonthKey : _dpScheduleStartKey; const nbv0 = item.acquisitionMonthKey !== null ? item.cost : (item.nbvForward || 0); const charged = Math.max(0, _dpScheduledMonth - startKey); const rem = nbv0 - charged * item.monthlyDep; return rem > 0 ? Math.ceil(rem / item.monthlyDep) : 0; };
   const _dpStatusBadge = (item) => {
+    if (item.status === "suggested") return (<div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ display: "inline-flex", alignItems: "center", background: T.colorBrandLighter, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px", whiteSpace: "nowrap" }}>Suggested</span><span style={{ ...T.textXs, color: T.colorTextSecondary }}>{_dpDateRange(item)}</span></div>);
     if (item.status === "active") {
       const ml = _dpMonthsLeft(item);
       return (<div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ ...T.textXs, color: T.colorTextSecondary }}>{_dpDateRange(item)}</span>{ml > 0 && <span style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", color: "#757980", borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>{ml} months left</span>}</div>);
@@ -3410,6 +3487,16 @@ function DepreciationSchedulePage({ open, onClose, activeScheduleType, onSchedul
     return null;
   };
   const _dpRenderMonthCell = (item, monthKey) => {
+    if (item.status === "suggested") {
+      if (item.acquisitionMonthKey !== null && monthKey < item.acquisitionMonthKey) return <span style={{ color: "#B0B3B8" }}>-</span>;
+      const isAcq = item.acquisitionMonthKey !== null && monthKey === item.acquisitionMonthKey;
+      const parts = [];
+      if (isAcq) parts.push(<div key="add" style={{ display: "inline-flex", alignItems: "center", background: T.colorBrandLighter, borderRadius: 4, padding: "2px 6px", fontSize: 12, color: T.colorBrandPrimary, fontWeight: 500 }}>{_dpFmtGBP(item.cost)}</div>);
+      if (item.monthlyDep > 0 && !isAcq) parts.push(<div key="dep" style={{ display: "inline-flex", alignItems: "center", background: T.colorBrandLighter, borderRadius: 4, padding: "2px 6px", fontSize: 12, color: T.colorBrandPrimary, fontWeight: 500 }}>{"(" + _dpFmtGBP(item.monthlyDep) + ")"}</div>);
+      if (isAcq && item.monthlyDep > 0) parts.push(<div key="dep" style={{ display: "inline-flex", alignItems: "center", background: T.colorBrandLighter, borderRadius: 4, padding: "2px 6px", fontSize: 12, color: T.colorBrandPrimary, fontWeight: 500 }}>{"(" + _dpFmtGBP(item.monthlyDep) + ")"}</div>);
+      if (parts.length === 0) return <span style={{ color: "#B0B3B8" }}>-</span>;
+      return <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>{parts}</div>;
+    }
     if (item.status === "fully_depreciated") return <span style={{ color: "#B0B3B8" }}>-</span>;
     if (item.acquisitionMonthKey !== null && monthKey < item.acquisitionMonthKey) return <span style={{ color: "#B0B3B8" }}>-</span>;
     if (item.disposalMonthKey !== null && monthKey > item.disposalMonthKey) return <span style={{ color: "#B0B3B8" }}>-</span>;
@@ -3431,22 +3518,30 @@ function DepreciationSchedulePage({ open, onClose, activeScheduleType, onSchedul
 
   return (
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: T.colorSurfacePrimary, zIndex: 310, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: T.fontFamily }}>
-      <_ScheduleTopBar activeType={activeScheduleType} onTypeChange={onScheduleTypeChange} onClose={onClose} suggestionsCount={suggestionsCount} onSuggestionsClick={function() {}} sugPanelOpen={false} viewMode={viewMode} onToggleMode={onToggleMode} aiProgress={null} />
+      <_ScheduleTopBar activeType={activeScheduleType} onTypeChange={onScheduleTypeChange} onClose={onClose} suggestionsCount={suggestionsCount} onSuggestionsClick={function() { _setSugPanelOpen(function(p) { return !p; }); }} sugPanelOpen={_sugPanelOpen} viewMode={viewMode} onToggleMode={function() { _setSugPanelOpen(false); if (onToggleMode) onToggleMode(); }} aiProgress={viewMode === "ai" && reviewState && reviewState.hasResults ? { resolved: reviewState.resolved, total: reviewState.total } : null} />
       {viewMode === "ai" ? (
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12 }}>
-          <span style={{ fontSize: 16, fontWeight: 500, color: T.colorTextPrimary }}>AI mode</span>
-          <span style={{ fontSize: 14, color: T.colorTextSecondary }}>Review flow will be wired here</span>
-        </div>
+        <DepreciationReviewFlow embedded={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={_sugPanelOpen} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
       ) : (
         <div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}>
           <div style={{ display: "flex", flexDirection: "column", flex: "1 1 auto", minWidth: 0, overflow: "hidden" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 32px", flexShrink: 0, flexWrap: "wrap", borderBottom: "1px solid " + _dpBorderClr }}>
-              <input type="text" placeholder="Search..." value={_dpSearchValue} onChange={e => _dpSetSearchValue(e.target.value)} style={{ height: 36, padding: "0 12px", border: "1px solid " + T.colorBorderDark, borderRadius: 6, fontSize: 14, fontFamily: T.fontFamily, outline: "none", width: 200, color: T.colorTextPrimary, background: T.colorSurfacePrimary }} onFocus={e => { e.target.style.borderColor = T.colorBrandPrimary; e.target.style.borderWidth = "2px"; e.target.style.padding = "0 11px"; }} onBlur={e => { e.target.style.borderColor = T.colorBorderDark; e.target.style.borderWidth = "1px"; e.target.style.padding = "0 12px"; }} />
-              <div style={{ flex: 1 }} />
-              <Dropdown value="mar-dec-2026" options={[{ label: "1 Mar 2026 – 31 Dec 2026", value: "mar-dec-2026" }]} onChange={function() {}} size="sm" width={240} />
-              <Dropdown value={_dpAccountFilter} options={[{ label: "All asset accounts", value: "all" }, { label: "Computer equipment (720)", value: "Computer equipment (720)" }, { label: "Fixtures & fittings (740)", value: "Fixtures & fittings (740)" }, { label: "Motor vehicles (760)", value: "Motor vehicles (760)" }, { label: "Plant & machinery (730)", value: "Plant & machinery (730)" }]} onChange={_dpSetAccountFilter} size="sm" width={240} />
-              <div style={{ display: "flex", alignItems: "center", gap: 8, border: "1px solid " + T.colorBorderDark, borderRadius: 6, padding: "0 12px", height: 36 }}>{_dpToggleEl}<span style={{ fontSize: 14, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>Show disposed</span></div>
-              <SecondaryButton style={{ height: 36, padding: "0 12px", fontSize: 14, gap: 6 }}><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d={_MM_PATHS.plus} stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg>Add asset</SecondaryButton>
+              {_sugPanelOpen ? (
+                <Fragment>
+                  <input type="text" placeholder="Search..." value={_dpSearchValue} onChange={e => _dpSetSearchValue(e.target.value)} style={{ height: 36, padding: "0 12px", border: "1px solid " + T.colorBorderDark, borderRadius: 6, fontSize: 14, fontFamily: T.fontFamily, outline: "none", width: 200, color: T.colorTextPrimary, background: T.colorSurfacePrimary }} onFocus={e => { e.target.style.borderColor = T.colorBrandPrimary; e.target.style.borderWidth = "2px"; e.target.style.padding = "0 11px"; }} onBlur={e => { e.target.style.borderColor = T.colorBorderDark; e.target.style.borderWidth = "1px"; e.target.style.padding = "0 12px"; }} />
+                  <div style={{ flex: 1 }} />
+                  <SecondaryButton style={{ height: 36, padding: "0 14px", fontSize: 14 }}>Filters</SecondaryButton>
+                  <button style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, border: "1px solid " + T.colorBorderMedium, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer" }} onMouseEnter={function(e) { e.currentTarget.style.borderColor = "#A5A5A5"; e.currentTarget.style.background = T.colorSurfaceSecondary; }} onMouseLeave={function(e) { e.currentTarget.style.borderColor = T.colorBorderMedium; e.currentTarget.style.background = T.colorSurfacePrimary; }}><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d={_MM_PATHS.plus} stroke={T.colorTextPrimary} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+                </Fragment>
+              ) : (
+                <Fragment>
+                  <input type="text" placeholder="Search..." value={_dpSearchValue} onChange={e => _dpSetSearchValue(e.target.value)} style={{ height: 36, padding: "0 12px", border: "1px solid " + T.colorBorderDark, borderRadius: 6, fontSize: 14, fontFamily: T.fontFamily, outline: "none", width: 200, color: T.colorTextPrimary, background: T.colorSurfacePrimary }} onFocus={e => { e.target.style.borderColor = T.colorBrandPrimary; e.target.style.borderWidth = "2px"; e.target.style.padding = "0 11px"; }} onBlur={e => { e.target.style.borderColor = T.colorBorderDark; e.target.style.borderWidth = "1px"; e.target.style.padding = "0 12px"; }} />
+                  <div style={{ flex: 1 }} />
+                  <Dropdown value="mar-dec-2026" options={[{ label: "1 Mar 2026 – 31 Dec 2026", value: "mar-dec-2026" }]} onChange={function() {}} size="sm" width={240} />
+                  <Dropdown value={_dpAccountFilter} options={[{ label: "All asset accounts", value: "all" }, { label: "Computer equipment (720)", value: "Computer equipment (720)" }, { label: "Fixtures & fittings (740)", value: "Fixtures & fittings (740)" }, { label: "Motor vehicles (760)", value: "Motor vehicles (760)" }, { label: "Plant & machinery (730)", value: "Plant & machinery (730)" }]} onChange={_dpSetAccountFilter} size="sm" width={240} />
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, border: "1px solid " + T.colorBorderDark, borderRadius: 6, padding: "0 12px", height: 36 }}>{_dpToggleEl}<span style={{ fontSize: 14, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>Show disposed</span></div>
+                  <SecondaryButton style={{ height: 36, padding: "0 12px", fontSize: 14, gap: 6 }}><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d={_MM_PATHS.plus} stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg>Add asset</SecondaryButton>
+                </Fragment>
+              )}
             </div>
             <div style={{ overflowX: "auto", overflowY: "auto", flex: "1 1 auto", minHeight: 0 }}>
               <table style={{ borderCollapse: "separate", borderSpacing: 0, minWidth: _dpFixedColsWidth + _dpVisibleMonths.length * _dpColWidths.month, width: "100%", tableLayout: "fixed" }}>
@@ -3480,6 +3575,26 @@ function DepreciationSchedulePage({ open, onClose, activeScheduleType, onSchedul
               </table>
             </div>
           </div>
+          {(function() {
+            var _hasResults = reviewState && reviewState.hasResults;
+            return (
+              <div style={{ width: _sugPanelOpen ? 600 : 0, flexShrink: 0, borderLeft: _sugPanelOpen ? "1px solid " + T.colorBorderDark : "none", display: "flex", flexDirection: "column", overflow: "hidden", transition: "width 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
+                {_hasResults ? (
+                  <DepreciationReviewFlow key={"dp-panel-" + (reviewState ? reviewState.resolved : 0)} embedded={true} hideChat={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={false} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
+                ) : (
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "80px 24px 48px", gap: 12, background: T.colorSurfacePrimary }}>
+                    <span style={{ fontSize: 15, fontWeight: 600, color: T.colorTextPrimary }}>No suggestions to show</span>
+                    <span style={{ fontSize: 14, fontWeight: 400, color: T.colorTextSecondary, maxWidth: 260, lineHeight: "22px" }}>Start depreciation review to get suggestions</span>
+                    <button onClick={function() { _setSugPanelOpen(false); if (onToggleMode) onToggleMode(); }} style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 44, padding: "8px 16px 8px 12px", border: "1px solid " + T.colorBorderMedium, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, fontFamily: T.fontFamily, whiteSpace: "nowrap", marginTop: 4, transition: "border-color 0.15s, background 0.15s" }}
+                      onMouseEnter={function(e) { e.currentTarget.style.borderColor = T.colorBorderHover; e.currentTarget.style.background = T.colorSurfaceSecondary; }}
+                      onMouseLeave={function(e) { e.currentTarget.style.borderColor = T.colorBorderMedium; e.currentTarget.style.background = T.colorSurfacePrimary; }}>
+                      <PlayCircleIcon color="currentColor" size={20} />Review depreciation
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>
@@ -3763,32 +3878,26 @@ function LoanAmortisationReviewFlow(_ref) {
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
                 <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Results</h2>
                 {(function() {
-                  var _laGlImpacts = {};
-                  var _laGlInitial = 0;
-                  var _laResImpact = Array.from(_laResolvedCards).reduce(function(s, i) { return s + (_laGlImpacts[i] || 0); }, 0);
-                  var _laClosingDiff = _laGlInitial + _laResImpact;
-                  var _laOpeningMimo = 205800.00;
-                  var _laOpeningXero = 205800.00;
-                  var _laOpeningDiff = 0;
                   var _laClosingMimo = 202400.00;
-                  var _laClosingXero = _laClosingMimo - _laClosingDiff;
+                  var _laClosingXero = _laClosingMimo;
                   var _fmt = function(v) { return (v < 0 ? "–" : "") + "£" + Math.abs(v).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
                   var _diffCell = function(v) {
                     if (Math.abs(v) < 0.01) return _fmt(0);
                     return React.createElement("span", { style: { fontWeight: 600, color: T.colorTextPrimary } }, _fmt(v));
                   };
+                  var _laDiffValue = React.createElement("div", { style: { display: "inline-flex", alignItems: "center", gap: 5 } },
+                    _diffCell(0),
+                    _makeInfoTooltip(_buildGlTooltipContent(_fmt(_laClosingMimo), _fmt(_laClosingXero), "£0.00", "rgba(255,255,255,0.7)", "Closing balances shown with all suggestions applied. Difference will resolve in Xero once the loan entries (£3,000.00 repayment to 2400 and £787.50 interest accrual to 7020) are posted."), T.colorTextSecondary)
+                  );
                   return React.createElement("div", { style: { marginBottom: 12 } },
                     React.createElement(DataTable, {
                       columns: [{ key: "description", label: "Description", width: "1fr" }, { key: "value", label: "Amount", width: "160px", align: "right" }],
                       rows: [
-                        { description: "Opening balance per Mimo", value: _fmt(_laOpeningMimo) },
-                        { description: "Opening balance per Xero", value: _fmt(_laOpeningXero) },
-                        { description: "Opening balance difference", value: _diffCell(_laOpeningDiff) },
-                        { description: "Additions", value: "£0.00" },
-                        { description: "Releases", value: "(£4,400.00)" },
-                        { description: "Closing balance per Mimo", value: _fmt(_laClosingMimo) },
-                        { description: "Closing balance per Xero", value: _fmt(_laClosingXero) },
-                        { description: "Closing balance difference", value: _diffCell(_laClosingDiff) },
+                        { description: "Suggested additions", value: "£787.50" },
+                        { description: "Suggested releases", value: "(£3,000.00)" },
+                        { description: "Closing balance (with suggestions)", value: _fmt(_laClosingMimo) },
+                        { description: "Closing balance per Xero (with suggestions)", value: _fmt(_laClosingXero) },
+                        { description: "Closing balance difference", value: _laDiffValue },
                       ]
                     })
                   );
@@ -3868,23 +3977,67 @@ var _DP_STEPS = [
 ];
 
 var _DP_CARDS = [
-  { idx: 0, key: "plant", title: "Post missing depreciation for plant and machinery", contact: "0020 – Plant and machinery", description: "The fixed asset register shows accumulated depreciation of £14,520.00 for forklift FA-031 but Xero account 0020 shows £12,340.00, a variance of £2,180.00. The April depreciation charge for this asset has not been posted. The forklift is depreciated on a straight-line basis over 5 years with a monthly charge of £2,180.00.", tableRow: { account: "8000 – Depreciation", amount: "£2,180.00", period: "Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this" },
-  { idx: 1, key: "computer", title: "Post missing depreciation for computer equipment", contact: "0032 – Computer equipment", description: "The March depreciation charge of £1,740.00 for computer equipment was not posted in Xero. The register shows monthly depreciation across 38 items totalling £1,740.00 based on a 3-year straight-line policy. Xero account 0032 balance is £56,200.00 vs the register total of £54,460.00.", tableRow: { account: "8000 – Depreciation", amount: "£1,740.00", period: "Mar 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this" },
-  { idx: 2, key: "motor", title: "Review motor vehicle depreciation variance", contact: "0040 – Motor vehicles", description: "The Xero balance for motor vehicles (0040) is £118,030.00 vs the fixed asset register total of £112,830.00, a variance of £5,200.00. This appears to relate to two months of unposted depreciation. Motor vehicles are depreciated on a 25% reducing balance basis. The expected monthly charge is approximately £2,500.00. The March and April charges may both be missing.", tableRow: { account: "8000 – Depreciation", amount: "£5,200.00", period: "Mar–Apr 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this" },
-  { idx: 3, key: "leasehold", title: "Post missing leasehold amortisation charge", contact: "0011 – Leasehold improvements", description: "The March amortisation charge for the office fit-out (LH-003, original cost £76,800.00) has not been posted. The monthly charge of £3,200.00 is based on a 24-month lease term. The register shows accumulated amortisation of £51,200.00 while Xero shows £48,000.00. This is also flagged in the balance sheet reconciliation for account 0011.", tableRow: { account: "8010 – Amortisation", amount: "£3,200.00", period: "Mar 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this" },
-  { idx: 4, key: "capex", title: "Reclassify standing desk from expenses to fixed assets", contact: "0031 – Office equipment", description: "A standing desk purchase for £750.00 (invoice OE-2026-047, 12 Feb 2026) was posted to account 6420 – General expenses rather than account 0031 – Office equipment. The item meets the £500 capitalisation threshold and should be reclassified as a fixed asset. Once capitalised, depreciation of £12.50/month should begin from March 2026.", tableRow: { account: "0031 – Office equipment", amount: "£750.00", period: "Feb 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this" },
+  {
+    idx: 0, key: "laptops",
+    title: "Capitalise Dell XPS 15 laptops purchased Mar 2026",
+    contact: "720 – Computer equipment",
+    description: "Insight Direct UK Ltd invoice INS-2026-0384 (10 Mar 2026, £8,640 inc. VAT) covers 3 Dell XPS 15 laptops at £2,400 net each. Each unit exceeds the £500 capitalisation threshold and was posted to 6420 – General expenses. These should be reclassified to account 720 – Computer equipment. VAT of £1,440 is recoverable; capitalise the net cost of £7,200.",
+    tableRow: { account: "720 – Computer equipment", amount: "£7,200.00", period: "Mar 2026" },
+    primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this",
+    drawer: {
+      contact: "Dell XPS 15 laptops × 3",
+      aiInsight: "Insight Direct UK Ltd invoice INS-2026-0384 (10 Mar 2026) for £8,640 inc. VAT covers 3 Dell XPS 15 laptops. VAT of £1,440 is recoverable — capitalise the net cost of £7,200 to account 720 – Computer equipment.",
+      cost: "7,200.00", inUseFrom: "10 Mar 2026", usefulLife: "3",
+      account: "720 – Computer equipment", description: "Dell XPS 15 laptops × 3", method: "straight_line",
+      invoice: "INS-2026-0384", invoiceDate: "10 Mar 2026", supplier: "Insight Direct UK Ltd",
+      invoiceLines: [{ description: "Dell XPS 15 16\" Laptop (i7-13700H, 32GB RAM, 1TB SSD)", qty: "3", unitPrice: "2,400.00", amount: "7,200.00" }],
+      subtotal: "7,200.00", vat: "1,440.00", total: "8,640.00"
+    }
+  },
+  {
+    idx: 1, key: "racking",
+    title: "Capitalise warehouse racking system purchased Mar 2026",
+    contact: "730 – Plant & machinery",
+    description: "Dexion Storage Systems Ltd invoice DEX-22847 (4 Mar 2026, £10,200 inc. VAT) covers 5 heavy-duty shelving bays installed in the warehouse. At £8,500 net this exceeds the capitalisation threshold and was posted to 6420 – General expenses. Should be reclassified to account 730 – Plant & machinery. VAT of £1,700 is recoverable.",
+    tableRow: { account: "730 – Plant & machinery", amount: "£8,500.00", period: "Mar 2026" },
+    primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this",
+    drawer: {
+      contact: "Warehouse racking system",
+      aiInsight: "Dexion Storage Systems Ltd invoice DEX-22847 (4 Mar 2026) for £10,200 inc. VAT covers 5 warehouse shelving bays. VAT of £1,700 is recoverable — capitalise the net cost of £8,500 to account 730 – Plant & machinery.",
+      cost: "8,500.00", inUseFrom: "4 Mar 2026", usefulLife: "10",
+      account: "730 – Plant & machinery", description: "Warehouse racking system – Dexion SR1000", method: "straight_line",
+      invoice: "DEX-22847", invoiceDate: "4 Mar 2026", supplier: "Dexion Storage Systems Ltd",
+      invoiceLines: [{ description: "Dexion SR1000 Heavy-Duty Shelving Bay (2400 × 900mm)", qty: "5", unitPrice: "1,700.00", amount: "8,500.00" }],
+      subtotal: "8,500.00", vat: "1,700.00", total: "10,200.00"
+    }
+  },
+  {
+    idx: 2, key: "desks",
+    title: "Capitalise height-adjustable desks purchased Feb 2026",
+    contact: "740 – Fixtures & fittings",
+    description: "Humanscale Ltd invoice HS-2026-1142 (12 Feb 2026, £5,400 inc. VAT) covers 6 Humanscale Float desks at £750 net each. Each unit individually exceeds the £500 capitalisation threshold and was posted to 6420 – General expenses. Should be reclassified to account 740 – Fixtures & fittings. VAT of £900 is recoverable; capitalise the net cost of £4,500.",
+    tableRow: { account: "740 – Fixtures & fittings", amount: "£4,500.00", period: "Feb 2026" },
+    primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this",
+    drawer: {
+      contact: "Height-adjustable desks × 6",
+      aiInsight: "Humanscale Ltd invoice HS-2026-1142 (12 Feb 2026) for £5,400 inc. VAT covers 6 Float desks. Each unit at £750 net exceeds the £500 threshold — capitalise the total net cost of £4,500 to account 740 – Fixtures & fittings. VAT of £900 is recoverable.",
+      cost: "4,500.00", inUseFrom: "12 Feb 2026", usefulLife: "5",
+      account: "740 – Fixtures & fittings", description: "Humanscale Float desks × 6", method: "straight_line",
+      invoice: "HS-2026-1142", invoiceDate: "12 Feb 2026", supplier: "Humanscale Ltd",
+      invoiceLines: [{ description: "Humanscale Float Height-Adjustable Desk (1400mm)", qty: "6", unitPrice: "750.00", amount: "4,500.00" }],
+      subtotal: "4,500.00", vat: "900.00", total: "5,400.00"
+    }
+  },
 ];
 
 var _DP_NAV_CATS = [
-  { key: "plant",     label: "Missing depreciation",       baseIdx: 0, items: [{ contact: "Plant & machinery" }] },
-  { key: "computer",  label: "Missing depreciation",       baseIdx: 1, items: [{ contact: "Computer equipment" }] },
-  { key: "motor",     label: "Depreciation variance",      baseIdx: 2, items: [{ contact: "Motor vehicles" }] },
-  { key: "leasehold", label: "Missing amortisation",       baseIdx: 3, items: [{ contact: "Leasehold improvements" }] },
-  { key: "capex",     label: "Capex misclassification",    baseIdx: 4, items: [{ contact: "Office equipment" }] },
+  { key: "laptops", label: "New asset", baseIdx: 0, items: [{ contact: "Computer equipment" }] },
+  { key: "racking", label: "New asset", baseIdx: 1, items: [{ contact: "Plant & machinery" }] },
+  { key: "desks",   label: "New asset", baseIdx: 2, items: [{ contact: "Fixtures & fittings" }] },
 ];
 
 function DepreciationReviewFlow(_ref) {
-  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment;
+  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment, embedded = _ref.embedded, externalBoxesOpen = _ref.externalBoxesOpen, hideChat = _ref.hideChat;
   var _dpOcUI = _adjUseCommentUI();
   var _dpInitResume = !!(savedState && savedState.hasResults);
   var _s = useState(_dpInitResume); var _dpIsResume = _s[0], _dpSetIsResume = _s[1];
@@ -3896,6 +4049,7 @@ function DepreciationReviewFlow(_ref) {
   _s = useState(_dpInitResume); var _dpResultsVisible = _s[0], _dpSetResultsVisible = _s[1];
   _s = useState(_dpInitResume); var _dpCanvasReady = _s[0], _dpSetCanvasReady = _s[1];
   _s = useState(false); var _dpBoxesOpen = _s[0], _dpSetBoxesOpen = _s[1];
+  var _dpEffBoxesOpen = (embedded && externalBoxesOpen !== undefined) ? (externalBoxesOpen && _dpCanvasReady) : _dpBoxesOpen;
   _s = useState(400); var _dpChatWidth = _s[0], _dpSetChatWidth = _s[1];
   _s = useState(false); var _dpIsDragging = _s[0], _dpSetIsDragging = _s[1];
   _s = useState(true); var _dpIsAtBottom = _s[0], _dpSetIsAtBottom = _s[1];
@@ -3904,6 +4058,7 @@ function DepreciationReviewFlow(_ref) {
   _s = useState(_dpInitResume ? new Set(savedState.ignoredArray || []) : new Set()); var _dpIgnoredCards = _s[0], _dpSetIgnoredCards = _s[1];
   _s = useState(_dpInitResume ? (savedState.cardActions || {}) : {}); var _dpCardActions = _s[0], _dpSetCardActions = _s[1];
   _s = useState(false); var _dpAnalysisOpen = _s[0], _dpSetAnalysisOpen = _s[1];
+  _s = useState(null); var _dpDrawerCard = _s[0], _dpSetDrawerCard = _s[1];
   _s = useState(false); var _dpPeriodDropOpen = _s[0], _dpSetPeriodDropOpen = _s[1];
   _s = useState(selectedPeriod); var _dpActivePeriod = _s[0], _dpSetActivePeriod = _s[1];
   _s = useState(0); var _dpRestartKey = _s[0], _dpSetRestartKey = _s[1];
@@ -3959,6 +4114,13 @@ function DepreciationReviewFlow(_ref) {
   useEffect(function() { var el = _dpChatScrollRef.current; if (!el) return; var onScroll = function() { _dpSetIsAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 40); }; el.addEventListener("scroll", onScroll); return function() { el.removeEventListener("scroll", onScroll); }; }, []);
   useEffect(function() { var onKey = function(e) { if (e.key === "Escape") onClose(); }; window.addEventListener("keydown", onKey); return function() { window.removeEventListener("keydown", onKey); }; }, []);
 
+  // Entrance animation: slide chat+canvas when switching to AI mode (embedded, resume state)
+  useEffect(function() {
+    if (!embedded || hideChat || !_dpInitResume) return;
+    var t = setTimeout(function() { _dpSetResultsVisible(true); }, 50);
+    return function() { clearTimeout(t); };
+  }, []);
+
   var _dpHandleDragStart = function(e) {
     e.preventDefault(); _dpSetIsDragging(true);
     var startX = e.clientX, startW = _dpChatWidth;
@@ -3979,9 +4141,9 @@ function DepreciationReviewFlow(_ref) {
   };
 
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
+    <div style={embedded ? { display: "flex", flex: 1, flexDirection: "column", overflow: "hidden", background: T.colorSurfaceContrast } : { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
       <style>{`@keyframes _dpFadeIn{from{opacity:0}to{opacity:1}} @keyframes _dpStepReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes _dpStepPop{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}} @keyframes _dpTextShimmer{0%{background-position:200% center}100%{background-position:-200% center}}`}</style>
-      <div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
+      {!embedded && (<div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
         <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-1px", flexShrink: 0 }}>Depreciation review</span>
         <div ref={_dpPeriodDropRef} style={{ position: "relative" }}>
           <button onClick={function() { _dpSetPeriodDropOpen(function(o) { return !o; }); }} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 12px", height: 48, border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap" }}>
@@ -4025,9 +4187,9 @@ function DepreciationReviewFlow(_ref) {
           </button>
         )}
         <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", padding: 0 }}><svg width="30" height="30" viewBox="0 0 30 30" fill="none"><rect width="30" height="30" rx="15" fill="#F5F5F5"/><path d="M20 10L10 20M10 10L20 20" stroke="#2A2A2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
-      </div>
+      </div>)}
       <div style={{ display: "flex", flex: 1, overflow: "hidden", position: "relative", padding: 16 }}>
-        <div style={{ display: "flex", flexDirection: "column", width: _dpResultsVisible ? _dpChatWidth : "100%", flexShrink: 0, transition: _dpIsDragging ? "none" : "width 0.72s cubic-bezier(0.16,1,0.3,1)", overflow: "hidden", willChange: "width", position: "relative", zIndex: 1 }}>
+        {!hideChat && (<div style={{ display: "flex", flexDirection: "column", width: _dpResultsVisible ? _dpChatWidth : "100%", flexShrink: 0, transition: _dpIsDragging ? "none" : "width 0.72s cubic-bezier(0.16,1,0.3,1)", overflow: "hidden", willChange: "width", position: "relative", zIndex: 1 }}>
           {_dpResultsVisible && (
             <button onClick={function() { _dpChatScrollRef.current && _dpChatScrollRef.current.scrollTo({ top: _dpChatScrollRef.current.scrollHeight, behavior: "smooth" }); }}
               style={{ position: "absolute", bottom: 218, left: "50%", transform: "translateX(-50%)", zIndex: 10, width: 32, height: 32, borderRadius: "50%", background: T.colorSurfacePrimary, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)", opacity: _dpIsAtBottom ? 0 : 1, pointerEvents: _dpIsAtBottom ? "none" : "auto", transition: "opacity 0.35s ease" }}
@@ -4128,39 +4290,34 @@ function DepreciationReviewFlow(_ref) {
             </div>
           )}
         </div>
-        {_dpResultsVisible && (<div onMouseDown={_dpHandleDragStart} style={{ position: "absolute", top: 0, bottom: 0, left: _dpChatWidth + 16, width: 16, cursor: "col-resize", zIndex: 5, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ width: 4, height: 40, borderRadius: 2, background: _dpIsDragging ? T.colorBorderHover : "transparent", transition: "background 0.15s" }} /></div>)}
-        <div style={{ position: "absolute", top: 16, bottom: 16, left: _dpChatWidth + 32, right: _dpBoxesOpen ? 432 : 16, background: T.colorSurfacePrimary, borderRadius: 8, border: "1px solid " + T.colorButtonSecondary, overflow: "hidden", zIndex: 2, transform: _dpResultsVisible ? "none" : "translateX(calc(100% + 32px))", transition: _dpIsDragging ? "none" : "transform 0.72s cubic-bezier(0.16,1,0.3,1), right 0.35s cubic-bezier(0.16,1,0.3,1)", willChange: _dpResultsVisible ? "auto" : "transform" }}>
+        )}
+        {_dpResultsVisible && !hideChat && (<div onMouseDown={_dpHandleDragStart} style={{ position: "absolute", top: 0, bottom: 0, left: _dpChatWidth + 16, width: 16, cursor: "col-resize", zIndex: 5, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ width: 4, height: 40, borderRadius: 2, background: _dpIsDragging ? T.colorBorderHover : "transparent", transition: "background 0.15s" }} /></div>)}
+        <div style={{ position: "absolute", top: 16, bottom: 16, left: hideChat ? 16 : _dpChatWidth + 32, right: _dpEffBoxesOpen ? 432 : 16, background: T.colorSurfacePrimary, borderRadius: 8, border: "1px solid " + T.colorButtonSecondary, overflow: "hidden", zIndex: 2, transform: _dpResultsVisible ? "none" : "translateX(calc(100% + 32px))", transition: _dpIsDragging ? "none" : "transform 0.72s cubic-bezier(0.16,1,0.3,1), right 0.35s cubic-bezier(0.16,1,0.3,1)", willChange: _dpResultsVisible ? "auto" : "transform" }}>
           {_dpCanvasReady ? (
             <div style={{ animation: "_dpFadeIn 0.4s ease 0.1s both", height: "100%", overflowY: "auto" }}>
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
-                <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Results</h2>
+                <h2 style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, margin: "0 0 20px" }}>Overview</h2>
                 {(function() {
-                  var _dpGlImpacts = {};
-                  var _dpGlInitial = 0;
-                  var _dpResImpact = Array.from(_dpResolvedCards).reduce(function(s, i) { return s + (_dpGlImpacts[i] || 0); }, 0);
-                  var _dpClosingDiff = _dpGlInitial + _dpResImpact;
-                  var _dpOpeningMimo = 644462.00;
-                  var _dpOpeningXero = 644462.00;
-                  var _dpOpeningDiff = 0;
-                  var _dpClosingMimo = 636450.00;
-                  var _dpClosingXero = _dpClosingMimo - _dpClosingDiff;
+                  var _dpClosingMimo = 655883.00;
+                  var _dpClosingXero = _dpClosingMimo;
                   var _fmt = function(v) { return (v < 0 ? "–" : "") + "£" + Math.abs(v).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
                   var _diffCell = function(v) {
                     if (Math.abs(v) < 0.01) return _fmt(0);
                     return React.createElement("span", { style: { fontWeight: 600, color: T.colorTextPrimary } }, _fmt(v));
                   };
+                  var _dpDiffValue = React.createElement("div", { style: { display: "inline-flex", alignItems: "center", gap: 5 } },
+                    _diffCell(0),
+                    _makeInfoTooltip(_buildGlTooltipContent(_fmt(_dpClosingMimo), _fmt(_dpClosingXero), "£0.00", "rgba(255,255,255,0.7)", "Closing balances shown with all suggestions applied. Difference will resolve in Xero once the reclassification entries (£20,200) and accumulated depreciation (£767) are posted."), T.colorTextSecondary)
+                  );
                   return React.createElement("div", { style: { marginBottom: 12 } },
                     React.createElement(DataTable, {
                       columns: [{ key: "description", label: "Description", width: "1fr" }, { key: "value", label: "Amount", width: "160px", align: "right" }],
                       rows: [
-                        { description: "Opening balance per Mimo", value: _fmt(_dpOpeningMimo) },
-                        { description: "Opening balance per Xero", value: _fmt(_dpOpeningXero) },
-                        { description: "Opening balance difference", value: _diffCell(_dpOpeningDiff) },
-                        { description: "Additions", value: "£8,012.00" },
-                        { description: "Releases", value: "£0.00" },
-                        { description: "Closing balance per Mimo", value: _fmt(_dpClosingMimo) },
-                        { description: "Closing balance per Xero", value: _fmt(_dpClosingXero) },
-                        { description: "Closing balance difference", value: _diffCell(_dpClosingDiff) },
+                        { description: "Suggested additions", value: "£20,200.00" },
+                        { description: "Suggested releases", value: "(£767.00)" },
+                        { description: "Closing balance (with suggestions)", value: _fmt(_dpClosingMimo) },
+                        { description: "Closing balance per Xero (with suggestions)", value: _fmt(_dpClosingXero) },
+                        { description: "Closing balance difference", value: _dpDiffValue },
                       ]
                     })
                   );
@@ -4172,10 +4329,10 @@ function DepreciationReviewFlow(_ref) {
                   </div>
                   <div style={{ overflow: "hidden", maxHeight: _dpAnalysisOpen ? 500 : 0, opacity: _dpAnalysisOpen ? 1 : 0, transition: "max-height 0.5s cubic-bezier(0.16,1,0.3,1), opacity 0.4s ease" }}>
                     <div style={{ fontSize: 14, color: T.colorTextBody, lineHeight: "20px", margin: "0 20px 16px", borderTop: "1px solid " + T.colorBorderSubtle, paddingTop: 14 }}>
-                      <p style={{ margin: "0 0 10px" }}>The depreciation review for {selectedPeriod} compared the fixed asset register against Xero balances across 6 asset categories (accounts 0010–0040) covering 135 individual assets.</p>
-                      <p style={{ margin: "0 0 10px" }}>Three asset categories have unposted depreciation charges. The most significant is motor vehicles (0040) where two months of depreciation totalling £5,200.00 appear to be missing. Plant & machinery (0020) has a single unposted charge of £2,180.00 for forklift FA-031, and computer equipment (0032) is missing March depreciation of £1,740.00.</p>
-                      <p style={{ margin: "0 0 10px" }}>Leasehold improvements (0011) have a £3,200.00 amortisation variance relating to the office fit-out. This is consistent with the finding in the balance sheet reconciliation for account 0011.</p>
-                      <p style={{ margin: 0 }}>A standing desk purchase of £750.00 was posted to general expenses rather than capitalised to office equipment. This exceeds the £500 capitalisation threshold and should be reclassified.</p>
+                      <p style={{ margin: "0 0 10px" }}>The fixed asset review for {selectedPeriod} compared purchase invoices against Xero nominal accounts and the existing fixed asset register. Three capital purchases totalling £20,200.00 (net of VAT) were identified as incorrectly posted to general expenses rather than capitalised.</p>
+                      <p style={{ margin: "0 0 10px" }}>Two purchases occurred in March 2026: 3 Dell XPS 15 laptops (£7,200.00 net, account 720) from Insight Direct UK Ltd, and a Dexion SR1000 warehouse racking system (£8,500.00 net, account 730) from Dexion Storage Systems Ltd. Both were posted to account 6420 – General expenses and each individually exceeds the £500 capitalisation threshold.</p>
+                      <p style={{ margin: "0 0 10px" }}>A further purchase in February 2026 — 6 Humanscale Float height-adjustable desks (£4,500.00 net, account 740) from Humanscale Ltd — was similarly expensed. At £750.00 net per unit, each item exceeds the capitalisation threshold.</p>
+                      <p style={{ margin: 0 }}>All three purchases include recoverable VAT which should not be included in the capitalised cost. The closing balance per Xero (£636,450.00) understates the fixed asset register by £20,200.00 once these additions are applied.</p>
                     </div>
                   </div>
                 </div>
@@ -4186,7 +4343,6 @@ function DepreciationReviewFlow(_ref) {
                     var isResolved = _dpResolvedCards.has(card.idx), isIgnored = _dpIgnoredCards.has(card.idx), actionLabel = _dpCardActions[card.idx];
                     var statusLabel = isResolved ? (actionLabel || "Journal posted") : isIgnored ? (actionLabel || "Resolved") : "Unresolved";
                     var statusStyle = isResolved ? { background: T.colorBrandLighter, border: "none", color: T.colorBrandPrimary } : isIgnored ? { background: T.colorButtonDisabled, border: "none", color: T.colorTextSecondary } : { background: T.colorWarningBg, border: "none", color: T.colorWarning };
-                    var primaryActionLabels = { "Review suggestion": "Journal posted" };
                     return (
                       <div key={card.idx} id={"result-" + card.key + "-0"} style={{ scrollMarginTop: 64 }}>
                         <RecommendationCard title={card.title} description={card.description} statusLabel={statusLabel} statusStyle={statusStyle}
@@ -4194,7 +4350,7 @@ function DepreciationReviewFlow(_ref) {
                           verticalTable={true} tableColumns={[{ key: "account", label: "Account", width: "1.4fr" }, { key: "amount", label: "Amount", width: "0.8fr" }, { key: "period", label: "Period", width: "0.8fr" }]}
                           renderCardAction={_adjCardCommentAction(_dpOcUI, adjComments, onAddAdjComment, "sug_dp_" + card.key)}
                           primaryLabel={card.primaryLabel} secondaryLabel={card.secondaryLabel}
-                          onPrimaryAction={function() { _dpSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _dpSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = primaryActionLabels[card.primaryLabel] || "Journal posted"; return o; }); }}
+                          onPrimaryAction={function() { _dpSetDrawerCard(card); }}
                           onIgnore={function() { _dpSetIgnoredCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); }}
                           onSecondaryAction={function() { _dpSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [card.idx])); }); _dpSetCardActions(function(prev) { var o = Object.assign({}, prev); o[card.idx] = "Resolved"; return o; }); }}
                           onMore={function() {}} />
@@ -4207,7 +4363,7 @@ function DepreciationReviewFlow(_ref) {
           ) : _dpResultsVisible ? <CanvasLoader /> : null}
         </div>
         {_dpCanvasReady && (
-          <div style={{ position: "absolute", top: 16, bottom: 16, right: 16, width: 400, zIndex: 3, transform: _dpBoxesOpen ? "translateX(0)" : "translateX(calc(100% + 32px))", transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1)", pointerEvents: _dpBoxesOpen ? "auto" : "none", display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ position: "absolute", top: 16, bottom: 16, right: 16, width: 400, zIndex: 3, transform: _dpEffBoxesOpen ? "translateX(0)" : "translateX(calc(100% + 32px))", transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1)", pointerEvents: _dpEffBoxesOpen ? "auto" : "none", display: "flex", flexDirection: "column", gap: 16 }}>
             <div style={{ background: T.colorSurfacePrimary, borderRadius: 8, border: "1px solid " + T.colorButtonSecondary, overflow: "hidden", flexShrink: 0 }}>
               <div style={{ padding: "18px 20px" }}><span style={{ fontSize: 16, fontWeight: 500, color: T.colorTextPrimary }}>Linked sources</span></div>
               <div style={{ borderTop: "1px solid " + T.colorSurfaceActive, padding: "12px 10px 16px" }}>
@@ -4224,6 +4380,115 @@ function DepreciationReviewFlow(_ref) {
           </div>
         )}
       </div>
+      {_dpDrawerCard && _dpDrawerCard.drawer && (
+        <Sidebar open={true} onClose={function() { _dpSetDrawerCard(null); }} title={_dpDrawerCard.drawer.contact} width={520}
+          footer={
+            <React.Fragment>
+              <SecondaryButton onClick={function() { _dpSetDrawerCard(null); }} style={{ flex: 1, height: 44, justifyContent: "center" }}>Cancel</SecondaryButton>
+              <PrimaryButton onClick={function() {
+                var _idx = _dpDrawerCard.idx;
+                _dpSetResolvedCards(function(prev) { return new Set([].concat(Array.from(prev), [_idx])); });
+                _dpSetCardActions(function(prev) { var o = Object.assign({}, prev); o[_idx] = "Added to schedule"; return o; });
+                _dpSetDrawerCard(null);
+              }} style={{ flex: 1, height: 44, justifyContent: "center" }}>Add to schedule</PrimaryButton>
+            </React.Fragment>
+          }>
+          <div style={{ padding: 24, paddingBottom: 240, display: "flex", flexDirection: "column", gap: 24 }}>
+            <Banner variant="success" icon={<svg width={20} height={20} viewBox="0 0 20 20" fill="none"><path d="M10 1.5L11.5 7L17 8.5L11.5 10L10 15.5L8.5 10L3 8.5L8.5 7L10 1.5Z" fill={T.colorBrandPrimary} stroke={T.colorBrandPrimary} strokeWidth={1.5} strokeLinejoin="round" paintOrder="stroke" /></svg>}>{_dpDrawerCard.drawer.aiInsight}</Banner>
+            <Dropdown size="lg" label="Adjustment type" value="depreciation" options={[{ value: "depreciation", label: "Depreciation" }]} onChange={function() {}} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div style={Object.assign({}, T.textSm, { fontWeight: 500, color: T.colorTextPrimary })}>Depreciation</div>
+              <RadioGroup value="new" onChange={function() {}} options={[{ value: "new", label: "New" }, { value: "historic", label: "Historic" }]} direction="horizontal" gap={24} />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={Object.assign({}, T.textSm, { fontWeight: 500, color: T.colorTextPrimary })}>Cost</div>
+              <Input value={_dpDrawerCard.drawer.cost} onChange={function() {}} leftSlotType="currency" currencySymbol="£" />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={Object.assign({}, T.textSm, { fontWeight: 500, color: T.colorTextPrimary })}>In use from</div>
+              <Input value={_dpDrawerCard.drawer.inUseFrom} onChange={function() {}} leftSlotType="icon" leftSlotIcon={<svg width={16} height={16} viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="2" stroke={T.colorTextSecondary} strokeWidth="1.25"/><path d="M2 7h12M5.5 2v2M10.5 2v2" stroke={T.colorTextSecondary} strokeWidth="1.25" strokeLinecap="round"/></svg>} />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={Object.assign({}, T.textSm, { fontWeight: 500, color: T.colorTextPrimary })}>Useful life</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 110px", gap: 8 }}>
+                <Input value={_dpDrawerCard.drawer.usefulLife} onChange={function() {}} inputStyle={{ fontSize: 14, lineHeight: "22px" }} />
+                <Dropdown size="lg" value="years" options={[{ value: "years", label: "Years" }, { value: "months", label: "Months" }]} onChange={function() {}} />
+              </div>
+            </div>
+            <Dropdown size="lg" label="Account" value="account" options={[{ value: "account", label: _dpDrawerCard.drawer.account }]} onChange={function() {}} searchable={true} />
+            <div style={{ height: 1, background: T.colorBorderDark }} />
+            <span style={Object.assign({}, T.textMd, { fontWeight: T.fontWeightSemibold, color: T.colorTextPrimary })}>Details</span>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={Object.assign({}, T.textSm, { fontWeight: 500, color: T.colorTextPrimary })}>Description</div>
+              <Input value={_dpDrawerCard.drawer.description} onChange={function() {}} />
+            </div>
+            <Dropdown size="lg" label="Tracking category (optional)" value="" options={[{ value: "", label: "None" }]} onChange={function() {}} />
+            <div style={{ height: 1, background: T.colorBorderDark }} />
+            <span style={Object.assign({}, T.textMd, { fontWeight: T.fontWeightSemibold, color: T.colorTextPrimary })}>Depreciation</span>
+            <Dropdown size="lg" label="Method" value={_dpDrawerCard.drawer.method} options={[{ value: "straight_line", label: "Straight-line" }, { value: "reducing_balance", label: "Reducing balance 25%" }]} onChange={function() {}} />
+          </div>
+        </Sidebar>
+      )}
+      {_dpDrawerCard && _dpDrawerCard.drawer && (
+        <div style={{ position: "fixed", top: 0, right: 520, bottom: 0, left: 0, zIndex: 321, background: T.colorSurfaceSecondary, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", pointerEvents: "auto" }}>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 }}>
+            <div style={{ width: "100%", maxWidth: 520, background: "#fff", borderRadius: 8, border: "1px solid " + T.colorBorderDark, padding: "40px 36px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 }}>
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A2E", letterSpacing: "-0.3px" }}>{_dpDrawerCard.drawer.supplier}</div>
+                  <div style={{ fontSize: 11, color: T.colorTextSecondary, marginTop: 4, lineHeight: "16px" }}>{_dpDrawerCard.drawer.supplier}</div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: "#1A1A2E", letterSpacing: "-0.5px" }}>INVOICE</div>
+                  <div style={{ fontSize: 11, color: T.colorTextSecondary, marginTop: 4 }}>{"#" + _dpDrawerCard.drawer.invoice}</div>
+                </div>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 24, paddingBottom: 16, borderBottom: "1px solid " + T.colorBorderDark }}>
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>Bill to</div>
+                  <div style={{ fontSize: 12, color: T.colorTextPrimary, lineHeight: "18px" }}>Tidewater Solutions Ltd</div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>Invoice date</div>
+                  <div style={{ fontSize: 12, color: T.colorTextPrimary, marginBottom: 12 }}>{_dpDrawerCard.drawer.invoiceDate}</div>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: T.colorTextSecondary, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>Due date</div>
+                  <div style={{ fontSize: 12, color: T.colorTextPrimary }}>{_dpDrawerCard.drawer.invoiceDate}</div>
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 50px 80px 80px", borderBottom: "2px solid #1A1A2E", paddingBottom: 8 }}>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px" }}>Description</span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "center" }}>Qty</span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "right" }}>Unit price</span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "#1A1A2E", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "right" }}>Amount</span>
+              </div>
+              {_dpDrawerCard.drawer.invoiceLines.map(function(line, i) {
+                return (
+                  <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 50px 80px 80px", padding: "12px 0", borderBottom: "1px solid " + T.colorBorderDark }}>
+                    <div style={{ fontSize: 12, color: T.colorTextPrimary, fontWeight: 500 }}>{line.description}</div>
+                    <span style={{ fontSize: 12, color: T.colorTextPrimary, textAlign: "center" }}>{line.qty}</span>
+                    <span style={{ fontSize: 12, color: T.colorTextPrimary, textAlign: "right" }}>{"£" + line.unitPrice}</span>
+                    <span style={{ fontSize: 12, color: T.colorTextPrimary, textAlign: "right", fontWeight: 500 }}>{"£" + line.amount}</span>
+                  </div>
+                );
+              })}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, paddingTop: 16 }}>
+                <div style={{ display: "flex", gap: 32, width: 220 }}>
+                  <span style={{ fontSize: 12, color: T.colorTextSecondary, flex: 1 }}>Subtotal (ex. VAT)</span>
+                  <span style={{ fontSize: 12, color: T.colorTextPrimary, textAlign: "right" }}>{"£" + _dpDrawerCard.drawer.subtotal}</span>
+                </div>
+                <div style={{ display: "flex", gap: 32, width: 220 }}>
+                  <span style={{ fontSize: 12, color: T.colorTextSecondary, flex: 1 }}>VAT 20%</span>
+                  <span style={{ fontSize: 12, color: T.colorTextPrimary, textAlign: "right" }}>{"£" + _dpDrawerCard.drawer.vat}</span>
+                </div>
+                <div style={{ display: "flex", gap: 32, width: 220, paddingTop: 8, borderTop: "2px solid #1A1A2E", marginTop: 4 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#1A1A2E", flex: 1 }}>Total (inc. VAT)</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#1A1A2E", textAlign: "right" }}>{"£" + _dpDrawerCard.drawer.total}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -4268,8 +4533,8 @@ registerPage("Adjustments", {
 
     // GL impact per suggestion card
     var _glConfig = {
-      prepayments:     { initial: -0.06, impacts: {} },
-      accruals:        { initial: -130.00, impacts: {} },
+      prepayments:     { initial: -0.06,   impacts: {}, tooltip: "£0.06 rounding residual on 1103 – Prepayments from the ISS Facility Services write-off. Will self-correct on the next reconciliation." },
+      accruals:        { initial: -130.00, impacts: {}, tooltip: "2109 – Accruals is £130.00 below the schedule total, likely from a manual Xero journal that adjusted the Thames Water balance outside of Mimo." },
       deferredRevenue: { initial: 0, impacts: {} },
       accruedIncome:   { initial: 0, impacts: {} },
       loanAmort:       { initial: 0, impacts: {} },
@@ -4284,7 +4549,7 @@ registerPage("Adjustments", {
       var abs = Math.abs(remaining);
       var label = (remaining > 0 ? "GL +£" : "GL –£") + abs.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       var isMinor = abs < 5.00;
-      return { label: label, color: isMinor ? T.colorTextThird : T.colorError, bg: isMinor ? T.colorBorderLight : T.colorErrorBg };
+      return { label: label, color: isMinor ? T.colorTextThird : T.colorError, bg: isMinor ? T.colorBorderLight : T.colorErrorBg, tooltip: config.tooltip || null };
     };
 
     // Compute scheduled journal entries from all review states
@@ -4438,12 +4703,28 @@ registerPage("Adjustments", {
       </svg>
     );
 
-    var _ovGlBadge = function(gl) {
-      if (!gl) return (
-        <span style={{ fontSize: 12, fontWeight: 500, color: T.colorBrandPrimary, background: T.colorSuccessBg, borderRadius: 6, padding: "1px 5px", lineHeight: "17px", letterSpacing: "0.15px", whiteSpace: "nowrap" }}>Reconciled</span>
-      );
-      return (
-        <span style={{ fontSize: 12, fontWeight: 500, color: gl.color, background: gl.bg, borderRadius: 6, padding: "1px 5px", lineHeight: "17px", letterSpacing: "0.15px", whiteSpace: "nowrap" }}>{gl.label}</span>
+    var _ovGlBadge = function(gl, mimoBalance, isOpening) {
+      var mimoNum = mimoBalance ? parseFloat(mimoBalance.replace(/[£,]/g, "")) : null;
+      var fmt = function(n) { return "£" + n.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+      if (!gl) {
+        return _makeGlTooltipBadge(
+          "Reconciled",
+          T.colorBrandPrimary,
+          T.colorSuccessBg,
+          mimoNum != null ? _buildReconciledTooltipContent(mimoBalance, isOpening) : null,
+          { borderRadius: 6, padding: "1px 5px", lineHeight: "17px", letterSpacing: "0.15px" }
+        );
+      }
+      var isNeg = gl.label.indexOf("–") !== -1;
+      var diffAbs = parseFloat(gl.label.replace(/[^0-9.]/g, ""));
+      var diffNum = isNeg ? -diffAbs : diffAbs;
+      var xeroNum = mimoNum != null ? mimoNum + diffNum : null;
+      var diffColor = diffAbs < 5 ? "rgba(255,255,255,0.7)" : "#FCA5A5";
+      var diffDisplay = (isNeg ? "–£" : "+£") + diffAbs.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return _makeGlTooltipBadge(
+        gl.label, gl.color, gl.bg,
+        _buildGlTooltipContent(mimoNum != null ? fmt(mimoNum) : "—", xeroNum != null ? fmt(xeroNum) : "—", diffDisplay, diffColor, gl.tooltip),
+        { borderRadius: 6, padding: "1px 5px", lineHeight: "17px", letterSpacing: "0.15px" }
       );
     };
 
@@ -4487,7 +4768,7 @@ registerPage("Adjustments", {
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                 <span style={{ ...T.textMd, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{metrics.opening}</span>
-                {_ovGlBadge(metrics.openingGl)}
+                {_ovGlBadge(metrics.openingGl, metrics.opening, true)}
               </div>
             </div>
 
@@ -4496,7 +4777,7 @@ registerPage("Adjustments", {
               <span style={{ ...T.textSm, fontWeight: 400, color: T.colorTextSecondary }}>Closing balance</span>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                 <span style={{ ...T.textMd, fontWeight: 500, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>{metrics.closing}</span>
-                {_ovGlBadge(metrics.closingGl)}
+                {_ovGlBadge(metrics.closingGl, metrics.closing, false)}
               </div>
             </div>
 
@@ -4659,7 +4940,7 @@ registerPage("Adjustments", {
               title="Depreciation (FAR)"
               updatedAt="5 Mar, 10:02"
               onViewSchedule={function() { setActiveScheduleType("depreciation"); setScheduleViewMode("schedule"); }}
-              onRun={function() { setDepreciationReviewOpen(true); }}
+              onRun={function() { setActiveScheduleType("depreciation"); setScheduleViewMode("ai"); }}
               workflow={depreciationReviewState && depreciationReviewState.hasResults
                 ? { label: "Review depreciation charges", status: "suggestions", resolved: depreciationReviewState.resolved, total: depreciationReviewState.total }
                 : { label: "Review depreciation charges", status: "not_started" }}
