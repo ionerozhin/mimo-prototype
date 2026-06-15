@@ -3439,10 +3439,32 @@ function DepreciationSchedulePage({ open, onClose, activeScheduleType, onSchedul
 
   const _dpFmtGBP = (v) => "£" + Math.abs(v).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+  // Build rows from accepted suggestions
+  const _dpMonAbbr = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11 };
+  const _dpResolvedIdxs = (reviewState && reviewState.resolvedArray) ? reviewState.resolvedArray.filter(function(idx) { return !reviewState.cardActions || reviewState.cardActions[idx] === "Added to schedule"; }) : [];
+  const _dpSuggestionRows = _dpResolvedIdxs.map(function(idx) {
+    const card = _DP_CARDS[idx]; if (!card) return null;
+    const d = card.drawer;
+    const cost = parseFloat((d.cost || "0").replace(/,/g, ""));
+    const life = parseInt(d.usefulLife || "0");
+    const monthlyDep = life > 0 ? Math.round(cost / (life * 12) * 100) / 100 : 0;
+    const pts = (d.inUseFrom || "").split(" ");
+    const inUseMon = pts.length >= 3 && _dpMonAbbr[pts[1]] !== undefined ? _dpMonAbbr[pts[1]] : null;
+    const inUseYr = pts.length >= 3 ? parseInt(pts[2]) : null;
+    const acqKey = (inUseMon !== null && inUseYr !== null) ? _dpMonthKey(inUseMon, inUseYr) : null;
+    const monthsBefore = (acqKey !== null && acqKey < _dpScheduleStartKey) ? _dpScheduleStartKey - acqKey : 0;
+    const nbvFwd = (acqKey !== null && acqKey < _dpScheduleStartKey) ? Math.max(0, cost - monthsBefore * monthlyDep) : null;
+    const accM = (d.account || "").match(/^(\d+)\s*[–-]\s*(.+)$/);
+    const assetAccount = accM ? accM[2].trim() + " (" + accM[1] + ")" : (d.account || "");
+    const acquired = pts.length >= 3 ? pts[0] + " " + pts[1] + " " + String(inUseYr).slice(2) : (d.inUseFrom || "");
+    return { id: 100 + idx, asset: d.description || "Suggestion " + idx, status: "active", assetAccount, acquired, cost, usefulLife: life + " years", nbvForward: nbvFwd, monthlyDep, acquisitionMonthKey: (acqKey !== null && acqKey >= _dpScheduleStartKey) ? acqKey : null, disposalMonthKey: null, disposalDate: null, isSuggestion: true };
+  }).filter(Boolean);
+  const _dpDataAll = _dpData.concat(_dpSuggestionRows);
+
   const _dpTotalDep = {}, _dpTotalAdditions = {}, _dpTotalDisposals = {};
   _dpVisibleMonths.forEach(vm => {
     let dep = 0, add = 0, disposal = 0;
-    _dpData.forEach(item => {
+    _dpDataAll.forEach(item => {
       if (item.status === "fully_depreciated") return;
       if (item.acquisitionMonthKey !== null && vm.key < item.acquisitionMonthKey) return;
       if (item.disposalMonthKey !== null && vm.key > item.disposalMonthKey) return;
@@ -3462,7 +3484,7 @@ function DepreciationSchedulePage({ open, onClose, activeScheduleType, onSchedul
     _dpTotalDisposals[vm.key] = disposal;
   });
 
-  const _dpOpeningNBV = _dpData.reduce((sum, item) => {
+  const _dpOpeningNBV = _dpDataAll.reduce((sum, item) => {
     if (item.status === "fully_depreciated") return sum;
     if (item.acquisitionMonthKey !== null && item.acquisitionMonthKey >= _dpScheduleStartKey) return sum;
     return sum + (item.nbvForward || 0);
@@ -3471,7 +3493,7 @@ function DepreciationSchedulePage({ open, onClose, activeScheduleType, onSchedul
   const _dpClosingNBVs = {};
   _dpVisibleMonths.forEach(vm => { _dpRunningNBV += (_dpTotalAdditions[vm.key] || 0) - (_dpTotalDep[vm.key] || 0) - (_dpTotalDisposals[vm.key] || 0); _dpClosingNBVs[vm.key] = Math.round(_dpRunningNBV * 100) / 100; });
 
-  const _dpFilteredData = _dpData.filter(item => {
+  const _dpFilteredData = _dpDataAll.filter(item => {
     if (!_dpShowDisposed && item.status === "disposed") return false;
     if (_dpAccountFilter !== "all" && item.assetAccount !== _dpAccountFilter) return false;
     if (_dpSearchValue && !item.asset.toLowerCase().includes(_dpSearchValue.toLowerCase())) return false;
@@ -4084,8 +4106,8 @@ function DepreciationReviewFlow(_ref) {
   var _dpTotalSuggestions = _DP_CARDS.length;
 
   useEffect(function() {
-    if (onStateChange && _dpCanvasReady) onStateChange({ resolved: _dpResolvedCount, total: _dpTotalSuggestions, hasResults: true, resolvedArray: Array.from(_dpResolvedCards), ignoredArray: Array.from(_dpIgnoredCards), cardActions: _dpCardActions });
-  }, [_dpResolvedCount, _dpCanvasReady, _dpCardActions]);
+    if (onStateChange && _dpResultsVisible) onStateChange({ resolved: _dpResolvedCount, total: _dpTotalSuggestions, hasResults: true, resolvedArray: Array.from(_dpResolvedCards), ignoredArray: Array.from(_dpIgnoredCards), cardActions: _dpCardActions });
+  }, [_dpResolvedCount, _dpResultsVisible, _dpCardActions]);
 
   var _dpLine1Segments = [{ text: "I'll review your fixed asset register for ", bold: false }, { text: selectedPeriod, bold: true }, { text: ", compare net book values to Xero balances, verify monthly depreciation charges against the P&L, and flag any unposted or misallocated entries.", bold: false }];
   var _dpLine1Full = _dpLine1Segments.map(function(s) { return s.text; }).join("");
