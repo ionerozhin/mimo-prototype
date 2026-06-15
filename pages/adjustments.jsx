@@ -2663,8 +2663,8 @@ var _DRR_STEPS = [
 ];
 
 var _DRR_CARDS = [
-  { idx: 0, key: "advance", title: "Defer advance payment from Lidl for Christmas range", contact: "Lidl UK – Christmas promotional range", description: "Lidl paid £18,000.00 on 28 March 2026 for a Christmas snack range to be delivered across August to November 2026. The full amount has been posted to 4000 – Sales in March. No product has been delivered yet, so the entire balance should be deferred and released as deliveries are made.", tableRow: { account: "4000 – Sales", amount: "£18,000.00", period: "Aug – Nov 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Lidl UK", aiInsight: "The full advance payment has been posted to sales in March but no product has been delivered yet. Deliveries run August to November.", adjType: "defer_revenue", description: "Christmas range – Lidl", amount: "18,000.00", revenueAccount: "4000 – Sales", period: "Aug – Nov 2026", deferralDate: "28/03/2026", recognitionDate: "01/08/2026" } },
-  { idx: 1, key: "warehouse_b", title: "Allocate remaining £800 balance on Warehouse B sublease", contact: "Warehouse B – sublease advance", description: "The Warehouse B sublease shows £800 unallocated from a quarterly advance payment of £3,200 received on 1 March 2026. The recognition schedule covers March to June 2026 at £800 per month, but the final period has not been allocated. This balance should be assigned to complete the schedule.", tableRow: { account: "2110 – Deferred income", amount: "£800.00", period: "Jun 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Warehouse B sublease", aiInsight: "The advance payment of £3,200 covers four months of sublease at £800 each, but only three periods are currently allocated. The final £800 should be assigned to June 2026.", adjType: "release_revenue", description: "Sublease – Warehouse unit B", amount: "800.00", revenueAccount: "2110 – Deferred income", period: "Jun 2026", deferralDate: "01/03/2026", recognitionDate: "01/06/2026" } },
+  { idx: 0, key: "advance", title: "Defer advance payment from Lidl for Christmas range", contact: "Lidl UK – Christmas promotional range", description: "Lidl paid £18,000.00 on 28 March 2026 for a Christmas snack range to be delivered across August to November 2026. The full amount has been posted to 4000 – Sales in March. No product has been delivered yet, so the entire balance should be deferred and released as deliveries are made.", tableRow: { account: "4000 – Sales", amount: "4 × £4,500.00", period: "Aug 2026 – Nov 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Lidl UK", aiInsight: "The full advance payment has been posted to sales in March but no product has been delivered yet. Deliveries run August to November.", adjType: "defer_revenue", isNew: true, invoiceAmount: "18,000.00", description: "Christmas range – Lidl", amount: "18,000.00", revenueAccount: "4000 – Sales", period: "Aug 2026 – Nov 2026", deferralDate: "28/03/2026", startMonth: "August 2026", endMonth: "November 2026", drawerAllocations: [{ period: "August 2026", amount: "4,500.00" }, { period: "September 2026", amount: "4,500.00" }, { period: "October 2026", amount: "4,500.00" }, { period: "November 2026", amount: "4,500.00" }] } },
+  { idx: 1, key: "warehouse_b", title: "Allocate remaining £800 balance on Warehouse B sublease", contact: "Warehouse B – sublease advance", description: "The Warehouse B sublease shows £800 unallocated from a quarterly advance payment of £3,200 received on 1 March 2026. The recognition schedule covers March to June 2026 at £800 per month, but the final period has not been allocated. This balance should be assigned to complete the schedule.", tableRow: { account: "2110 – Deferred income", amount: "1 × £800.00", period: "Jun 2026" }, primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this", drawer: { contact: "Warehouse B sublease", aiInsight: "The advance payment of £3,200 covers four months of sublease at £800 each, but only three periods are currently allocated. The final £800 should be assigned to June 2026.", adjType: "release_revenue", isNew: false, invoiceAmount: "800.00", description: "Sublease – Warehouse unit B", amount: "800.00", revenueAccount: "2110 – Deferred income", period: "Jun 2026", deferralDate: "01/03/2026", startMonth: "June 2026", endMonth: "June 2026", drawerAllocations: [{ period: "June 2026", amount: "800.00" }] } },
 ];
 
 var _DRR_NAV_CATS = [
@@ -2958,29 +2958,48 @@ function DeferredRevenueReviewFlow(_ref) {
               _drRSetDrawerCard(null);
             }, style: { flex: 1, height: 44, justifyContent: "center" } }, "Add to schedule")
           ) },
-        React.createElement("div", { style: { padding: 24, display: "flex", flexDirection: "column", gap: 24 } },
+        React.createElement("div", { style: { padding: 24, paddingBottom: 40, display: "flex", flexDirection: "column", gap: 24 } },
           React.createElement(Banner, { variant: "success", icon: React.createElement("svg", { width: 20, height: 20, viewBox: "0 0 20 20", fill: "none" }, React.createElement("path", { d: "M10 1.5L11.5 7L17 8.5L11.5 10L10 15.5L8.5 10L3 8.5L8.5 7L10 1.5Z", fill: T.colorBrandPrimary, stroke: T.colorBrandPrimary, strokeWidth: 1.5, strokeLinejoin: "round", paintOrder: "stroke" })) }, _drRDrawerCard.drawer.aiInsight),
-          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
-            React.createElement("div", { style: Object.assign({ display: "flex", gap: 4, fontWeight: 500, color: T.colorTextPrimary }, T.textMd) },
-              React.createElement("span", null, "Adjustment type"),
-              React.createElement("span", { style: { color: "#DC5C40" } }, "*")
-            ),
-            React.createElement(Dropdown, { value: _drRDrawerCard.drawer.adjType, options: [{ value: "defer_revenue", label: "Defer revenue" }, { value: "release_revenue", label: "Release deferred revenue" }], onChange: function() {} })
+          React.createElement(Dropdown, { label: "Adjustment type", size: "lg", value: _drRDrawerCard.drawer.adjType, options: [{ value: "defer_revenue", label: "Defer revenue" }, { value: "release_revenue", label: "Release deferred revenue" }], onChange: function() {} }),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 6 } },
+            React.createElement("div", { style: Object.assign({}, T.textSm, { fontWeight: 500, color: T.colorTextPrimary }) }, "Deferred revenue"),
+            React.createElement(RadioGroup, { value: _drRDrawerCard.drawer.isNew ? "new" : "running", onChange: function() {}, options: [{ value: "new", label: "New" }, { value: "running", label: "Running" }], direction: "horizontal", gap: 24 })
           ),
-          React.createElement(Input, { label: "Description", mandatory: true, value: _drRDrawerCard.drawer.description, onChange: function() {} }),
-          React.createElement(Input, { label: "Deferral Amount", mandatory: true, value: _drRDrawerCard.drawer.amount, onChange: function() {}, leftSlotType: "currency", currencySymbol: "£" }),
           React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
-            React.createElement("div", { style: Object.assign({ display: "flex", gap: 4, fontWeight: 500, color: T.colorTextPrimary }, T.textMd) },
-              React.createElement("span", null, "Revenue account"),
-              React.createElement("span", { style: { color: "#DC5C40" } }, "*")
-            ),
-            React.createElement(Dropdown, { value: "account", options: [{ value: "account", label: _drRDrawerCard.drawer.revenueAccount }], onChange: function() {}, searchable: true })
+            React.createElement("div", { style: Object.assign({}, T.textSm, { fontWeight: 500, color: T.colorTextPrimary }) }, "Invoice amount"),
+            React.createElement(Input, { value: _drRDrawerCard.drawer.invoiceAmount, onChange: function() {}, leftSlotType: "currency", currencySymbol: "£" })
           ),
-          React.createElement(Input, { label: "Deferral date", mandatory: true, value: _drRDrawerCard.drawer.deferralDate || "", onChange: function() {}, leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            React.createElement("div", { style: Object.assign({}, T.textSm, { fontWeight: 500, color: T.colorTextPrimary }) }, "Invoice date"),
+            React.createElement(Input, { value: _drRDrawerCard.drawer.deferralDate || "", onChange: function() {}, leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })), helpText: "Date the invoice or advance was received" })
+          ),
           React.createElement(Checkbox, { checked: true, onChange: function() {}, label: "Create journal entry for this deferral" }),
+          React.createElement(Dropdown, { label: "Revenue account", size: "lg", value: "account", options: [{ value: "account", label: _drRDrawerCard.drawer.revenueAccount }], onChange: function() {}, searchable: true }),
           React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
-          React.createElement(Input, { label: "Recognition date", value: _drRDrawerCard.drawer.recognitionDate || "", onChange: function() {}, helpText: "Revenue will be recognised starting from this date", leftSlotType: "icon", leftSlotIcon: React.createElement("svg", { width: 16, height: 16, viewBox: "0 0 16 16", fill: "none" }, React.createElement("rect", { x: "2", y: "3", width: "12", height: "11", rx: "2", stroke: T.colorTextSecondary, strokeWidth: "1.25" }), React.createElement("path", { d: "M2 7h12M5.5 2v2M10.5 2v2", stroke: T.colorTextSecondary, strokeWidth: "1.25", strokeLinecap: "round" })) }),
-          React.createElement(Banner, { variant: "info" }, "You can leave the recognition date empty and choose it later when ready.")
+          React.createElement("span", { style: Object.assign({}, T.textMd, { fontWeight: T.fontWeightSemibold, color: T.colorTextPrimary }) }, "Details"),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            React.createElement("div", { style: Object.assign({}, T.textSm, { fontWeight: 500, color: T.colorTextPrimary }) }, "Description"),
+            React.createElement(Input, { value: _drRDrawerCard.drawer.description, onChange: function() {} })
+          ),
+          React.createElement(Dropdown, { label: "Tracking category (optional)", size: "lg", value: "", options: [{ value: "", label: "None" }], onChange: function() {} }),
+          React.createElement("div", { style: { height: 1, background: T.colorBorderDark } }),
+          React.createElement("span", { style: Object.assign({}, T.textMd, { fontWeight: T.fontWeightSemibold, color: T.colorTextPrimary }) }, "Releases"),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 6 } },
+            React.createElement("div", { style: Object.assign({}, T.textSm, { fontWeight: 500, color: T.colorTextPrimary }) }, "Monthly release"),
+            React.createElement(RadioGroup, { value: "even", onChange: function() {}, options: [{ value: "even", label: "Even split" }, { value: "custom", label: "Custom" }], direction: "horizontal", gap: 24 })
+          ),
+          React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 } },
+            React.createElement(Dropdown, { label: "Starting month", size: "lg", value: _drRDrawerCard.drawer.startMonth, options: (_drRDrawerCard.drawer.drawerAllocations || []).map(function(a) { return { value: a.period, label: a.period }; }), onChange: function() {} }),
+            React.createElement(Dropdown, { label: "Ending in", size: "lg", value: _drRDrawerCard.drawer.endMonth, options: (_drRDrawerCard.drawer.drawerAllocations || []).map(function(a) { return { value: a.period, label: a.period }; }), onChange: function() {} })
+          ),
+          _drRDrawerCard.drawer.drawerAllocations && React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 16 } },
+            _drRDrawerCard.drawer.drawerAllocations.map(function(alloc) {
+              return React.createElement("div", { key: alloc.period, style: { display: "flex", flexDirection: "column", gap: 8 } },
+                React.createElement("div", { style: Object.assign({}, T.textSm, { fontWeight: 500, color: T.colorTextPrimary }) }, alloc.period),
+                React.createElement(Input, { value: alloc.amount, onChange: function() {}, state: "readonly", leftSlotType: "currency", currencySymbol: "£" })
+              );
+            })
+          )
         )
       )}
       {_drRDrawerCard && _drRDrawerCard.drawer && React.createElement("div", {
@@ -3416,9 +3435,6 @@ function DepreciationSchedulePage({ open, onClose, activeScheduleType, onSchedul
     { id: 3, asset: "Server rack",          status: "fully_depreciated",  assetAccount: "Computer equipment (720)", acquired: "15 Jun 22", cost: 3600.00,  usefulLife: "3 years",  nbvForward: 0.00,    monthlyDep: 0.00,   acquisitionMonthKey: null,                  disposalMonthKey: null,                disposalDate: null },
     { id: 4, asset: "Ford Transit van",     status: "disposed",           assetAccount: "Motor vehicles (760)",     acquired: "1 Apr 23",  cost: 18000.00, usefulLife: "6 years",  nbvForward: 9000.00, monthlyDep: 250.00, acquisitionMonthKey: null,                  disposalMonthKey: _dpMonthKey(3, 2026), disposalDate: "12 Apr 26" },
     { id: 5, asset: "Warehouse racking",    status: "active",             assetAccount: "Plant & machinery (730)", acquired: "1 Oct 22",  cost: 18000.00, usefulLife: "10 years", nbvForward: 9150.00, monthlyDep: 150.00, acquisitionMonthKey: null,                  disposalMonthKey: null,                disposalDate: null },
-    { id: 6, asset: "Dell XPS 15 laptops × 3", status: "suggested",      assetAccount: "Computer equipment (720)", acquired: "10 Mar 26", cost: 7200.00,  usefulLife: "3 years",  nbvForward: null,    monthlyDep: 200.00, acquisitionMonthKey: _dpMonthKey(2, 2026),  disposalMonthKey: null,                disposalDate: null },
-    { id: 7, asset: "Warehouse racking expansion", status: "suggested",   assetAccount: "Plant & machinery (730)", acquired: "4 Mar 26",  cost: 8500.00,  usefulLife: "10 years", nbvForward: null,    monthlyDep: 70.83,  acquisitionMonthKey: _dpMonthKey(2, 2026),  disposalMonthKey: null,                disposalDate: null },
-    { id: 8, asset: "Height-adjustable desks × 6", status: "suggested",  assetAccount: "Fixtures & fittings (740)", acquired: "12 Feb 26", cost: 4500.00, usefulLife: "5 years",  nbvForward: null,    monthlyDep: 75.00,  acquisitionMonthKey: _dpMonthKey(1, 2026),  disposalMonthKey: null,                disposalDate: null },
   ];
 
   const _dpFmtGBP = (v) => "£" + Math.abs(v).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -3427,7 +3443,7 @@ function DepreciationSchedulePage({ open, onClose, activeScheduleType, onSchedul
   _dpVisibleMonths.forEach(vm => {
     let dep = 0, add = 0, disposal = 0;
     _dpData.forEach(item => {
-      if (item.status === "fully_depreciated" || item.status === "suggested") return;
+      if (item.status === "fully_depreciated") return;
       if (item.acquisitionMonthKey !== null && vm.key < item.acquisitionMonthKey) return;
       if (item.disposalMonthKey !== null && vm.key > item.disposalMonthKey) return;
       if (item.disposalMonthKey !== null && vm.key === item.disposalMonthKey) {
@@ -3447,7 +3463,7 @@ function DepreciationSchedulePage({ open, onClose, activeScheduleType, onSchedul
   });
 
   const _dpOpeningNBV = _dpData.reduce((sum, item) => {
-    if (item.status === "fully_depreciated" || item.status === "suggested") return sum;
+    if (item.status === "fully_depreciated") return sum;
     if (item.acquisitionMonthKey !== null && item.acquisitionMonthKey >= _dpScheduleStartKey) return sum;
     return sum + (item.nbvForward || 0);
   }, 0);
@@ -3477,7 +3493,6 @@ function DepreciationSchedulePage({ open, onClose, activeScheduleType, onSchedul
   const _dpDateRange = (item) => { const mIdx = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11}; const p = item.acquired.split(' '); const sm = mIdx[p[1]], sy = 2000 + parseInt(p[2]); const years = parseInt(item.usefulLife); const ey = sy + years; return _dpMonthNames[sm] + ' ' + String(sy).slice(2) + ' – ' + _dpMonthNames[sm] + ' ' + String(ey).slice(2); };
   const _dpMonthsLeft = (item) => { if (item.status !== "active" || item.monthlyDep <= 0) return 0; const startKey = item.acquisitionMonthKey !== null ? item.acquisitionMonthKey : _dpScheduleStartKey; const nbv0 = item.acquisitionMonthKey !== null ? item.cost : (item.nbvForward || 0); const charged = Math.max(0, _dpScheduledMonth - startKey); const rem = nbv0 - charged * item.monthlyDep; return rem > 0 ? Math.ceil(rem / item.monthlyDep) : 0; };
   const _dpStatusBadge = (item) => {
-    if (item.status === "suggested") return (<div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ display: "inline-flex", alignItems: "center", background: T.colorBrandLighter, color: T.colorBrandPrimary, borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px", whiteSpace: "nowrap" }}>Suggested</span><span style={{ ...T.textXs, color: T.colorTextSecondary }}>{_dpDateRange(item)}</span></div>);
     if (item.status === "active") {
       const ml = _dpMonthsLeft(item);
       return (<div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ ...T.textXs, color: T.colorTextSecondary }}>{_dpDateRange(item)}</span>{ml > 0 && <span style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", color: "#757980", borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>{ml} months left</span>}</div>);
@@ -3487,16 +3502,6 @@ function DepreciationSchedulePage({ open, onClose, activeScheduleType, onSchedul
     return null;
   };
   const _dpRenderMonthCell = (item, monthKey) => {
-    if (item.status === "suggested") {
-      if (item.acquisitionMonthKey !== null && monthKey < item.acquisitionMonthKey) return <span style={{ color: "#B0B3B8" }}>-</span>;
-      const isAcq = item.acquisitionMonthKey !== null && monthKey === item.acquisitionMonthKey;
-      const parts = [];
-      if (isAcq) parts.push(<div key="add" style={{ display: "inline-flex", alignItems: "center", background: T.colorBrandLighter, borderRadius: 4, padding: "2px 6px", fontSize: 12, color: T.colorBrandPrimary, fontWeight: 500 }}>{_dpFmtGBP(item.cost)}</div>);
-      if (item.monthlyDep > 0 && !isAcq) parts.push(<div key="dep" style={{ display: "inline-flex", alignItems: "center", background: T.colorBrandLighter, borderRadius: 4, padding: "2px 6px", fontSize: 12, color: T.colorBrandPrimary, fontWeight: 500 }}>{"(" + _dpFmtGBP(item.monthlyDep) + ")"}</div>);
-      if (isAcq && item.monthlyDep > 0) parts.push(<div key="dep" style={{ display: "inline-flex", alignItems: "center", background: T.colorBrandLighter, borderRadius: 4, padding: "2px 6px", fontSize: 12, color: T.colorBrandPrimary, fontWeight: 500 }}>{"(" + _dpFmtGBP(item.monthlyDep) + ")"}</div>);
-      if (parts.length === 0) return <span style={{ color: "#B0B3B8" }}>-</span>;
-      return <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>{parts}</div>;
-    }
     if (item.status === "fully_depreciated") return <span style={{ color: "#B0B3B8" }}>-</span>;
     if (item.acquisitionMonthKey !== null && monthKey < item.acquisitionMonthKey) return <span style={{ color: "#B0B3B8" }}>-</span>;
     if (item.disposalMonthKey !== null && monthKey > item.disposalMonthKey) return <span style={{ color: "#B0B3B8" }}>-</span>;
@@ -3982,7 +3987,7 @@ var _DP_CARDS = [
     title: "Capitalise Dell XPS 15 laptops purchased Mar 2026",
     contact: "720 – Computer equipment",
     description: "Insight Direct UK Ltd invoice INS-2026-0384 (10 Mar 2026, £8,640 inc. VAT) covers 3 Dell XPS 15 laptops at £2,400 net each. Each unit exceeds the £500 capitalisation threshold and was posted to 6420 – General expenses. These should be reclassified to account 720 – Computer equipment. VAT of £1,440 is recoverable; capitalise the net cost of £7,200.",
-    tableRow: { account: "720 – Computer equipment", amount: "£7,200.00", period: "Mar 2026" },
+    tableRow: { account: "720 – Computer equipment", amount: "£7,200.00", period: "Mar 2026 – Feb 2029" },
     primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this",
     drawer: {
       contact: "Dell XPS 15 laptops × 3",
@@ -3999,7 +4004,7 @@ var _DP_CARDS = [
     title: "Capitalise warehouse racking system purchased Mar 2026",
     contact: "730 – Plant & machinery",
     description: "Dexion Storage Systems Ltd invoice DEX-22847 (4 Mar 2026, £10,200 inc. VAT) covers 5 heavy-duty shelving bays installed in the warehouse. At £8,500 net this exceeds the capitalisation threshold and was posted to 6420 – General expenses. Should be reclassified to account 730 – Plant & machinery. VAT of £1,700 is recoverable.",
-    tableRow: { account: "730 – Plant & machinery", amount: "£8,500.00", period: "Mar 2026" },
+    tableRow: { account: "730 – Plant & machinery", amount: "£8,500.00", period: "Mar 2026 – Feb 2036" },
     primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this",
     drawer: {
       contact: "Warehouse racking system",
@@ -4016,7 +4021,7 @@ var _DP_CARDS = [
     title: "Capitalise height-adjustable desks purchased Feb 2026",
     contact: "740 – Fixtures & fittings",
     description: "Humanscale Ltd invoice HS-2026-1142 (12 Feb 2026, £5,400 inc. VAT) covers 6 Humanscale Float desks at £750 net each. Each unit individually exceeds the £500 capitalisation threshold and was posted to 6420 – General expenses. Should be reclassified to account 740 – Fixtures & fittings. VAT of £900 is recoverable; capitalise the net cost of £4,500.",
-    tableRow: { account: "740 – Fixtures & fittings", amount: "£4,500.00", period: "Feb 2026" },
+    tableRow: { account: "740 – Fixtures & fittings", amount: "£4,500.00", period: "Feb 2026 – Jan 2031" },
     primaryLabel: "Review suggestion", secondaryLabel: "I have resolved this",
     drawer: {
       contact: "Height-adjustable desks × 6",
@@ -4425,7 +4430,39 @@ function DepreciationReviewFlow(_ref) {
             <Dropdown size="lg" label="Tracking category (optional)" value="" options={[{ value: "", label: "None" }]} onChange={function() {}} />
             <div style={{ height: 1, background: T.colorBorderDark }} />
             <span style={Object.assign({}, T.textMd, { fontWeight: T.fontWeightSemibold, color: T.colorTextPrimary })}>Depreciation</span>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <Dropdown size="lg" label="Method" value={_dpDrawerCard.drawer.method} options={[{ value: "straight_line", label: "Straight-line" }, { value: "reducing_balance", label: "Reducing balance 25%" }]} onChange={function() {}} />
+            {(function() {
+              var _cost = parseFloat((_dpDrawerCard.drawer.cost || "0").replace(/,/g, ""));
+              var _life = parseInt(_dpDrawerCard.drawer.usefulLife || "0");
+              var _method = _dpDrawerCard.drawer.method;
+              if (!_cost || !_life) return null;
+              var _mon = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+              var _monIdx = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11 };
+              var _parts = (_dpDrawerCard.drawer.inUseFrom || "").split(" ");
+              var _startMonth = _parts.length >= 3 ? _monIdx[_parts[1]] : null;
+              var _startYear  = _parts.length >= 3 ? parseInt(_parts[2]) : null;
+              var _fmt = function(v) { return "£" + v.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+              if (_method === "straight_line") {
+                var _months = _life * 12;
+                var _monthly = _cost / _months;
+                var _endLabel = (_startMonth !== null && _startYear !== null)
+                  ? "fully depreciated " + _mon[_startMonth] + " " + (_startYear + _life)
+                  : null;
+                var _summary = _fmt(_monthly) + "/month  ·  " + _months + " months" + (_endLabel ? "  ·  " + _endLabel : "");
+                return React.createElement(Banner, { variant: "info" }, _summary);
+              }
+              if (_method === "reducing_balance") {
+                var _rateAnn = 0.25;
+                var _yr1Monthly = (_cost * _rateAnn) / 12;
+                var _yrNMonthly = (_cost * Math.pow(1 - _rateAnn, _life - 1) * _rateAnn) / 12;
+                var _pct = Math.round((1 - Math.pow(1 - _rateAnn, _life)) * 100);
+                var _summary = _fmt(_yr1Monthly) + "/month (yr 1)  ·  → " + _fmt(_yrNMonthly) + "/month (yr " + _life + ")  ·  " + _pct + "% written down over " + _life + " years";
+                return React.createElement(Banner, { variant: "info" }, _summary);
+              }
+              return null;
+            })()}
+            </div>
           </div>
         </Sidebar>
       )}
