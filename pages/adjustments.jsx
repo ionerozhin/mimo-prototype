@@ -3804,6 +3804,7 @@ function LoanAmortisationSchedulePage({ open, onClose, activeScheduleType, onSch
                   <Dropdown value="mar-dec-2026" options={[{ label: "1 Mar 2026 – 31 Dec 2026", value: "mar-dec-2026" }]} onChange={function() {}} size="sm" width={240} />
                   <Dropdown value={_laSchAcctFilter} options={_laAccountOptions} onChange={_laSchSetAcctFilter} size="sm" width={260} />
                   {_laInterestToggle}
+                  <SecondaryButton style={{ height: 36, padding: "0 12px", fontSize: 14, gap: 6 }}><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d={_MM_PATHS.plus} stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg>Add loan amortisation</SecondaryButton>
                 </Fragment>
               )}
             </div>
@@ -4039,6 +4040,12 @@ function LoanAmortisationReviewFlow(_ref) {
 
   useEffect(function() { if (!_laStepsComplete || _laIsResume) return; var t1 = setTimeout(function() { _laSetStepsCollapsed(true); }, 500); var t2 = setTimeout(function() { _laSetResultsVisible(true); }, 700); return function() { clearTimeout(t1); clearTimeout(t2); }; }, [_laStepsComplete, _laRestartKey]);
   useEffect(function() { if (!_laResultsVisible || _laIsResume) return; var t1 = setTimeout(function() { _laSetCanvasReady(true); }, 3200); var t2 = setTimeout(function() { _laSetBoxesOpen(true); }, 3800); return function() { clearTimeout(t1); clearTimeout(t2); }; }, [_laResultsVisible, _laRestartKey]);
+  // Entrance animation: slide chat+canvas when switching to AI mode (embedded, resume state)
+  useEffect(function() {
+    if (!embedded || hideChat || !_laInitResume) return;
+    var t = setTimeout(function() { _laSetResultsVisible(true); }, 50);
+    return function() { clearTimeout(t); };
+  }, []);
   useEffect(function() { if (_laChatEndRef.current) _laChatEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" }); }, [_laLine1Done, _laStepsComplete, _laCanvasReady]);
   useEffect(function() { var el = _laChatScrollRef.current; if (!el) return; var onScroll = function() { _laSetIsAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 40); }; el.addEventListener("scroll", onScroll); return function() { el.removeEventListener("scroll", onScroll); }; }, []);
   useEffect(function() { var onKey = function(e) { if (e.key === "Escape") onClose(); }; window.addEventListener("keydown", onKey); return function() { window.removeEventListener("keydown", onKey); }; }, []);
