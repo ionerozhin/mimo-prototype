@@ -124,6 +124,7 @@ var _SCHEDULE_TYPES = [
   { value: "deferred_revenue", label: "Deferred revenue" },
   { value: "accrued_income", label: "Accrued revenue" },
   { value: "depreciation", label: "Depreciation (FAR)" },
+  { value: "loan_amortisation", label: "Loan amortisation" },
 ];
 
 function _ScheduleTopBar(_ref) {
@@ -3629,6 +3630,317 @@ function DepreciationSchedulePage({ open, onClose, activeScheduleType, onSchedul
 }
 
 
+// ── Loan Amortisation Schedule Page ──────────────────────────────────────
+
+function LoanAmortisationSchedulePage({ open, onClose, activeScheduleType, onScheduleTypeChange, suggestionsCount, reviewState, onReviewStateChange, viewMode, onToggleMode, adjComments, onAddAdjComment }) {
+  adjComments = adjComments || {};
+  const [_laSchSearch, _laSchSetSearch] = useState("");
+  const [_laSchAcctFilter, _laSchSetAcctFilter] = useState("all");
+  const [_laSchShowInterest, _laSchSetShowInterest] = useState(false);
+  const [_laSchSugOpen, _laSchSetSugOpen] = useState(false);
+
+  if (!open) return null;
+
+  const _laMN = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const _laFmtM = (m, y) => _laMN[m] + " " + String(y).slice(2);
+  const _laMK = (m, y) => y * 12 + m;
+  const _laBdr = "#EFF1F4";
+  const _laPublished = _laMK(3, 2026); // Apr 2026
+  const _laScheduled = _laMK(4, 2026); // May 2026
+  const _laVisMonths = [];
+  for (let m = 2; m <= 11; m++) _laVisMonths.push({ m, y: 2026, key: _laMK(m, 2026), label: _laFmtM(m, 2026) });
+
+  const _laFmt = (v) => "£" + Math.abs(v).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const _laLoans = [
+    { id: 1, description: "Bank loan — Lloyds (10yr)",      loanAccount: "2400 – Bank loan — Lloyds",        rate: 5.25, loanAmount: 360000, balanceForward: 183000, monthlyRepay: 3000, additionKey: null,            firstRepayKey: _laMK(2, 2026), termEnd: _laMK(1, 2031), drawn: "Mar 21", maturity: "Feb 31" },
+    { id: 2, description: "Business loan — NatWest (3yr)",  loanAccount: "2401 – Business loan — NatWest",   rate: 6.8,  loanAmount: 60000,  balanceForward: 0,       monthlyRepay: 2000, additionKey: _laMK(2, 2026), firstRepayKey: _laMK(3, 2026), termEnd: _laMK(8, 2028), drawn: "Mar 26", maturity: "Sep 28" },
+    { id: 3, description: "Finance lease — Close Brothers", loanAccount: "2410 – Finance lease obligations", rate: 7.2,  loanAmount: 33600,  balanceForward: 22400,   monthlyRepay: 1400, additionKey: null,            firstRepayKey: _laMK(2, 2026), termEnd: _laMK(5, 2027), drawn: "Nov 24", maturity: "Jun 27" },
+  ];
+
+  const _laGetOpening = (loan, mk) => {
+    if (loan.additionKey !== null && mk <= loan.additionKey) return 0;
+    const n = mk > loan.firstRepayKey ? mk - loan.firstRepayKey : 0;
+    const s = loan.additionKey !== null ? loan.loanAmount : loan.balanceForward;
+    return Math.max(0, s - n * loan.monthlyRepay);
+  };
+
+  const _laGetClosing = (loan, mk) => {
+    if (mk > loan.termEnd) return 0;
+    if (loan.additionKey !== null && mk < loan.additionKey) return 0;
+    if (loan.additionKey !== null && mk === loan.additionKey) return loan.loanAmount;
+    const n = mk >= loan.firstRepayKey ? mk - loan.firstRepayKey + 1 : 0;
+    const s = loan.additionKey !== null ? loan.loanAmount : loan.balanceForward;
+    return Math.max(0, s - n * loan.monthlyRepay);
+  };
+
+  const _laGetInterest = (loan, mk) => {
+    if (mk > loan.termEnd) return 0;
+    const bal = (loan.additionKey !== null && mk === loan.additionKey) ? loan.loanAmount : _laGetOpening(loan, mk);
+    return Math.round(bal * loan.rate / 1200 * 100) / 100;
+  };
+
+  const _laMonthsLeft = (loan) => Math.max(0, loan.termEnd - _laScheduled + 1);
+
+  const _laThS = { ...T.textSm, fontWeight: 400, color: "#757980", padding: "10px 12px", textAlign: "left", whiteSpace: "nowrap", borderBottom: "1px solid " + _laBdr, borderRight: "1px solid " + _laBdr, position: "sticky", top: 0, background: T.colorSurfacePrimary, zIndex: 2 };
+  const _laCellS = { ...T.textSm, color: T.colorTextPrimary, padding: "10px 12px", borderBottom: "1px solid " + _laBdr, borderRight: "1px solid " + _laBdr, whiteSpace: "nowrap", verticalAlign: "middle" };
+  const _laFtrS = { ..._laCellS, fontWeight: 600, height: 72, verticalAlign: "middle" };
+  const _laStickyCol = { position: "sticky", left: 0, zIndex: 3, background: T.colorSurfacePrimary, borderRight: "1px solid " + _laBdr, paddingLeft: 32, boxShadow: "4px 0 8px -2px rgba(0,0,0,0.1)" };
+  const _laColW = { desc: 290, acct: 230, rate: 80, amount: 140, bfwd: 170, month: 130 };
+  const _laFixedW = _laColW.desc + _laColW.acct + _laColW.rate + _laColW.amount + _laColW.bfwd;
+
+  const _laSortIcon = () => <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ marginLeft: 4, flexShrink: 0, opacity: 0.45 }}><path d="M4.5 5.5L7 3L9.5 5.5" stroke="#757980" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/><path d="M4.5 8.5L7 11L9.5 8.5" stroke="#757980" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+  const _laClockIcon = () => <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ marginLeft: 3, flexShrink: 0 }}><circle cx="6.5" cy="6.5" r="5.5" stroke="#757980" strokeWidth="1"/><path d="M6.5 3.5V6.5L8.5 8" stroke="#757980" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+
+  const _laRenderCell = (loan, vm) => {
+    if (loan.additionKey !== null && vm.key < loan.additionKey) return <span style={{ color: "#B0B3B8" }}>–</span>;
+    if (vm.key > loan.termEnd) return <span style={{ color: "#B0B3B8" }}>–</span>;
+    const isAddition = loan.additionKey === vm.key;
+    const hasRepay = vm.key >= loan.firstRepayKey && vm.key <= loan.termEnd;
+    const isPublished = vm.key <= _laPublished;
+    const isScheduled = vm.key === _laScheduled;
+    const interest = _laSchShowInterest ? _laGetInterest(loan, vm.key) : 0;
+    const parts = [];
+    if (isAddition) {
+      if (isScheduled) {
+        parts.push(<div key="add" style={{ display: "inline-flex", alignItems: "center", gap: 2, background: "#ECECEC", borderRadius: 4, padding: "2px 6px", ...T.textSm }}>{_laFmt(loan.loanAmount)}<_laClockIcon /></div>);
+      } else {
+        parts.push(<div key="add" style={{ ...T.textSm, color: T.colorTextPrimary }}>{_laFmt(loan.loanAmount)}</div>);
+      }
+    }
+    if (hasRepay) {
+      if (isScheduled) {
+        parts.push(<div key="rep" style={{ display: "inline-flex", alignItems: "center", gap: 2, background: "#ECECEC", borderRadius: 4, padding: "2px 6px", ...T.textSm }}>({_laFmt(loan.monthlyRepay)})<_laClockIcon /></div>);
+      } else {
+        parts.push(<div key="rep" style={{ ...T.textSm, color: T.colorTextPrimary }}>({_laFmt(loan.monthlyRepay)})</div>);
+      }
+    }
+    if (_laSchShowInterest && interest > 0) {
+      parts.push(<div key="int" style={{ ...T.textXs, color: T.colorTextSecondary, marginTop: 1 }}>{_laFmt(interest)} int.</div>);
+    }
+    if (parts.length === 0) return <span style={{ color: "#B0B3B8" }}>–</span>;
+    const bg = isPublished ? T.colorSuccessBg : "transparent";
+    return <div style={{ background: bg !== "transparent" ? bg : undefined, borderRadius: bg !== "transparent" ? 4 : 0, padding: bg !== "transparent" ? "2px 6px" : 0, display: "inline-flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>{parts}</div>;
+  };
+
+  const _laTotAdditions = {}, _laTotRepayments = {}, _laTotClosing = {}, _laTotInterest = {};
+  _laVisMonths.forEach(vm => {
+    let add = 0, rep = 0, cls = 0, int = 0;
+    _laLoans.forEach(loan => {
+      if (loan.additionKey === vm.key) add += loan.loanAmount;
+      if (vm.key >= loan.firstRepayKey && vm.key <= loan.termEnd) rep += loan.monthlyRepay;
+      cls += _laGetClosing(loan, vm.key);
+      int += _laGetInterest(loan, vm.key);
+    });
+    _laTotAdditions[vm.key] = add;
+    _laTotRepayments[vm.key] = rep;
+    _laTotClosing[vm.key] = cls;
+    _laTotInterest[vm.key] = int;
+  });
+
+  const _laFiltered = _laLoans.filter(loan => {
+    if (_laSchAcctFilter !== "all" && loan.loanAccount !== _laSchAcctFilter) return false;
+    if (_laSchSearch && !loan.description.toLowerCase().includes(_laSchSearch.toLowerCase())) return false;
+    return true;
+  });
+
+  const _laAccountOptions = [
+    { value: "all", label: "All loan accounts" },
+    { value: "2400 – Bank loan — Lloyds", label: "2400 – Bank loan — Lloyds" },
+    { value: "2401 – Business loan — NatWest", label: "2401 – Business loan — NatWest" },
+    { value: "2410 – Finance lease obligations", label: "2410 – Finance lease obligations" },
+  ];
+
+  const _laInterestToggle = (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, border: "1px solid " + _laBdr, borderRadius: 6, padding: "0 12px", height: 36 }}>
+      <button onClick={() => _laSchSetShowInterest(v => !v)} style={{ width: 40, height: 24, borderRadius: 12, border: "none", background: _laSchShowInterest ? T.colorBrandPrimary : "#C7C9CD", cursor: "pointer", position: "relative", padding: 0, flexShrink: 0, transition: "background 0.2s" }}>
+        <div style={{ position: "absolute", top: 2, left: _laSchShowInterest ? 18 : 2, width: 20, height: 20, borderRadius: 10, background: "white", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }} />
+      </button>
+      <span style={{ fontSize: 14, color: T.colorTextPrimary, whiteSpace: "nowrap" }}>Show interest paid</span>
+    </div>
+  );
+
+  const _laDescBadge = (loan) => {
+    const ml = _laMonthsLeft(loan);
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3, flexWrap: "wrap" }}>
+        <span style={{ ...T.textXs, color: T.colorTextSecondary }}>{loan.drawn} – {loan.maturity}</span>
+        {ml > 0 && <span style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", color: "#757980", borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, lineHeight: "17px" }}>{ml} months left</span>}
+      </div>
+    );
+  };
+
+  return (
+    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: T.colorSurfacePrimary, zIndex: 310, display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: T.fontFamily }}>
+      <_ScheduleTopBar
+        activeType={activeScheduleType}
+        onTypeChange={onScheduleTypeChange}
+        onClose={onClose}
+        suggestionsCount={suggestionsCount}
+        onSuggestionsClick={function() { _laSchSetSugOpen(p => !p); }}
+        sugPanelOpen={_laSchSugOpen}
+        viewMode={viewMode}
+        onToggleMode={function() { _laSchSetSugOpen(false); if (onToggleMode) onToggleMode(); }}
+        aiProgress={viewMode === "ai" && reviewState && reviewState.hasResults ? { resolved: reviewState.resolved, total: reviewState.total } : null}
+      />
+      {viewMode === "ai" ? (
+        <LoanAmortisationReviewFlow embedded={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={_laSchSugOpen} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
+      ) : (
+        <div style={{ display: "flex", flex: "1 1 auto", minHeight: 0, overflow: "hidden" }}>
+          <div style={{ display: "flex", flexDirection: "column", flex: "1 1 auto", minWidth: 0, overflow: "hidden" }}>
+            {/* Toolbar */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 32px", flexShrink: 0, flexWrap: "wrap", borderBottom: "1px solid " + _laBdr }}>
+              {_laSchSugOpen ? (
+                <Fragment>
+                  <input type="text" placeholder="Search..." value={_laSchSearch} onChange={e => _laSchSetSearch(e.target.value)} style={{ height: 36, padding: "0 12px", border: "1px solid " + T.colorBorderDark, borderRadius: 6, fontSize: 14, fontFamily: T.fontFamily, outline: "none", width: 200, color: T.colorTextPrimary, background: T.colorSurfacePrimary }} onFocus={e => { e.target.style.borderColor = T.colorBrandPrimary; e.target.style.borderWidth = "2px"; e.target.style.padding = "0 11px"; }} onBlur={e => { e.target.style.borderColor = T.colorBorderDark; e.target.style.borderWidth = "1px"; e.target.style.padding = "0 12px"; }} />
+                  <div style={{ flex: 1 }} />
+                  <SecondaryButton style={{ height: 36, padding: "0 14px", fontSize: 14 }}>Filters</SecondaryButton>
+                  <button style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, border: "1px solid " + T.colorBorderMedium, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer" }} onMouseEnter={function(e) { e.currentTarget.style.borderColor = "#A5A5A5"; e.currentTarget.style.background = T.colorSurfaceSecondary; }} onMouseLeave={function(e) { e.currentTarget.style.borderColor = T.colorBorderMedium; e.currentTarget.style.background = T.colorSurfacePrimary; }}><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d={_MM_PATHS.plus} stroke={T.colorTextPrimary} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
+                </Fragment>
+              ) : (
+                <Fragment>
+                  <input type="text" placeholder="Search..." value={_laSchSearch} onChange={e => _laSchSetSearch(e.target.value)} style={{ height: 36, padding: "0 12px", border: "1px solid " + T.colorBorderDark, borderRadius: 6, fontSize: 14, fontFamily: T.fontFamily, outline: "none", width: 200, color: T.colorTextPrimary, background: T.colorSurfacePrimary }} onFocus={e => { e.target.style.borderColor = T.colorBrandPrimary; e.target.style.borderWidth = "2px"; e.target.style.padding = "0 11px"; }} onBlur={e => { e.target.style.borderColor = T.colorBorderDark; e.target.style.borderWidth = "1px"; e.target.style.padding = "0 12px"; }} />
+                  <div style={{ flex: 1 }} />
+                  <Dropdown value="mar-dec-2026" options={[{ label: "1 Mar 2026 – 31 Dec 2026", value: "mar-dec-2026" }]} onChange={function() {}} size="sm" width={240} />
+                  <Dropdown value={_laSchAcctFilter} options={_laAccountOptions} onChange={_laSchSetAcctFilter} size="sm" width={260} />
+                  {_laInterestToggle}
+                </Fragment>
+              )}
+            </div>
+            {/* Table */}
+            <div style={{ overflowX: "auto", overflowY: "auto", flex: "1 1 auto", minHeight: 0 }}>
+              <table style={{ borderCollapse: "separate", borderSpacing: 0, minWidth: _laFixedW + _laVisMonths.length * _laColW.month, width: "100%", tableLayout: "fixed" }}>
+                <colgroup>
+                  <col style={{ width: _laColW.desc }} />
+                  <col style={{ width: _laColW.acct }} />
+                  <col style={{ width: _laColW.rate }} />
+                  <col style={{ width: _laColW.amount }} />
+                  <col style={{ width: _laColW.bfwd }} />
+                  {_laVisMonths.map(vm => <col key={vm.key} style={{ width: _laColW.month }} />)}
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th style={{ ..._laThS, ..._laStickyCol, zIndex: 4, width: _laColW.desc, minWidth: _laColW.desc }}>
+                      <div style={{ display: "flex", alignItems: "center" }}>Description <_laSortIcon /></div>
+                    </th>
+                    <th style={{ ..._laThS, width: _laColW.acct, minWidth: _laColW.acct }}>
+                      <div style={{ display: "flex", alignItems: "center" }}>Loan account <_laSortIcon /></div>
+                    </th>
+                    <th style={{ ..._laThS, width: _laColW.rate, minWidth: _laColW.rate, textAlign: "right" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>Rate</div>
+                    </th>
+                    <th style={{ ..._laThS, width: _laColW.amount, minWidth: _laColW.amount, textAlign: "right" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>Loan amount <_laSortIcon /></div>
+                    </th>
+                    <th style={{ ..._laThS, width: _laColW.bfwd, minWidth: _laColW.bfwd, textAlign: "right", whiteSpace: "normal", lineHeight: "1.3" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>Balance fwd (Mar 26) <_laSortIcon /></div>
+                    </th>
+                    {_laVisMonths.map(vm => {
+                      const isCur = vm.key === _laScheduled;
+                      return (
+                        <th key={vm.key} style={{ ..._laThS, width: _laColW.month, minWidth: _laColW.month, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : T.colorSurfacePrimary }}>
+                          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}>
+                            <span>{vm.label}</span>
+                            {isCur && <span style={{ display: "inline-flex", alignItems: "center", background: "#ECECEC", color: "#757980", borderRadius: 4, padding: "1px 5px", fontSize: 10, fontWeight: 600, lineHeight: "15px", whiteSpace: "nowrap" }}>Current</span>}
+                          </div>
+                        </th>
+                      );
+                    })}
+                  </tr>
+                </thead>
+                <tbody>
+                  {_laFiltered.map(loan => (
+                    <tr key={loan.id}
+                      onMouseEnter={e => { e.currentTarget.style.background = T.colorSurfaceSecondary; e.currentTarget.querySelectorAll("[data-sticky]").forEach(td => { td.style.background = T.colorSurfaceSecondary; }); }}
+                      onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelectorAll("[data-sticky]").forEach(td => { td.style.background = T.colorSurfacePrimary; }); }}>
+                      <td data-sticky="1" style={{ ..._laCellS, ..._laStickyCol }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 2, alignItems: "flex-start" }}>
+                          <span style={{ fontWeight: 500, color: T.colorTextPrimary }}>{loan.description}</span>
+                          {_laDescBadge(loan)}
+                        </div>
+                      </td>
+                      <td style={{ ..._laCellS }}>{loan.loanAccount}</td>
+                      <td style={{ ..._laCellS, textAlign: "right" }}>{loan.rate}%</td>
+                      <td style={{ ..._laCellS, textAlign: "right" }}>{_laFmt(loan.loanAmount)}</td>
+                      <td style={{ ..._laCellS, textAlign: "right" }}>{loan.balanceForward > 0 ? _laFmt(loan.balanceForward) : "–"}</td>
+                      {_laVisMonths.map(vm => {
+                        const isCur = vm.key === _laScheduled;
+                        return (
+                          <td key={vm.key} style={{ ..._laCellS, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : "transparent" }}>
+                            {_laRenderCell(loan, vm)}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td style={{ ..._laFtrS, ..._laStickyCol }} colSpan={1}>Total additions</td>
+                    <td style={{ ..._laFtrS }} colSpan={4}></td>
+                    {_laVisMonths.map(vm => {
+                      const isCur = vm.key === _laScheduled;
+                      return <td key={vm.key} style={{ ..._laFtrS, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : "transparent" }}>{_laTotAdditions[vm.key] ? _laFmt(_laTotAdditions[vm.key]) : "–"}</td>;
+                    })}
+                  </tr>
+                  <tr>
+                    <td style={{ ..._laFtrS, ..._laStickyCol }} colSpan={1}>Total repayments</td>
+                    <td style={{ ..._laFtrS }} colSpan={4}></td>
+                    {_laVisMonths.map(vm => {
+                      const isCur = vm.key === _laScheduled;
+                      return <td key={vm.key} style={{ ..._laFtrS, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : "transparent" }}>{_laTotRepayments[vm.key] ? "(" + _laFmt(_laTotRepayments[vm.key]) + ")" : "–"}</td>;
+                    })}
+                  </tr>
+                  {_laSchShowInterest && (
+                    <tr>
+                      <td style={{ ..._laFtrS, ..._laStickyCol }} colSpan={1}>Total interest</td>
+                      <td style={{ ..._laFtrS }} colSpan={4}></td>
+                      {_laVisMonths.map(vm => {
+                        const isCur = vm.key === _laScheduled;
+                        return <td key={vm.key} style={{ ..._laFtrS, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : "transparent" }}>{_laTotInterest[vm.key] ? "(" + _laFmt(_laTotInterest[vm.key]) + ")" : "–"}</td>;
+                      })}
+                    </tr>
+                  )}
+                  <tr>
+                    <td style={{ ..._laFtrS, ..._laStickyCol }} colSpan={1}>Closing balance</td>
+                    <td style={{ ..._laFtrS }} colSpan={4}></td>
+                    {_laVisMonths.map(vm => {
+                      const isCur = vm.key === _laScheduled;
+                      return <td key={vm.key} style={{ ..._laFtrS, textAlign: "right", background: isCur ? T.colorSurfaceSecondary : "transparent" }}>{_laFmt(_laTotClosing[vm.key] || 0)}</td>;
+                    })}
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+          {/* Right suggestions panel */}
+          {(function() {
+            const _hasResults = reviewState && reviewState.hasResults;
+            return (
+              <div style={{ width: _laSchSugOpen ? 600 : 0, flexShrink: 0, borderLeft: _laSchSugOpen ? "1px solid " + T.colorBorderDark : "none", display: "flex", flexDirection: "column", overflow: "hidden", transition: "width 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
+                {_hasResults ? (
+                  <LoanAmortisationReviewFlow key={"la-panel-" + (reviewState ? reviewState.resolved : 0)} embedded={true} hideChat={true} onClose={onClose} selectedPeriod="April 2026" onStateChange={onReviewStateChange} savedState={reviewState} externalBoxesOpen={false} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
+                ) : (
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "80px 24px 48px", gap: 12, background: T.colorSurfacePrimary }}>
+                    <span style={{ fontSize: 15, fontWeight: 600, color: T.colorTextPrimary }}>No suggestions to show</span>
+                    <span style={{ fontSize: 14, fontWeight: 400, color: T.colorTextSecondary, maxWidth: 260, lineHeight: "22px" }}>Start loan amortisation review to get suggestions</span>
+                    <button onClick={function() { _laSchSetSugOpen(false); if (onToggleMode) onToggleMode(); }} style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 44, padding: "8px 16px 8px 12px", border: "1px solid " + T.colorBorderMedium, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, fontFamily: T.fontFamily, whiteSpace: "nowrap", marginTop: 4, transition: "border-color 0.15s, background 0.15s" }}
+                      onMouseEnter={function(e) { e.currentTarget.style.borderColor = T.colorBorderHover; e.currentTarget.style.background = T.colorSurfaceSecondary; }}
+                      onMouseLeave={function(e) { e.currentTarget.style.borderColor = T.colorBorderMedium; e.currentTarget.style.background = T.colorSurfacePrimary; }}>
+                      <PlayCircleIcon color="currentColor" size={20} />Review loan schedules
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 // ── Loan Amortisation Review Flow ─────────────────────────────────────────
 
 var _LA_STEPS = [
@@ -3654,7 +3966,7 @@ var _LA_NAV_CATS = [
 ];
 
 function LoanAmortisationReviewFlow(_ref) {
-  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment;
+  var onClose = _ref.onClose, selectedPeriod = _ref.selectedPeriod || "April 2026", onStateChange = _ref.onStateChange, savedState = _ref.savedState, adjComments = _ref.adjComments || {}, onAddAdjComment = _ref.onAddAdjComment, embedded = _ref.embedded || false, externalBoxesOpen = _ref.externalBoxesOpen, hideChat = _ref.hideChat || false;
   var _laOcUI = _adjUseCommentUI();
   var _laInitResume = !!(savedState && savedState.hasResults);
   var _s = useState(_laInitResume); var _laIsResume = _s[0], _laSetIsResume = _s[1];
@@ -3663,7 +3975,7 @@ function LoanAmortisationReviewFlow(_ref) {
   _s = useState(_laInitResume ? _LA_STEPS.length : 0); var _laVisibleSteps = _s[0], _laSetVisibleSteps = _s[1];
   _s = useState(_laInitResume); var _laStepsPopulated = _s[0], _laSetStepsPopulated = _s[1];
   _s = useState(_laInitResume); var _laStepsCollapsed = _s[0], _laSetStepsCollapsed = _s[1];
-  _s = useState(_laInitResume); var _laResultsVisible = _s[0], _laSetResultsVisible = _s[1];
+  _s = useState(_laInitResume && (!embedded || hideChat)); var _laResultsVisible = _s[0], _laSetResultsVisible = _s[1];
   _s = useState(_laInitResume); var _laCanvasReady = _s[0], _laSetCanvasReady = _s[1];
   _s = useState(false); var _laBoxesOpen = _s[0], _laSetBoxesOpen = _s[1];
   _s = useState(400); var _laChatWidth = _s[0], _laSetChatWidth = _s[1];
@@ -3678,6 +3990,8 @@ function LoanAmortisationReviewFlow(_ref) {
   _s = useState(selectedPeriod); var _laActivePeriod = _s[0], _laSetActivePeriod = _s[1];
   _s = useState(0); var _laRestartKey = _s[0], _laSetRestartKey = _s[1];
   var _laChatScrollRef = useRef(null), _laChatEndRef = useRef(null), _laPeriodDropRef = useRef(null);
+
+  var _laEffBoxesOpen = (embedded && externalBoxesOpen !== undefined) ? (externalBoxesOpen && _laCanvasReady) : _laBoxesOpen;
 
   var _laAllMonths = ["April 2025","May 2025","June 2025","July 2025","August 2025","September 2025","October 2025","November 2025","December 2025","January 2026","February 2026","March 2026","April 2026"];
   var _laCurrentIdx = _laAllMonths.indexOf("April 2026");
@@ -3749,9 +4063,9 @@ function LoanAmortisationReviewFlow(_ref) {
   };
 
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
+    <div style={embedded ? { display: "flex", flex: 1, flexDirection: "column", overflow: "hidden", background: T.colorSurfaceContrast } : { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 320, display: "flex", flexDirection: "column", fontFamily: "'Inter', sans-serif", background: T.colorSurfaceContrast }}>
       <style>{`@keyframes _laFadeIn{from{opacity:0}to{opacity:1}} @keyframes _laStepReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes _laStepPop{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}} @keyframes _laTextShimmer{0%{background-position:200% center}100%{background-position:-200% center}}`}</style>
-      <div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
+      {!embedded && <div style={{ height: 96, background: T.colorSurfacePrimary, borderBottom: "1px solid " + T.colorButtonSecondary, display: "flex", alignItems: "center", padding: "0 24px", flexShrink: 0, gap: 16, zIndex: 10, position: "relative" }}>
         <span style={{ fontSize: 24, fontWeight: 500, color: T.colorTextPrimary, letterSpacing: "-1px", flexShrink: 0 }}>Loan amortisation review</span>
         <div ref={_laPeriodDropRef} style={{ position: "relative" }}>
           <button onClick={function() { _laSetPeriodDropOpen(function(o) { return !o; }); }} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "0 12px", height: 48, border: "1px solid " + T.colorBorderDark, borderRadius: 8, background: T.colorSurfacePrimary, cursor: "pointer", fontSize: 14, fontWeight: 500, color: T.colorTextPrimary, fontFamily: "'Inter', sans-serif", whiteSpace: "nowrap" }}>
@@ -3795,9 +4109,9 @@ function LoanAmortisationReviewFlow(_ref) {
           </button>
         )}
         <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", padding: 0 }}><svg width="30" height="30" viewBox="0 0 30 30" fill="none"><rect width="30" height="30" rx="15" fill="#F5F5F5"/><path d="M20 10L10 20M10 10L20 20" stroke="#2A2A2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
-      </div>
+      </div>}
       <div style={{ display: "flex", flex: 1, overflow: "hidden", position: "relative", padding: 16 }}>
-        <div style={{ display: "flex", flexDirection: "column", width: _laResultsVisible ? _laChatWidth : "100%", flexShrink: 0, transition: _laIsDragging ? "none" : "width 0.72s cubic-bezier(0.16,1,0.3,1)", overflow: "hidden", willChange: "width", position: "relative", zIndex: 1 }}>
+        <div style={{ display: hideChat ? "none" : "flex", flexDirection: "column", width: _laResultsVisible ? _laChatWidth : "100%", flexShrink: 0, transition: _laIsDragging ? "none" : "width 0.72s cubic-bezier(0.16,1,0.3,1)", overflow: "hidden", willChange: "width", position: "relative", zIndex: 1 }}>
           {_laResultsVisible && (
             <button onClick={function() { _laChatScrollRef.current && _laChatScrollRef.current.scrollTo({ top: _laChatScrollRef.current.scrollHeight, behavior: "smooth" }); }}
               style={{ position: "absolute", bottom: 218, left: "50%", transform: "translateX(-50%)", zIndex: 10, width: 32, height: 32, borderRadius: "50%", background: T.colorSurfacePrimary, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)", opacity: _laIsAtBottom ? 0 : 1, pointerEvents: _laIsAtBottom ? "none" : "auto", transition: "opacity 0.35s ease" }}
@@ -3898,8 +4212,8 @@ function LoanAmortisationReviewFlow(_ref) {
             </div>
           )}
         </div>
-        {_laResultsVisible && (<div onMouseDown={_laHandleDragStart} style={{ position: "absolute", top: 0, bottom: 0, left: _laChatWidth + 16, width: 16, cursor: "col-resize", zIndex: 5, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ width: 4, height: 40, borderRadius: 2, background: _laIsDragging ? T.colorBorderHover : "transparent", transition: "background 0.15s" }} /></div>)}
-        <div style={{ position: "absolute", top: 16, bottom: 16, left: _laChatWidth + 32, right: _laBoxesOpen ? 432 : 16, background: T.colorSurfacePrimary, borderRadius: 8, border: "1px solid " + T.colorButtonSecondary, overflow: "hidden", zIndex: 2, transform: _laResultsVisible ? "none" : "translateX(calc(100% + 32px))", transition: _laIsDragging ? "none" : "transform 0.72s cubic-bezier(0.16,1,0.3,1), right 0.35s cubic-bezier(0.16,1,0.3,1)", willChange: _laResultsVisible ? "auto" : "transform" }}>
+        {_laResultsVisible && !hideChat && (<div onMouseDown={_laHandleDragStart} style={{ position: "absolute", top: 0, bottom: 0, left: _laChatWidth + 16, width: 16, cursor: "col-resize", zIndex: 5, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ width: 4, height: 40, borderRadius: 2, background: _laIsDragging ? T.colorBorderHover : "transparent", transition: "background 0.15s" }} /></div>)}
+        <div style={{ position: "absolute", top: 16, bottom: 16, left: hideChat ? 0 : _laChatWidth + 32, right: _laEffBoxesOpen ? 432 : 16, background: T.colorSurfacePrimary, borderRadius: 8, border: "1px solid " + T.colorButtonSecondary, overflow: "hidden", zIndex: 2, transform: _laResultsVisible ? "none" : "translateX(calc(100% + 32px))", transition: _laIsDragging ? "none" : "transform 0.72s cubic-bezier(0.16,1,0.3,1), right 0.35s cubic-bezier(0.16,1,0.3,1)", willChange: _laResultsVisible ? "auto" : "transform" }}>
           {_laCanvasReady ? (
             <div style={{ animation: "_laFadeIn 0.4s ease 0.1s both", height: "100%", overflowY: "auto" }}>
               <div style={{ padding: "48px 48px 48px", maxWidth: 800, margin: "0 auto" }}>
@@ -3971,7 +4285,7 @@ function LoanAmortisationReviewFlow(_ref) {
           ) : _laResultsVisible ? <CanvasLoader /> : null}
         </div>
         {_laCanvasReady && (
-          <div style={{ position: "absolute", top: 16, bottom: 16, right: 16, width: 400, zIndex: 3, transform: _laBoxesOpen ? "translateX(0)" : "translateX(calc(100% + 32px))", transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1)", pointerEvents: _laBoxesOpen ? "auto" : "none", display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ position: "absolute", top: 16, bottom: 16, right: 16, width: 400, zIndex: 3, transform: _laEffBoxesOpen ? "translateX(0)" : "translateX(calc(100% + 32px))", transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1)", pointerEvents: _laEffBoxesOpen ? "auto" : "none", display: "flex", flexDirection: "column", gap: 16 }}>
             <div style={{ background: T.colorSurfacePrimary, borderRadius: 8, border: "1px solid " + T.colorButtonSecondary, overflow: "hidden", flexShrink: 0 }}>
               <div style={{ padding: "18px 20px" }}><span style={{ fontSize: 16, fontWeight: 500, color: T.colorTextPrimary }}>Linked sources</span></div>
               <div style={{ borderTop: "1px solid " + T.colorSurfaceActive, padding: "12px 10px 16px" }}>
@@ -5016,17 +5330,17 @@ registerPage("Adjustments", {
             <OverviewCard
               title="Loan amortisation"
               updatedAt="5 Mar, 10:15"
-              onViewSchedule={function() {}}
+              onViewSchedule={function() { setActiveScheduleType("loan_amortisation"); }}
               onRun={function() { setLoanReviewOpen(true); }}
               workflow={loanReviewState && loanReviewState.hasResults
                 ? { label: "Review loan schedules", status: "suggestions", resolved: loanReviewState.resolved, total: loanReviewState.total }
                 : { label: "Review loan schedules", status: "not_started" }}
               metrics={{
-                opening: "£205,800.00",
+                opening: "£261,400.00",
                 openingGl: null,
                 additions: "£0.00",
-                releases: "(£4,400.00)",
-                closing: "£202,400.00",
+                releases: "(£6,400.00)",
+                closing: "£255,000.00",
                 closingGl: _computeGlBadge(_glConfig.loanAmort, loanReviewState),
               }}
             />
@@ -5176,6 +5490,7 @@ registerPage("Adjustments", {
             deferred_revenue: deferredRevenueReviewState && deferredRevenueReviewState.hasResults ? deferredRevenueReviewState.total - deferredRevenueReviewState.resolved : null,
             accrued_income: accruedIncomeReviewState && accruedIncomeReviewState.hasResults ? accruedIncomeReviewState.total - accruedIncomeReviewState.resolved : null,
             depreciation: depreciationReviewState && depreciationReviewState.hasResults ? depreciationReviewState.total - depreciationReviewState.resolved : null,
+            loan_amortisation: loanReviewState && loanReviewState.hasResults ? loanReviewState.total - loanReviewState.resolved : null,
           };
           var _schSugCount = activeScheduleType ? _schSugMap[activeScheduleType] : null;
           return (
@@ -5185,6 +5500,7 @@ registerPage("Adjustments", {
               <DeferredRevenueSchedulePage open={activeScheduleType === "deferred_revenue"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_DRR_CARDS} reviewState={deferredRevenueReviewState} onReviewStateChange={setDeferredRevenueReviewState} reviewTitle="Deferred revenue review" onRunReview={function() { setScheduleViewMode("ai"); }} viewMode={activeScheduleType === "deferred_revenue" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
               <AccruedIncomeSchedulePage open={activeScheduleType === "accrued_income"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} sugCards={_AIR_CARDS} reviewState={accruedIncomeReviewState} onReviewStateChange={setAccruedIncomeReviewState} reviewTitle="Accrued revenue review" onRunReview={function() { setScheduleViewMode("ai"); }} viewMode={activeScheduleType === "accrued_income" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
               <DepreciationSchedulePage open={activeScheduleType === "depreciation"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} reviewState={depreciationReviewState} onReviewStateChange={setDepreciationReviewState} viewMode={activeScheduleType === "depreciation" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
+              <LoanAmortisationSchedulePage open={activeScheduleType === "loan_amortisation"} onClose={function() { setActiveScheduleType(null); setScheduleViewMode("schedule"); }} activeScheduleType={activeScheduleType} onScheduleTypeChange={setActiveScheduleType} suggestionsCount={_schSugCount} reviewState={loanReviewState} onReviewStateChange={setLoanReviewState} viewMode={activeScheduleType === "loan_amortisation" ? scheduleViewMode : "schedule"} onToggleMode={function() { setScheduleViewMode(scheduleViewMode === "ai" ? "schedule" : "ai"); }} adjComments={adjComments} onAddAdjComment={onAddAdjComment} />
             </Fragment>
           );
         })()}

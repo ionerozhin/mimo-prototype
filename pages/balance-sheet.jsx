@@ -1039,10 +1039,11 @@ const BS_SECTIONS = [
         title: "Non-current liabilities",
         rows: [
           { code: "2400", account: "Bank loan — Lloyds (5yr)",         closingBalance: "£180,000.00", vsLastMonth: "-£3,000.00",  pct: "-1.6%", trend: { dir: "down", months: 12 }, xeroBalance: "£180,000.00", sourceBalance: "£177,000.00", variance: "£3,000.00", suggestions: null, status: "Not started" },
-          { code: "2410", account: "Finance lease obligations",        closingBalance: "£22,400.00",  vsLastMonth: "-£1,400.00",   pct: "-5.9%", trend: { dir: "down", months: 8 },  xeroBalance: "£22,400.00",  sourceBalance: "£22,400.00",  variance: "£0.00",      suggestions: null, status: "Not started" },
+          { code: "2401", account: "Business loan — NatWest (3yr)",   closingBalance: "£58,000.00",  vsLastMonth: "-£2,000.00",  pct: "-3.3%", trend: { dir: "down", months: 1 },  xeroBalance: "£58,000.00",  sourceBalance: "£58,000.00",  variance: "£0.00",      suggestions: null, status: "Not started" },
+          { code: "2410", account: "Finance lease obligations",        closingBalance: "£21,000.00",  vsLastMonth: "-£1,400.00",   pct: "-6.3%", trend: { dir: "down", months: 8 },  xeroBalance: "£21,000.00",  sourceBalance: "£21,000.00",  variance: "£0.00",      suggestions: null, status: "Not started" },
           { code: "2420", account: "Deferred tax provision",           closingBalance: "£9,800.00",   vsLastMonth: "+£650.00",     pct: "+7.1%", trend: { dir: "up", months: 3 },    xeroBalance: "£9,800.00",   sourceBalance: "£9,800.00",   variance: "£0.00",      suggestions: null, status: "Not started" },
         ],
-        footer: "3 accounts",
+        footer: "4 accounts",
       },
     ],
   },
